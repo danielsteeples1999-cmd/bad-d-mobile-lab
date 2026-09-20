@@ -1,0 +1,24 @@
+{
+  "concurrency": 4,
+  "fileCount": 1,
+  "cancelAfterMs": null,
+  "durationMs": 183,
+  "statusText": "Done. 1/1 passed validation.",
+  "summary": [
+    {
+      "name": "synth_track_001.wav",
+      "status": "passed",
+      "duration": "12.0s",
+      "sha256": "683edbcca351…",
+      "timingMs": "84"
+    }
+  ],
+  "passedCount": 1,
+  "failedCount": 0,
+  "cancelledCount": 0,
+  "warningCount": 0,
+  "maxHeapMB": null,
+  "heapSampleCount": 0,
+  "consoleErrors": [],
+  "pageErrors": []
+}

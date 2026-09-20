@@ -1,0 +1,48 @@
+{
+  "concurrency": 4,
+  "fileCount": 4,
+  "cancelAfterMs": null,
+  "durationMs": 179,
+  "statusText": "Done. 2/4 passed validation.",
+  "summary": [
+    {
+      "name": "exact-duplicate-different-name.wav",
+      "status": "passed",
+      "duration": "15.0s",
+      "sha256": "beeba6b68ad5…",
+      "timingMs": "96"
+    },
+    {
+      "name": "garbage.wav",
+      "status": "failed",
+      "duration": "—",
+      "sha256": "b43e0c0d8e4c…",
+      "timingMs": "16"
+    },
+    {
+      "name": "original.wav",
+      "status": "passed",
+      "duration": "15.0s",
+      "sha256": "beeba6b68ad5…",
+      "timingMs": "106"
+    },
+    {
+      "name": "truncated.wav",
+      "status": "failed",
+      "duration": "—",
+      "sha256": "82433bf9e4cc…",
+      "timingMs": "63"
+    }
+  ],
+  "passedCount": 2,
+  "failedCount": 2,
+  "cancelledCount": 0,
+  "warningCount": 0,
+  "maxHeapMB": 2.8,
+  "heapSampleCount": 1,
+  "consoleErrors": [],
+  "pageErrors": [
+    "Unable to decode audio data",
+    "Unable to decode audio data"
+  ]
+}

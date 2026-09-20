@@ -1,0 +1,59 @@
+{
+  "concurrency": 2,
+  "fileCount": 20,
+  "cancelAfterMs": 20,
+  "durationMs": 413,
+  "statusText": "Done. 4/20 passed validation.",
+  "summary": [
+    {
+      "name": "synth_track_001.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "e31350a1f179…",
+      "timingMs": "125"
+    },
+    {
+      "name": "synth_track_002.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "4289921446df…",
+      "timingMs": "165"
+    },
+    {
+      "name": "synth_track_003.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "6bbbd22be874…",
+      "timingMs": "150"
+    },
+    {
+      "name": "synth_track_004.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "743d2ac8a74f…",
+      "timingMs": "146"
+    },
+    {
+      "name": "synth_track_005.wav",
+      "status": "cancelled",
+      "duration": "—",
+      "sha256": "—",
+      "timingMs": "70"
+    },
+    {
+      "name": "synth_track_006.wav",
+      "status": "cancelled",
+      "duration": "—",
+      "sha256": "—",
+      "timingMs": "35"
+    }
+  ],
+  "passedCount": 4,
+  "failedCount": 0,
+  "cancelledCount": 2,
+  "warningCount": 0,
+  "maxHeapMB": 2.4,
+  "heapSampleCount": 2,
+  "consoleErrors": [],
+  "pageErrors": []
+}

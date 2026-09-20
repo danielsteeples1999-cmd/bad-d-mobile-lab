@@ -41,12 +41,24 @@ Nothing in this repository is a production change until separately reviewed agai
 
 ## Current state (2026-09-20)
 
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full intended shape,
+[`SECURITY.md`](SECURITY.md) for what never gets committed here, and
+[`PROMOTION_GATE.md`](PROMOTION_GATE.md) for how a tool moves from
+experimental to (eventually, human-accepted) usable by BAD-D.
+
 - `reference/` — read-only snapshot of the production mobile build
   (`bad_d_meomory` @ `8faf0b44c`), pulled in solely so this lab has something
   concrete to instrument. Never edited in place.
-- `tools/` — reusable diagnostic harnesses (Playwright-based): startup smoke
-  test, synthetic-WAV generator, and bulk-import stress tests for both of the
-  app's intake paths (library vs. Testing Deck).
+- `tools/*.cjs` — reusable diagnostic harnesses (Playwright-based) against
+  that reference build: startup smoke test, synthetic-WAV generator,
+  bulk-import stress tests, CPU profiling, checkpoint-based correctness
+  forensics.
+- `tools/bulk-media-intake/` — standalone media ingestion lab tool (queue,
+  hashing/dedup, decode validation, cancellation), scoped to local files and
+  authorized direct URLs only — see its own `SECURITY.md` note on why
+  platform-specific downloading (e.g. YouTube) is intentionally out of scope.
+- `contracts/` — JSON schemas for cross-tool result formats
+  (`media-result.schema.json`).
 - `experiments/` — the permanent experiment log. Start at
   [`experiments/README.md`](experiments/README.md).
 

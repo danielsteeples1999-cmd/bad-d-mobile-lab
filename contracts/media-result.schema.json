@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/danielsteeples1999-cmd/bad-d-mobile-lab/contracts/media-result.schema.json",
+  "title": "MediaResult",
+  "description": "Output contract for the bulk-media-intake pipeline. Extensible and BAD-D-agnostic by design -- this lab never invents or depends on BAD-D internal APIs. A future adapter (adapters/bulk-media-to-badd) translates this into whatever BAD-D's import/Testing Deck actually expects.",
+  "type": "object",
+  "required": [
+    "resultSchemaVersion",
+    "source",
+    "sourceIdentity",
+    "acquisitionStatus",
+    "localIdentity",
+    "hash",
+    "validationStatus",
+    "timestamps",
+    "experimentId",
+    "toolVersion",
+    "provenance"
+  ],
+  "properties": {
+    "resultSchemaVersion": {
+      "type": "string",
+      "description": "Semver of this schema shape, so old exported results stay interpretable as the schema evolves.",
+      "const": "1.0.0"
+    },
+    "source": {
+      "type": "object",
+      "description": "Where the input came from, before acquisition.",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["local-file", "authorized-url"] },
+        "originalName": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"], "description": "Only present for kind=authorized-url. Never a platform-scraping target -- see SECURITY.md." }
+      }
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "description": "Identity signals available BEFORE acquisition, used for early duplicate detection (cheap check before spending time/bandwidth on acquisition).",
+      "properties": {
+        "url": { "type": ["string", "null"] },
+        "filename": { "type": ["string", "null"] },
+        "declaredSize": { "type": ["integer", "null"] }
+      }
+    },
+    "acquisitionStatus": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed", "cancelled", "skipped-duplicate"]
+    },
+    "localIdentity": {
+      "type": "object",
+      "description": "Identity established AFTER acquisition, from the actual bytes/content.",
+      "properties": {
+        "id": { "type": "string", "description": "Stable local id for this result, e.g. hash-derived." },
+        "byteLength": { "type": ["integer", "null"] }
+      }
+    },
+    "hash": {
+      "type": "object",
+      "description": "Multiple identity levels -- filenames are never treated as reliable identity on their own.",
+      "properties": {
+        "sha256": { "type": ["string", "null"], "description": "Exact-byte duplicate detection." },
+        "audioContentHash": { "type": ["string", "null"], "description": "Cheap decoded-PCM-derived hash for near-duplicate detection across different containers/encodings of the same audio content. NOT a robust acoustic fingerprint -- see EXP-009 for what this cheap hash does and does not catch." }
+      }
+    },
+    "fileFormat": {
+      "type": "object",
+      "properties": {
+        "mimeType": { "type": ["string", "null"] },
+        "container": { "type": ["string", "null"] }
+      }
+    },
+    "duration": { "type": ["number", "null"], "description": "Seconds." },
+    "sampleRate": { "type": ["integer", "null"] },
+    "channels": { "type": ["integer", "null"] },
+    "size": { "type": ["integer", "null"], "description": "Bytes, redundant with localIdentity.byteLength for convenience." },
+    "audioStatus": {
+      "type": "string",
+      "enum": ["not-attempted", "decoded", "decode-failed", "silent", "corrupt", "truncated"]
+    },
+    "validationStatus": {
+      "type": "string",
+      "enum": ["pending", "passed", "failed", "warning"]
+    },
+    "normalisationStatus": {
+      "type": "object",
+      "properties": {
+        "applied": { "type": "boolean" },
+        "changes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Human-readable list of what changed and why, e.g. 'peak-normalized to -1dBFS from -6.2dBFS'. Preserves provenance -- what we acquired vs what we changed."
+        }
+      }
+    },
+    "errors": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "timestamps": {
+      "type": "object",
+      "properties": {
+        "queuedAt": { "type": ["string", "null"], "format": "date-time" },
+        "acquisitionStartedAt": { "type": ["string", "null"], "format": "date-time" },
+        "acquisitionCompletedAt": { "type": ["string", "null"], "format": "date-time" },
+        "validationCompletedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "experimentId": { "type": "string", "description": "Which EXP-NNN record this result was produced under, for traceability." },
+    "toolVersion": { "type": "string" },
+    "provenance": {
+      "type": "object",
+      "description": "Answers: what did we acquire, what did we change, why, original vs resulting identity.",
+      "properties": {
+        "originalIdentity": { "type": ["string", "null"] },
+        "resultingIdentity": { "type": ["string", "null"] },
+        "pipelineStagesRun": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

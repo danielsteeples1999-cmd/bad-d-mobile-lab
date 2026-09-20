@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BAD-D Lab — Bulk Media Intake [EXPERIMENTAL]</title>
+<style>
+  :root{ --bg:#0b0d10; --panel:#12161a; --line:#232a30; --text:#e6edf3; --dim:#8b98a5; --accent:#3ec6ff; --good:#3ecf8e; --bad:#ff5a6e; --warn:#ffb454; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding-bottom:40px}
+  .banner{background:#3a1f00;color:var(--warn);border-bottom:1px solid #5a3300;padding:10px 14px;font-weight:600;font-size:13px}
+  header{padding:16px 14px 8px}
+  h1{font-size:19px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 10px}
+  section{margin:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  section h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:0 0 10px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{background:#1b2229;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer}
+  button.primary{background:var(--accent);color:#00202b;border-color:var(--accent)}
+  button.stop{background:var(--bad);color:#2b0006;border-color:var(--bad)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  input[type=file],input[type=text],input[type=number]{color:var(--text);background:#0a0c0e;border:1px solid var(--line);border-radius:6px;padding:8px;font-size:13px}
+  input[type=text]{width:100%}
+  label.check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);word-break:break-all}
+  th{color:var(--dim);font-weight:600;font-size:10px;text-transform:uppercase}
+  .status-passed{color:var(--good)} .status-warning{color:var(--warn)} .status-failed{color:var(--bad)} .status-pending{color:var(--dim)} .status-cancelled{color:var(--warn)}
+  .log{font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;max-height:160px;overflow:auto;background:#0a0c0e;border:1px solid var(--line);border-radius:6px;padding:8px;margin-top:8px;white-space:pre-wrap}
+  .small{font-size:12px;color:var(--dim)}
+  .progress{height:6px;background:#1a2229;border-radius:3px;overflow:hidden;margin-top:8px}
+  .progress > div{height:100%;background:var(--accent);width:0%;transition:width .2s}
+</style>
+</head>
+<body>
+<div class="banner">⚠ EXPERIMENTAL / LAB — public repo, no connection to BAD-D production or any private library. Local files and direct authorized URLs only. No platform scraping/downloading is implemented — see SECURITY.md.</div>
+<header>
+  <h1>Bulk Media Intake — Lab Tool</h1>
+  <p class="sub">Queue → metadata → acquire → hash → decode-validate → quality check → package. Every stage measured.</p>
+</header>
+
+<section>
+  <h2>1 · Input</h2>
+  <div class="row"><input type="file" id="fileInput" multiple accept="audio/*"></div>
+  <p class="small">or authorized direct URLs (one per line, subject to browser CORS — this is not a bypass mechanism, a source that blocks cross-origin fetches will simply fail here):</p>
+  <textarea id="urlInput" rows="3" style="width:100%;background:#0a0c0e;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:13px"></textarea>
+</section>
+
+<section>
+  <h2>2 · Settings</h2>
+  <div class="row">
+    <label class="small">Concurrency <input type="number" id="concurrency" value="4" min="1" max="16" style="width:60px"></label>
+    <label class="check"><input type="checkbox" id="applyNormalise"> Report normalisation (not applied to bytes in this build)</label>
+  </div>
+</section>
+
+<section>
+  <h2>3 · Run</h2>
+  <div class="row">
+    <button id="startBtn" class="primary">START INTAKE</button>
+    <button id="cancelBtn" class="stop" disabled>CANCEL</button>
+    <button id="exportBtn" disabled>EXPORT RESULTS (.json)</button>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <div id="statusText" class="small" style="margin-top:6px">Idle.</div>
+</section>
+
+<section>
+  <h2>Results</h2>
+  <table id="resultsTable">
+    <thead><tr><th>Name</th><th>Status</th><th>Dur</th><th>SHA256</th><th>ms</th></tr></thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Errors</h2>
+  <div id="errorLog" class="log">No errors.</div>
+</section>
+
+<script src="pipeline.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  let currentRun = null, lastResults = null;
+
+  function logError(msg){
+    const el = $('errorLog');
+    if(el.textContent === 'No errors.') el.textContent = '';
+    el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  }
+  window.addEventListener('error', e => logError('page error: ' + e.message));
+
+  function renderRow(idx, r){
+    let row = document.getElementById('row-' + idx);
+    if(!row){
+      row = document.createElement('tr');
+      row.id = 'row-' + idx;
+      $('resultsBody').appendChild(row);
+    }
+    const name = (r.source && (r.source.originalName || r.source.url)) || '(item ' + idx + ')';
+    // acquisitionStatus wins when the item never reached validation (cancelled/
+    // failed before decode) -- validationStatus defaults to the truthy string
+    // 'pending', so a naive `validationStatus || acquisitionStatus` fallback
+    // never shows 'cancelled'/early 'failed'. Found via the cancellation
+    // experiment (EXP-009) -- see its README for the reproduction.
+    const acq = r.acquisitionStatus;
+    const status = (acq === 'cancelled' || acq === 'failed') ? acq : (r.validationStatus || acq || 'pending');
+    row.innerHTML = '<td>' + name + '</td><td class="status-' + status + '">' + status + '</td><td>' + (r.duration ? r.duration.toFixed(1)+'s' : '—') + '</td><td>' + (r.hash && r.hash.sha256 ? r.hash.sha256.slice(0,12)+'…' : '—') + '</td><td>' + (r.__timingMs ? r.__timingMs.toFixed(0) : '—') + '</td>';
+  }
+
+  async function start(){
+    const files = Array.from($('fileInput').files || []);
+    const urls = $('urlInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const items = [
+      ...files.map(f => ({ kind:'local-file', file:f, queuedAt: new Date().toISOString() })),
+      ...urls.map(u => ({ kind:'authorized-url', url:u, queuedAt: new Date().toISOString() })),
+    ];
+    if(!items.length){ $('statusText').textContent = 'No input provided.'; return; }
+
+    $('resultsBody').innerHTML = '';
+    $('errorLog').textContent = 'No errors.';
+    $('startBtn').disabled = true; $('cancelBtn').disabled = false; $('exportBtn').disabled = true;
+    $('progressBar').style.width = '0%';
+    $('statusText').textContent = 'Running ' + items.length + ' item(s), concurrency ' + $('concurrency').value + '…';
+
+    const concurrency = Math.max(1, parseInt($('concurrency').value, 10) || 1);
+    const applyNormalise = $('applyNormalise').checked;
+    const experimentId = 'manual-run-' + Date.now();
+
+    currentRun = window.BADD_BULK_INTAKE.runBatch(items, {
+      concurrency, experimentId, applyNormalise,
+      onItemStart: (idx) => { renderRow(idx, {}); },
+      onItemDone: (idx, r) => { renderRow(idx, r); if(r.errors && r.errors.length) r.errors.forEach(e => logError('item ' + idx + ': ' + e)); },
+      onProgress: (done, total) => { $('progressBar').style.width = Math.round(100*done/total) + '%'; $('statusText').textContent = done + '/' + total + ' complete'; },
+    });
+
+    lastResults = await currentRun.promise;
+    $('startBtn').disabled = false; $('cancelBtn').disabled = true; $('exportBtn').disabled = false;
+    $('statusText').textContent = 'Done. ' + lastResults.filter(r=>r.validationStatus==='passed').length + '/' + lastResults.length + ' passed validation.';
+  }
+
+  $('startBtn').addEventListener('click', start);
+  $('cancelBtn').addEventListener('click', () => { if(currentRun) currentRun.cancel(); $('statusText').textContent = 'Cancelling…'; });
+  $('exportBtn').addEventListener('click', () => {
+    if(!lastResults) return;
+    const blob = new Blob([JSON.stringify(lastResults, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'badd-lab-bulk-intake-results-' + Date.now() + '.json';
+    a.click();
+  });
+})();
+</script>
+</body>
+</html>
