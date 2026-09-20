@@ -38,3 +38,24 @@ Every experiment should state:
 
 ## Promotion rule
 Nothing in this repository is a production change until separately reviewed against the main BAD-D repository and deliberately promoted.
+
+## Current state (2026-09-20)
+
+- `reference/` — read-only snapshot of the production mobile build
+  (`bad_d_meomory` @ `8faf0b44c`), pulled in solely so this lab has something
+  concrete to instrument. Never edited in place.
+- `tools/` — reusable diagnostic harnesses (Playwright-based): startup smoke
+  test, synthetic-WAV generator, and bulk-import stress tests for both of the
+  app's intake paths (library vs. Testing Deck).
+- `experiments/` — the permanent experiment log. Start at
+  [`experiments/README.md`](experiments/README.md).
+
+**Headline finding so far:** the Testing Deck's autonomous pipeline
+(`#testingFiles` → `runAutoPipelineQueue`) fails on every track with
+`ReferenceError: computeFingerprint is not defined` — a scope-export bug
+between two sibling IIFEs in the production build, not a memory or
+crash-hardening problem. See
+[`experiments/EXP-003`](experiments/EXP-003/README.md) for the full
+root-cause writeup and evidence. This cannot be fixed from this lab (no
+write access to `bad_d_meomory`); it needs to be handed to whoever owns that
+repo.

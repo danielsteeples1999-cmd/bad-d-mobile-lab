@@ -1,0 +1,75 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 5,
+  "startedAt": "2026-09-20T11:11:12.430Z",
+  "samples": [
+    {
+      "tMs": 62,
+      "libraryLength": 0,
+      "statusText": "analyzing 1/5: synth_track_001.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 566,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 1069,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 1572,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 2074,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 2577,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 3079,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 3581,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    },
+    {
+      "tMs": 4083,
+      "libraryLength": 5,
+      "statusText": "5 track(s) in library · analyzed 5, 0 from cache · five-scan prepared 5",
+      "heapUsedMB": 10,
+      "heapLimitMB": 3760
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "finalLibraryLength": 5,
+  "crashed": false,
+  "timedOut": false
+}

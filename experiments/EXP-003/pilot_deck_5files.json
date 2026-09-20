@@ -1,0 +1,91 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 5,
+  "startedAt": "2026-09-20T11:13:51.311Z",
+  "heapConstraintMb": 256,
+  "samples": [
+    {
+      "tMs": 64,
+      "readoutText": "AUTO INTAKE · decoding synth_track_003.wav once…",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 568,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 1072,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 1575,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 2078,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 2581,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 3083,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 3587,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 4089,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 4593,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 5095,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 5599,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 6101,
+      "readoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "crashed": false,
+  "timedOut": false,
+  "finalReadoutText": "AUTO PIPELINE · analysis failed: computeFingerprint is not defined"
+}

@@ -1,0 +1,22 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "url": "file:///home/user/bad-d-mobile-lab/reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "startedAt": "2026-09-20T11:09:43.881Z",
+  "emulation": "Pixel 7 (mobile Chrome profile)",
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "timing": {
+    "loadEventMs": 736,
+    "settledMs": 2237
+  },
+  "heap": {
+    "usedMB": 10,
+    "totalMB": 11.2,
+    "limitMB": 3760
+  },
+  "titleText": "BAD-D // SIGNAL — Command Center · v15.62.7 Auto Testing + DJ Handoff",
+  "detectedDevice": "DEVICE_TIER undefined in page scope",
+  "ok": true
+}
