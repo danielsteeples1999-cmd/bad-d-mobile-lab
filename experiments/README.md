@@ -38,6 +38,7 @@ NEXT QUESTION
 | [EXP-001](EXP-001/README.md) | Does the mobile build start cleanly (no ReferenceError/syntax failure) under headless mobile emulation? | Clean start, no errors | Confirmed |
 | [EXP-002](EXP-002/README.md) | Does the library bulk-import path (`#fileLib` → `processLibraryQueue`) survive a batch well past the reported 18–27 track crash point, under a constrained heap proxy? | 45/45 committed, flat heap, no crash | Passed — but see caveats on synthetic-file realism |
 | [EXP-003](EXP-003/README.md) | Does the Testing Deck autonomous pipeline (`#testingFiles` → `runAutoPipelineQueue`) process tracks correctly? | **No — 100% of tracks fail immediately** with `ReferenceError: computeFingerprint is not defined` | Confirmed broken; root cause identified |
+| [EXP-004](EXP-004/README.md) | Does the library bulk-import path survive a page reload mid-batch ("refresh" crash-safety requirement)? | **No** — `library.length` resets to 0; fingerprint cache (`cacheStore`) does survive and avoids re-analysis on resubmit | Confirmed: compute evidence survives, session/UI state does not |
 | [graveyard/EXP-000](graveyard/EXP-000-heap-pressure-asymmetry.md) | Is the Testing Deck's missing heap-pressure cooldown (vs. library intake's `yieldForMemoryPressure`) the main crash mechanism? | Superseded — pipeline never gets far enough to hit memory pressure | Retired, worth reopening after EXP-003's bug is fixed |
 
 ## Reusable tools (see `../tools/`)
@@ -46,3 +47,4 @@ NEXT QUESTION
 - `make_synth_wavs.cjs` — generates N small valid decodable WAV files with distinct sizes (avoids dedupe collapse).
 - `bulk_import_stress.cjs` — drives `#fileLib` with N files, polls `window.library.length` + heap, optional `BADD_HEAP_MB` constraint.
 - `testing_deck_stress.cjs` — drives `#testingFiles` (Testing Deck autonomous pipeline) the same way, polls the optimizer readout element.
+- `reload_recovery_probe.cjs` — imports a batch, reloads mid-batch, checks whether library state and/or the fingerprint cache survive.

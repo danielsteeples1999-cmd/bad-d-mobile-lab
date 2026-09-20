@@ -1,0 +1,18 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 12,
+  "startedAt": "2026-09-20T11:39:27.020Z",
+  "waitBeforeReloadMs": 3000,
+  "libraryLengthBeforeReload": 6,
+  "statusTextBeforeReload": "analyzing 7/12: synth_track_007.wav",
+  "libraryLengthAfterReload": 0,
+  "statusTextAfterReload": null,
+  "recoveryUiTextFound": true,
+  "resubmit": {
+    "statusText": "12 track(s) in library · analyzed 6, 6 from cache · five-scan prepared 12",
+    "libraryLength": 12,
+    "cacheHitsMentioned": true
+  },
+  "consoleErrors": [],
+  "pageErrors": []
+}
