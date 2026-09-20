@@ -1,0 +1,160 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 15,
+  "startedAt": "2026-09-20T12:25:06.528Z",
+  "importDurationMs": 16188,
+  "profileDurationMs": 16215.3,
+  "totalSamples": 51167,
+  "topFunctionsBySelfTime": [
+    {
+      "key": "fft @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:1617",
+      "hits": 14071,
+      "estMs": 4471.8,
+      "pct": 27.6
+    },
+    {
+      "key": "simpleFFTMag @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:1599",
+      "hits": 11060,
+      "estMs": 3514.9,
+      "pct": 21.7
+    },
+    {
+      "key": "(idle):-1",
+      "hits": 10535,
+      "estMs": 3348.1,
+      "pct": 20.6
+    },
+    {
+      "key": "computeFingerprint @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:1646",
+      "hits": 10005,
+      "estMs": 3179.6,
+      "pct": 19.6
+    },
+    {
+      "key": "(program):-1",
+      "hits": 2725,
+      "estMs": 866,
+      "pct": 5.3
+    },
+    {
+      "key": "computeFingerprint @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:4996",
+      "hits": 1250,
+      "estMs": 397.3,
+      "pct": 2.4
+    },
+    {
+      "key": "(garbage collector):-1",
+      "hits": 711,
+      "estMs": 226,
+      "pct": 1.4
+    },
+    {
+      "key": "quickEnergyScan @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:4820",
+      "hits": 300,
+      "estMs": 95.3,
+      "pct": 0.6
+    },
+    {
+      "key": "runHealthGate @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:4970",
+      "hits": 41,
+      "estMs": 13,
+      "pct": 0.1
+    },
+    {
+      "key": "querySelectorAll:-1",
+      "hits": 16,
+      "estMs": 5.1,
+      "pct": 0
+    },
+    {
+      "key": "(anonymous) @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:1967",
+      "hits": 14,
+      "estMs": 4.4,
+      "pct": 0
+    },
+    {
+      "key": "runPreparationScans @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:3874",
+      "hits": 14,
+      "estMs": 4.4,
+      "pct": 0
+    },
+    {
+      "key": "render @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:854",
+      "hits": 14,
+      "estMs": 4.4,
+      "pct": 0
+    },
+    {
+      "key": "arrayBuffer:-1",
+      "hits": 13,
+      "estMs": 4.1,
+      "pct": 0
+    },
+    {
+      "key": "(anonymous) @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:3746",
+      "hits": 12,
+      "estMs": 3.8,
+      "pct": 0
+    },
+    {
+      "key": "setItem:-1",
+      "hits": 12,
+      "estMs": 3.8,
+      "pct": 0
+    },
+    {
+      "key": "readAsArrayBuffer:-1",
+      "hits": 11,
+      "estMs": 3.5,
+      "pct": 0
+    },
+    {
+      "key": "hannWindow @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:1584",
+      "hits": 10,
+      "estMs": 3.2,
+      "pct": 0
+    },
+    {
+      "key": "(anonymous) @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:2000",
+      "hits": 10,
+      "estMs": 3.2,
+      "pct": 0
+    },
+    {
+      "key": "query:5118",
+      "hits": 9,
+      "estMs": 2.9,
+      "pct": 0
+    },
+    {
+      "key": "saveCacheStore @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:2825",
+      "hits": 9,
+      "estMs": 2.9,
+      "pct": 0
+    },
+    {
+      "key": "setTimeout:-1",
+      "hits": 9,
+      "estMs": 2.9,
+      "pct": 0
+    },
+    {
+      "key": "renderLibraryList @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:4209",
+      "hits": 9,
+      "estMs": 2.9,
+      "pct": 0
+    },
+    {
+      "key": "processLibraryQueue @BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html:3996",
+      "hits": 8,
+      "estMs": 2.5,
+      "pct": 0
+    },
+    {
+      "key": "(anonymous):1",
+      "hits": 6,
+      "estMs": 1.9,
+      "pct": 0
+    }
+  ]
+}

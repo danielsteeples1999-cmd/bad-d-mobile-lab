@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BAD-D Lab — Scheduler Test [EXPERIMENTAL]</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161a; --line:#232a30; --text:#e6edf3; --dim:#8b98a5;
+    --accent:#3ec6ff; --good:#3ecf8e; --bad:#ff5a6e; --warn:#ffb454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding-bottom:40px}
+  .banner{background:#3a1f00;color:var(--warn);border-bottom:1px solid #5a3300;padding:10px 14px;font-weight:600;font-size:13px}
+  .banner b{color:#ffcf7a}
+  header{padding:16px 14px 8px}
+  h1{font-size:19px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 10px}
+  .badge{display:inline-block;background:#1a2b1f;color:var(--good);border:1px solid #204e2e;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-right:6px}
+  section{margin:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  section h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:0 0 10px;display:flex;align-items:center;gap:6px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{background:#1b2229;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer}
+  button.primary{background:var(--accent);color:#00202b;border-color:var(--accent)}
+  button.stop{background:var(--bad);color:#2b0006;border-color:var(--bad)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  input[type=file]{color:var(--text);font-size:13px}
+  label.check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dim)}
+  #statusText{font-size:15px;font-weight:600}
+  #statusText.ok{color:var(--good)} #statusText.bad{color:var(--bad)} #statusText.busy{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .metric-good{color:var(--good)} .metric-bad{color:var(--bad)}
+  .filelist{font-size:12px;color:var(--dim);max-height:90px;overflow:auto;margin-top:6px}
+  .log{font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;max-height:160px;overflow:auto;background:#0a0c0e;border:1px solid var(--line);border-radius:6px;padding:8px;margin-top:8px;white-space:pre-wrap}
+  .verdict{font-size:16px;font-weight:700;padding:10px;border-radius:6px;text-align:center}
+  .verdict.pending{background:#1a1e22;color:var(--dim)}
+  .verdict.pass{background:#0f2a1c;color:var(--good)}
+  .verdict.fail{background:#2a0f14;color:var(--bad)}
+  .progress{height:6px;background:#1a2229;border-radius:3px;overflow:hidden;margin-top:8px}
+  .progress > div{height:100%;background:var(--accent);width:0%;transition:width .2s}
+  .small{font-size:12px;color:var(--dim)}
+  .err{color:var(--bad)}
+  audio{width:100%;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="banner">⚠ EXPERIMENTAL / LAB BUILD — <b>not</b> the BAD-D production app. Runs entirely on your device, no network calls, no connection to your real BAD-D library, Auto-DJ, or evidence store. Nothing here can promote anything into production. Safe to test.</div>
+
+<header>
+  <h1>BAD-D Mobile Lab — Bulk-Import Scheduler Test</h1>
+  <p class="sub">
+    <span class="badge">EXP-007</span>
+    Tests whether the real bug — bulk-import work blocking the main thread badly enough to threaten
+    audio scheduling — is real on <b>your</b> phone, and whether a small experimental fix (yielding
+    inside the fingerprint analysis loop) actually helps.
+  </p>
+  <p class="small">
+    What this does: decodes and analyzes your audio files twice — once through the exact
+    <b>unmodified</b> analysis engine, once through the <b>lab-patched</b> version — while watching
+    how long the main thread gets blocked during each. Same math, same output (checked below); the
+    only difference is whether analysis yields to the browser periodically.
+  </p>
+</header>
+
+<section>
+  <h2>Status</h2>
+  <div id="statusText">Idle — choose files, then press START TEST.</div>
+  <div class="progress"><div id="progressBar"></div></div>
+</section>
+
+<section>
+  <h2>1 · Upload Test Files</h2>
+  <div class="row">
+    <input type="file" id="fileInput" multiple accept="audio/*">
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button id="genBtn">Use built-in test tones instead (no files needed)</button>
+  </div>
+  <div id="fileList" class="filelist">No files chosen yet.</div>
+</section>
+
+<section>
+  <h2>2 · Audio Test (listen while it runs)</h2>
+  <label class="check"><input type="checkbox" id="playWhile" checked> Play a track on loop WHILE the test runs — listen for stutter, hesitation, or gaps, especially during the busiest moments</label>
+  <audio id="player" controls loop></audio>
+  <p class="small">This is the one thing only <i>you</i> can verify — the automated numbers below tell us the main thread was busy, not whether you actually heard anything wrong.</p>
+</section>
+
+<section>
+  <h2>3 · Run</h2>
+  <div class="row">
+    <button id="startBtn" class="primary">START TEST</button>
+    <button id="stopBtn" class="stop" disabled>STOP</button>
+    <button id="resetBtn">RESET</button>
+    <button id="exportBtn" disabled>EXPORT DIAGNOSTICS (.json)</button>
+  </div>
+</section>
+
+<section>
+  <h2>Import Test — Baseline vs Experiment</h2>
+  <table id="resultsTable">
+    <thead><tr><th>Metric</th><th class="num">Baseline</th><th class="num">Experiment</th></tr></thead>
+    <tbody id="resultsBody">
+      <tr><td>Import duration</td><td class="num" id="m-dur-b">—</td><td class="num" id="m-dur-e">—</td></tr>
+      <tr><td>Long tasks (&gt;50ms)</td><td class="num" id="m-count-b">—</td><td class="num" id="m-count-e">—</td></tr>
+      <tr><td>Total main-thread blocked</td><td class="num" id="m-blocked-b">—</td><td class="num" id="m-blocked-e">—</td></tr>
+      <tr><td>Longest single block</td><td class="num" id="m-max-b">—</td><td class="num" id="m-max-e">—</td></tr>
+      <tr><td>% of window blocked</td><td class="num" id="m-pct-b">—</td><td class="num" id="m-pct-e">—</td></tr>
+      <tr><td>Fingerprint output matches baseline</td><td class="num">—</td><td class="num" id="m-match-e">—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Long-Task Test — live log</h2>
+  <div id="longtaskLog" class="log">(long tasks over 50ms will appear here as they're detected)</div>
+</section>
+
+<section>
+  <h2>Errors</h2>
+  <div id="errorLog" class="log">No errors.</div>
+</section>
+
+<section>
+  <h2>Recovery</h2>
+  <p class="small">Not exercised by this artifact — this page has no library/reload-persistence
+  layer to test (that lives in the full app). See <b>EXP-004</b> in the GitHub lab record for the
+  reload-recovery test against the real app.</p>
+</section>
+
+<section>
+  <h2>Result</h2>
+  <div id="verdict" class="verdict pending">Run the test to see a verdict.</div>
+  <p class="small" id="verdictDetail"></p>
+</section>
+
+<footer style="padding:14px;color:var(--dim);font-size:12px">
+  BAD-D // Mobile Lab — isolated sandbox, read-only against production. Lab record:
+  danielsteeples1999-cmd/bad-d-mobile-lab, experiments/EXP-006 and EXP-007.
+</footer>
+
+<script>window.__BADD_LAB_BASELINE_ROOT = {}; window.__BADD_LAB_EXPERIMENT_ROOT = {};</script>
+<script>
+/* ===== UNMODIFIED analysis engine, extracted verbatim from bad_d_meomory's
+   BAD-D_SIGNAL_15_72_0-mobile.html (read-only source, commit 8faf0b44c).
+   This IIFE is explicitly self-contained per its own header comment:
+   "kept isolated from DOM, UI, Deck, AudioContext/AudioNode, Auto-DJ,
+   Library, and Testing Deck access." Namespaced to window.__BADD_LAB_BASELINE_ROOT
+   instead of globalThis so it can run side-by-side with the patched copy below. */
+/* BAD-D // SIGNAL — AUDIO ENGINE (analysis/DSP core)
+ * Carried forward unchanged since the v15.57.0 six-band precision EQ pass; kept isolated
+ * from DOM, UI, Deck, AudioContext/AudioNode, Auto-DJ, Library, and Testing Deck access.
+ *
+ * The spectrogram-profile provider is an explicit application adapter dependency. It affects
+ * only the DISPLAY-ONLY spectroVisual frame limit; the STFT and fingerprint calculations are
+ * preserved verbatim. Production signatures remain computeFingerprint(buf), computeVisuals(buf).
+ */
+(function(root){
+  'use strict';
+
+  const KK_MAJOR = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  const KK_MINOR = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const CAMELOT_MAJOR_NUM = [8,3,10,5,12,7,2,9,4,11,6,1];
+
+    function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+  // Rate to apply to `toBpm` so it sounds in time with `fromBpm`. Checks the track's
+  // own tempo plus its octave-doubled/halved reading — a raw fromBpm/toBpm ratio can
+  // demand an absurd pitch bend if the detector's fold picked the "wrong" octave for
+  // this particular pairing (this is exactly the ambiguity the BPM display fix above
+  // is surfacing to you visually — Auto DJ has to resolve the same ambiguity numerically).
+
+  function createAudioEngine(options={}){
+    const getSpectroProfile = typeof options.getSpectroProfile === 'function'
+      ? options.getSpectroProfile
+      : (()=>({frameLimit:720}));
+    function r1SpectroProfile(){ return getSpectroProfile() || {frameLimit:720}; }
+
+    function pearsonCorr(a, b){
+    const n = a.length;
+    const meanA = a.reduce((s,v)=>s+v,0)/n, meanB = b.reduce((s,v)=>s+v,0)/n;
+    let num=0, dA=0, dB=0;
+    for(let i=0;i<n;i++){
+      const da=a[i]-meanA, db=b[i]-meanB;
+      num += da*db; dA += da*da; dB += db*db;
+    }
+    const denom = Math.sqrt(dA*dB);
+    return denom ? num/denom : 0;
+  }
+
+    function detectKey(chroma){
+    const total = chroma.reduce((s,v)=>s+v,0) || 1;
+    const norm = Array.from(chroma, v=>v/total);
+    let best = null;
+    for(let pc=0; pc<12; pc++){
+      // rotate the profile TO this tonic rather than rotating the chroma — simpler to reason about
+      const majProfile = KK_MAJOR.map((_,i)=>KK_MAJOR[(i-pc+12)%12]);
+      const minProfile = KK_MINOR.map((_,i)=>KK_MINOR[(i-pc+12)%12]);
+      const corrMaj = pearsonCorr(norm, majProfile);
+      const corrMin = pearsonCorr(norm, minProfile);
+      if(!best || corrMaj>best.corr) best = {pc, mode:'major', corr:corrMaj};
+      if(corrMin>best.corr) best = {pc, mode:'minor', corr:corrMin};
+    }
+    const camelotNum = best.mode==='major' ? CAMELOT_MAJOR_NUM[best.pc] : CAMELOT_MAJOR_NUM[(best.pc+3)%12];
+    const camelotLetter = best.mode==='major' ? 'B' : 'A';
+    return {
+      key: NOTE_NAMES[best.pc] + (best.mode==='minor' ? ' min' : ' maj'),
+      camelot: camelotNum + camelotLetter,
+      keyConfidence: clamp01(best.corr)
+    };
+  }
+
+  // How well two Camelot-coded keys mix, per standard harmonic-mixing rules:
+  // identical key, relative major/minor, or one step around the wheel at the same
+  // mode are all considered "in key"; everything else falls off with wheel distance.
+
+    function classifySignalQuality(fp){
+    const reasons = [];
+    let tier = 'GOOD';
+    const lufs = typeof fp.lufsEstimate==='number' ? fp.lufsEstimate : -60;
+    const clipped = fp.clippedFraction||0;
+    const duration = fp.duration||0;
+    const deadAir = (fp.silenceIntro||0)+(fp.silenceOutro||0);
+    const deadAirRatio = duration>0 ? Math.min(1, deadAir/duration) : 1;
+
+    // hard triggers — any one alone makes a numeric score misleading
+    if(duration < 3){
+      tier='DEGENERATE'; reasons.push('under 3 seconds — too short to analyze reliably');
+    }
+    if(lufs <= -55){
+      tier='DEGENERATE'; reasons.push('extremely low usable audio energy (near-silent or empty)');
+    }
+    if(deadAirRatio > 0.85){
+      tier='DEGENERATE'; reasons.push('most of the file is dead air, not usable audio');
+    }
+
+    // soft signals — individually tolerable, combined mean "trust this less"
+    if(tier!=='DEGENERATE'){
+      let score = 1;
+      if(clipped > 0.02){ score-=0.3; reasons.push(`${(clipped*100).toFixed(1)}% of samples are clipped/brickwalled`); }
+      if(lufs < -30){ score-=0.25; reasons.push('overall loudness is very low'); }
+      if(fp.bpm && (fp.confidence||0) < 0.35){ score-=0.25; reasons.push('BPM reading has low confidence'); }
+      if(deadAirRatio > 0.4){ score-=0.2; reasons.push('a large portion of the track is dead air'); }
+      if(score < 0.65) tier='WEAK';
+    }
+    return { tier, reasons }; // tier: 'GOOD' | 'WEAK' | 'DEGENERATE'
+  }
+
+  // ---------- Track Health Gate (dead-space detection / auto-repair / auto-reject) ----------
+  // Distinct from the existing Signal Quality Gate (which flags low-CONFIDENCE
+  // analysis, e.g. "this BPM estimate is shaky"). This gates on actual audio CONTENT
+  // defects — dead air, broken files — and can exclude a track from the playable
+  // pipeline entirely, or repair it first. Runs BEFORE computeFingerprint, on a
+  // lightweight standalone energy-only pass (not the full STFT/chroma/BPM pass),
+  // so a defective or repairable track never gets the expensive analysis wasted on
+  // audio that either needs fixing first or shouldn't be analyzed at all.
+
+  // Same RMS-envelope + relative-silence-threshold math computeFingerprint's own
+  // intro/outro silence detection uses, factored out standalone so the Health Gate
+  // can decide which buffer (original or repaired) computeFingerprint should actually
+  // analyze, without running the full fingerprint pass twice per import.
+
+    function compactFloatSeries(values,maxPoints=256){
+    const n=values?.length||0;if(!n)return [];
+    if(n<=maxPoints)return Array.from(values,v=>+Number(v||0).toFixed(4));
+    const out=new Array(maxPoints);
+    for(let i=0;i<maxPoints;i++){const a=Math.floor(i*n/maxPoints),b=Math.max(a+1,Math.floor((i+1)*n/maxPoints));let sum=0;for(let j=a;j<b;j++)sum+=Number(values[j]||0);out[i]=+(sum/(b-a)).toFixed(4);}
+    return out;
+  }
+
+    function sampleSpectrogramFrames(spec, limit){
+    const frames=[];
+    const step=Math.max(1,Math.ceil(spec.length/Math.max(1,limit)));
+    for(let i=0;i<spec.length;i+=step)frames.push(spec[i]);
+    return frames;
+  }
+
+    function hannWindow(n){
+    const w = new Float64Array(n);
+    for(let i=0;i<n;i++) w[i] = 0.5*(1-Math.cos(2*Math.PI*i/(n-1)));
+    return w;
+  }
+
+    function mixDown(buf){
+    const ch0=buf.getChannelData(0), ch1=buf.getChannelData(1);
+    const out=new Float32Array(ch0.length);
+    for(let i=0;i<ch0.length;i++) out[i]=(ch0[i]+ch1[i])/2;
+    return out;
+  }
+
+  // minimal radix-2 FFT magnitude (real input, zero-padded/truncated to power of 2)
+
+    function simpleFFTMag(realIn){
+    const n = nextPow2(realIn.length);
+    const re = new Float64Array(n);
+    const im = new Float64Array(n);
+    for(let i=0;i<realIn.length && i<n;i++) re[i]=realIn[i];
+    fft(re, im);
+    const half = n/2;
+    // Float32 here (not Float64) — this array is what gets retained per analyzed
+    // frame, so halving it directly halves the peak memory of a full-track STFT
+    // pass. The FFT itself above still runs at double precision; only the stored
+    // magnitude output is downcast, which is well within audio's needed precision.
+    const mags = new Float32Array(half);
+    for(let i=0;i<half;i++) mags[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);
+    return mags;
+  }
+
+    function nextPow2(v){ let p=1; while(p<v) p*=2; return p; }
+
+    function fft(re, im){
+    const n = re.length;
+    if(n<=1) return;
+    // bit-reversal
+    for(let i=1,j=0;i<n;i++){
+      let bit=n>>1;
+      for(;j&bit;bit>>=1) j^=bit;
+      j^=bit;
+      if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; }
+    }
+    for(let len=2; len<=n; len<<=1){
+      const ang = -2*Math.PI/len;
+      const wr = Math.cos(ang), wi = Math.sin(ang);
+      for(let i=0;i<n;i+=len){
+        let curWr=1, curWi=0;
+        for(let k=0;k<len/2;k++){
+          const ur=re[i+k], ui=im[i+k];
+          const vr=re[i+k+len/2]*curWr - im[i+k+len/2]*curWi;
+          const vi=re[i+k+len/2]*curWi + im[i+k+len/2]*curWr;
+          re[i+k]=ur+vr; im[i+k]=ui+vi;
+          re[i+k+len/2]=ur-vr; im[i+k+len/2]=ui-vi;
+          const nWr = curWr*wr - curWi*wi;
+          const nWi = curWr*wi + curWi*wr;
+          curWr=nWr; curWi=nWi;
+        }
+      }
+    }
+  }
+
+    function computeFingerprint(buf){
+    const data = buf.numberOfChannels>1
+      ? mixDown(buf) : buf.getChannelData(0);
+    const sr = buf.sampleRate;
+
+    // clipped-master detection: a brickwalled/over-limited master shows up as a run
+    // of samples sitting right at (or past) full-scale rather than a natural peak —
+    // count how much of the track is at that ceiling. Cheap single pass over the
+    // raw samples, done once up front before anything else touches `data`.
+    let clipSamples = 0, samplePeak = 0;
+    const clipCeiling = 0.98;
+    for(let i=0;i<data.length;i++){ const av=Math.abs(data[i]); if(av>=clipCeiling) clipSamples++; if(av>samplePeak) samplePeak=av; }
+    const clippedFraction = data.length ? clipSamples/data.length : 0;
+
+    const fftSize = 2048;
+    // was 512 (75% overlap). 1024 (50% overlap) halves the frame count — and
+    // therefore the peak size of the `spec` array below — with negligible loss
+    // of onset-timing precision for the 60-200bpm range this app targets.
+    const hop = 1024;
+    const nFrames = Math.max(0, Math.floor((data.length - fftSize) / hop));
+    const window = hannWindow(fftSize);
+    const binHz = sr / fftSize;
+    const nBins = fftSize/2;
+
+    // full STFT — reused for onset flux, heatmap, band energy, centroid
+    const spec = new Array(nFrames);
+    const frameTimes = new Float64Array(nFrames);
+    // Compact dynamic sonic-footprint accumulators. We keep only 64 temporal bins
+    // rather than the full spectral matrix, so the retained fingerprint stays small
+    // while the transition scorer can still inspect the character at the handoff.
+    const fpBins = Math.min(64, Math.max(1,nFrames));
+    const fpLow = new Float64Array(fpBins), fpMid = new Float64Array(fpBins), fpHigh = new Float64Array(fpBins);
+    const fpBright = new Float64Array(fpBins), fpCounts = new Uint32Array(fpBins);
+    for(let i=0;i<nFrames;i++){
+      const start = i*hop;
+      const windowed = new Float64Array(fftSize);
+      for(let j=0;j<fftSize;j++) windowed[j] = (data[start+j]||0) * window[j];
+      spec[i] = simpleFFTMag(windowed);
+      frameTimes[i] = start/sr;
+    }
+
+    // spectral flux: sum of positive frame-to-frame magnitude increases
+    const flux = new Float64Array(nFrames);
+    for(let i=1;i<nFrames;i++){
+      let sum=0;
+      const cur=spec[i], prev=spec[i-1];
+      for(let b=0;b<nBins;b++){ const d=cur[b]-prev[b]; if(d>0) sum+=d; }
+      flux[i]=sum;
+    }
+    const fluxMax = Math.max(...flux, 1e-9);
+    for(let i=0;i<nFrames;i++) flux[i]/=fluxMax;
+
+    // peak-pick onsets above local mean+std within ~1s window
+    const localWin = Math.max(4, Math.round(sr/hop));
+    const onsets=[];
+    for(let i=localWin;i<nFrames-1;i++){
+      let mean=0;
+      for(let k=i-localWin;k<i;k++) mean+=flux[k];
+      mean/=localWin;
+      let variance=0;
+      for(let k=i-localWin;k<i;k++){ const d=flux[k]-mean; variance+=d*d; }
+      const std = Math.sqrt(variance/localWin);
+      if(flux[i] > mean+1.5*std && flux[i]>=flux[i-1] && flux[i]>=flux[i+1]){
+        onsets.push(frameTimes[i]);
+      }
+    }
+
+    // BPM via octave-folded inter-onset interval histogram
+    const ioIntervals=[];
+    for(let i=1;i<onsets.length;i++){
+      const d = onsets[i]-onsets[i-1];
+      if(d>0.2 && d<1.5) ioIntervals.push(d);
+    }
+    let bpm=0, bpmAlt=0, confidence=0;
+    if(ioIntervals.length>4){
+      const buckets={};
+      ioIntervals.forEach(iv=>{
+        let b = Math.round(60/iv);
+        while(b<70) b*=2;
+        while(b>180) b/=2;
+        b = Math.round(b);
+        buckets[b] = (buckets[b]||0)+1;
+      });
+      const ranked = Object.keys(buckets).map(k=>[+k,buckets[k]]).sort((a,b)=>b[1]-a[1]);
+      const total = ranked.reduce((s,r)=>s+r[1],0);
+      bpm = ranked[0][0];
+      confidence = total? ranked[0][1]/total : 0;
+      // check for a half/double-time alternate reading worth surfacing
+      const alt = ranked.find(r => r[0]===bpm*2 || r[0]===Math.round(bpm/2));
+      if(alt) bpmAlt = alt[0];
+    }
+
+    // ---------- beat grid phase ----------
+    // BPM alone gives you the beat INTERVAL but not where the beats actually fall in
+    // time. Find that anchor by testing candidate phase offsets across one beat
+    // interval and keeping whichever one the onsets cluster tightest around — this
+    // is what lets a transition snap to an actual beat instead of just "the BPM was
+    // roughly right." One beat's worth of candidates is plenty of resolution; this
+    // is O(20 x onset count), trivial next to the STFT pass above.
+    let beatPhase = 0;
+    if(bpm && onsets.length>4){
+      const interval = 60/bpm;
+      let bestPhase = 0, bestScore = Infinity;
+      for(let c=0;c<20;c++){
+        const candidate = (c/20)*interval;
+        let score = 0;
+        for(const o of onsets){
+          const rem = ((o-candidate)%interval+interval)%interval;
+          const dist = Math.min(rem, interval-rem);
+          score += dist*dist;
+        }
+        if(score<bestScore){ bestScore=score; bestPhase=candidate; }
+      }
+      beatPhase = bestPhase;
+    }
+
+    // band energy + spectral centroid + chroma (pitch-class energy for key detection),
+    // all averaged across all frames in one pass over `spec` — reusing the same STFT
+    // rather than adding a second full loop over every frame/bin.
+    const A4 = 440;
+    // precompute each bin's pitch class once outside the hot loop; -1 = ignored
+    // (sub-bass rumble below 55Hz and non-harmonic noise above 5kHz both just add
+    // noise to a chroma vector, so they're excluded from key detection only)
+    const pcAtBin = new Int8Array(nBins);
+    for(let b=0;b<nBins;b++){
+      const freq = b*binHz;
+      if(freq<55 || freq>5000){ pcAtBin[b] = -1; continue; }
+      const midi = 69 + 12*Math.log2(freq/A4);
+      pcAtBin[b] = ((Math.round(midi)%12)+12)%12;
+    }
+    let lowSum=0, midSum=0, highSum=0, centroidSum=0, centroidW=0;
+    const chroma = new Float64Array(12);
+    // Frame-resolution brightness (spectral centroid per frame), kept separate from
+    // the compacted 64-bin sonicFootprint.brightness below — the compacted version
+    // is too coarse to line up precisely with a specific build-up/drop timestamp,
+    // which the filter-sweep detector further down needs.
+    const frameBrightness = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      const mags = spec[i];
+      let l=0,m=0,h=0, frameCentroidSum=0, frameCentroidWeight=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b];
+        if(freq<250) l+=mag;
+        else if(freq<2000) m+=mag;
+        else h+=mag;
+        centroidSum += freq*mag;
+        centroidW += mag;
+        frameCentroidSum += freq*mag;
+        frameCentroidWeight += mag;
+        if(pcAtBin[b]>=0) chroma[pcAtBin[b]] += mag;
+      }
+      lowSum+=l; midSum+=m; highSum+=h;
+      frameBrightness[i] = frameCentroidWeight ? frameCentroidSum/frameCentroidWeight : 0;
+      const fi=Math.min(fpBins-1,Math.floor(i*fpBins/Math.max(1,nFrames)));
+      const bt=l+m+h||1;
+      fpLow[fi]+=l/bt; fpMid[fi]+=m/bt; fpHigh[fi]+=h/bt;
+      fpBright[fi]+=frameBrightness[i];
+      fpCounts[fi]++;
+    }
+    const bandTotal = lowSum+midSum+highSum || 1;
+    const bands = { low: lowSum/bandTotal, mid: midSum/bandTotal, high: highSum/bandTotal };
+    // A conservative spectral proxy: sustained mid-band dominance often carries
+    // vocal intelligibility, but instruments can occupy the same range. This is a
+    // ducking hint only, never a claim that the source has been separated.
+    const vocalLikelihood = clamp01(bands.mid*2.7 - bands.low*0.8 - bands.high*0.35);
+    const centroid = centroidW ? centroidSum/centroidW : 0;
+    const keyInfo = detectKey(chroma);
+
+    // energy envelope for the timeline view (frame RMS from time domain, decimated)
+    const energy = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      let sum=0;
+      const start=i*hop;
+      for(let j=0;j<hop;j++){ const v=data[start+j]||0; sum+=v*v; }
+      energy[i]=Math.sqrt(sum/hop);
+    }
+    const hopSec = hop/sr;
+    const maxEnergyForFp = energy.length ? Array.from(energy).reduce((m,v)=>Math.max(m,Number(v)||0),0) : 0;
+    const sonicFootprint = { version:1, sampleCount:fpBins, low:[], mid:[], high:[], brightness:[], energy:[] };
+    for(let i=0;i<fpBins;i++){
+      const c=Math.max(1,fpCounts[i]);
+      sonicFootprint.low.push(+clamp01(fpLow[i]/c).toFixed(3));
+      sonicFootprint.mid.push(+clamp01(fpMid[i]/c).toFixed(3));
+      sonicFootprint.high.push(+clamp01(fpHigh[i]/c).toFixed(3));
+      sonicFootprint.brightness.push(+clamp01((fpBright[i]/c)/9000).toFixed(3));
+      const a=Math.floor(i*nFrames/fpBins), b=Math.max(a+1,Math.floor((i+1)*nFrames/fpBins));
+      let es=0; for(let j=a;j<b;j++) es+=Number(energy[j])||0;
+      sonicFootprint.energy.push(+clamp01(es/(b-a)/Math.max(1e-6,maxEnergyForFp)).toFixed(3));
+    }
+
+    // ---------- silence detection (intro / outro) ----------
+    // A frame counts as silent if its RMS sits well below the track's OWN typical
+    // level — a relative threshold, not a fixed number, so this reads the same on a
+    // hushed acoustic intro and a wall-of-noise master. Walks in from each end and
+    // stops at the first non-silent frame, so a quiet-but-present pad bed doesn't
+    // get miscounted as silence the way a fixed dB floor would.
+    const sortedEnergy = Float32Array.from(energy).sort();
+    const medianEnergy = sortedEnergy[Math.floor(sortedEnergy.length/2)] || 0;
+    const silenceThresh = Math.max(0.002, medianEnergy*0.08);
+    let introSilenceFrames = 0;
+    for(let i=0;i<nFrames;i++){ if(energy[i]<silenceThresh) introSilenceFrames++; else break; }
+    let outroSilenceFrames = 0;
+    for(let i=nFrames-1;i>=0;i--){ if(energy[i]<silenceThresh) outroSilenceFrames++; else break; }
+    const silenceIntro = +(introSilenceFrames*hopSec).toFixed(2);
+    const silenceOutro = +(outroSilenceFrames*hopSec).toFixed(2);
+    // usable-for-mixing score: some lead-in/lead-out silence is fine (even wanted,
+    // for a clean cut point) — it only costs points once it eats into time you'd
+    // actually want to be crossfading during. Free up to 1.5s, fully penalized by 8s+.
+    const introUsability = clamp01(1 - Math.max(0, silenceIntro-1.5)/6.5);
+    const outroUsability = clamp01(1 - Math.max(0, silenceOutro-1.5)/6.5);
+
+    // ---------- quiet windows (mid-track) ----------
+    // Same relative-threshold idea as intro/outro silence, but scanning the whole
+    // track for sustained low-energy passages (breakdowns, bridges, breaks)
+    // instead of just the two ends. These become candidate windows for the
+    // ramp-assisted beatmatch path: a gradual tempo nudge hidden inside a quiet
+    // passage is far less audible than the same nudge dropped in as an instant
+    // snap right at the crossfade, so a track that HAS one of these can be
+    // beatmatched across a wider BPM gap than one that doesn't.
+    const quietThresh = Math.max(0.004, medianEnergy*0.25);
+    const minQuietFrames = Math.max(1, Math.round(2.5/hopSec));
+    const quietWindows = [];
+    {
+      let runStart = null;
+      for(let i=0;i<nFrames;i++){
+        const isQuiet = energy[i] < quietThresh;
+        if(isQuiet && runStart===null) runStart = i;
+        if((!isQuiet || i===nFrames-1) && runStart!==null){
+          const runEnd = isQuiet ? i : i-1;
+          if(runEnd-runStart+1 >= minQuietFrames){
+            const startSec = +(runStart*hopSec).toFixed(2);
+            const endSec = +((runEnd+1)*hopSec).toFixed(2);
+            // skip anything that's really just the already-captured intro/outro
+            // silence — only mid-track passages are useful as a ramp window
+            if(startSec > silenceIntro+0.5 && endSec < buf.duration-silenceOutro-0.5){
+              quietWindows.push({ start:startSec, end:endSec, duration:+(endSec-startSec).toFixed(2) });
+            }
+          }
+          runStart = null;
+        }
+      }
+    }
+
+    // ---------- LUFS-lite integrated loudness ----------
+    // A true broadcast LUFS measure needs K-weighting (a specific pre-filter) and
+    // gating (excluding quiet passages from the average) — this is a lighter proxy:
+    // RMS energy across all non-silent frames, converted to a dB-like scale and
+    // calibrated so "typical streaming-loud master" lands near -14, matching the
+    // ballpark people actually mean when they say LUFS in a DJ context. Good enough
+    // to catch "this track is way louder/quieter than the rest of the library" and
+    // compensate for it — not meant to be broadcast-spec accurate.
+    let loudSum=0, loudCount=0;
+    for(let i=0;i<nFrames;i++){ if(energy[i]>=silenceThresh){ loudSum+=energy[i]*energy[i]; loudCount++; } }
+    const rmsLoud = loudCount ? Math.sqrt(loudSum/loudCount) : 0;
+    const lufsEstimate = rmsLoud>0 ? +(20*Math.log10(rmsLoud) + 3).toFixed(1) : -60;
+
+    // danceability: onset regularity (low IOI variance) + mid-band energy + tempo in dance range
+    let ioiVar=0;
+    if(ioIntervals.length>4){
+      const mean = ioIntervals.reduce((a,b)=>a+b,0)/ioIntervals.length;
+      ioiVar = ioIntervals.reduce((a,b)=>a+(b-mean)*(b-mean),0)/ioIntervals.length;
+    }
+    const regularity = Math.max(0, 1 - ioiVar*20);
+    const tempoScore = (bpm>=80 && bpm<=170) ? 1 : 0.4;
+    const danceability = Math.min(1, (regularity*0.5 + bands.mid*0.3 + tempoScore*0.2));
+
+    // tempo stability: variance of windowed local-tempo estimates (8s windows, 4s step).
+    // A single global BPM can be statistically dominant (high confidence) on a track
+    // whose tempo still drifts a lot underneath — this catches that case so Auto DJ
+    // knows whether "the BPM" is trustworthy enough to beatmatch against.
+    const winSec = 8, stepSec = 4;
+    const localEstimates = [];
+    for(let t=0; t<buf.duration; t+=stepSec){
+      const segOnsets = onsets.filter(o=>o>=t && o<t+winSec);
+      if(segOnsets.length>3){
+        const segIoi=[];
+        for(let i=1;i<segOnsets.length;i++){
+          const d=segOnsets[i]-segOnsets[i-1];
+          if(d>0.1 && d<2.0) segIoi.push(d);
+        }
+        if(segIoi.length>2){
+          segIoi.sort((a,b)=>a-b);
+          const med = segIoi[Math.floor(segIoi.length/2)];
+          localEstimates.push(60/med);
+        }
+      }
+    }
+    let tempoStability = 1;
+    if(localEstimates.length>2){
+      const m = localEstimates.reduce((a,b)=>a+b,0)/localEstimates.length;
+      const variance = localEstimates.reduce((a,b)=>a+(b-m)*(b-m),0)/localEstimates.length;
+      const cov = m ? Math.sqrt(variance)/m : 0;
+      tempoStability = Math.max(0, 1 - cov*1.5);
+    }
+
+    // auto-cue point: first sustained (~1s) run above 35% of peak energy, so Auto DJ
+    // brings a track in past a quiet/dead-air intro rather than at sample 0.
+    const maxEnergy = Math.max(...energy, 1e-6);
+    const cueThresh = maxEnergy*0.35;
+    const needFrames = Math.max(1, Math.round(1.0/hopSec));
+    let cuePoint = 0, run=0;
+    for(let i=0;i<energy.length;i++){
+      if(energy[i]>=cueThresh){ run++; if(run>=needFrames){ cuePoint = Math.max(0,(i-needFrames+1)*hopSec); break; } }
+      else run=0;
+    }
+
+    // hook / key-moment detection: find the highest-sustained-energy window in the
+    // track, skipping the intro and outro, so Auto DJ can splice straight to the
+    // hook instead of running a full track top-to-bottom. hookStrength reports how
+    // far that window sits above the track's OWN median energy (not a flat 0-1
+    // absolute scale) — a quiet, restrained mix and a wall-of-sound mix can both have
+    // a real hook, they just each need judging against their own dynamic range.
+    // Earlier this normalized against the single loudest instantaneous frame in the
+    // whole song and subtracted an unscaled variance penalty, which went negative
+    // (then got floored to 0%) on almost any real, dynamically-varied track.
+    const hookWinSec = Math.min(24, Math.max(12, buf.duration*0.14));
+    const hookWinFrames = Math.max(1, Math.round(hookWinSec/hopSec));
+    const introSkipFrames = Math.round((buf.duration*0.12)/hopSec);
+    const outroSkipFrames = Math.round((buf.duration*0.08)/hopSec);
+    let hookStart = 0, hookEnd = Math.min(buf.duration, hookWinSec), hookStrength = 0;
+    if(energy.length > hookWinFrames + introSkipFrames + outroSkipFrames){
+      const sortedE = Array.from(energy).sort((a,b)=>a-b);
+      const medianE = sortedE[Math.floor(sortedE.length/2)] || 1e-6;
+      const peakE = sortedE[sortedE.length-1] || 1e-6;
+      const range = Math.max(peakE-medianE, 1e-6);
+      let windowSum = 0;
+      for(let i=introSkipFrames; i<introSkipFrames+hookWinFrames; i++) windowSum += energy[i];
+      let bestStart = introSkipFrames, bestScore = -Infinity;
+      const lastStart = energy.length - hookWinFrames - outroSkipFrames;
+      for(let i=introSkipFrames; i<=lastStart; i++){
+        if(i>introSkipFrames){ windowSum += energy[i+hookWinFrames-1] - energy[i-1]; }
+        const avg = windowSum/hookWinFrames;
+        let variance = 0;
+        for(let k=i;k<i+hookWinFrames;k++){ const d=energy[k]-avg; variance += d*d; }
+        variance /= hookWinFrames;
+        // how far this window sits above the track's own median (0 = typical level,
+        // 1 = as loud as the track's single loudest frame), lightly discounted if
+        // it's really just one spike surrounded by quiet rather than a held moment
+        const prominence = (avg-medianE)/range;
+        const penalty = (Math.sqrt(variance)/(avg||1e-6)) * 0.2;
+        const score = prominence - penalty;
+        if(score>bestScore){ bestScore=score; bestStart=i; }
+      }
+      hookStart = +(bestStart*hopSec).toFixed(2);
+      hookEnd = +Math.min(buf.duration, hookStart+hookWinSec).toFixed(2);
+      hookStrength = +clamp01(bestScore).toFixed(2);
+    }
+
+    // dynamic contrast: how far the track's quiet sections sit from its loud ones,
+    // normalized by its own average level — captures build/drop/restraint structure
+    // (a "creative strength" signal) that hookStrength's single window can't, since a
+    // track can have real structural tension without one dominant sustained-loud block
+    let dynamicContrast = 0;
+    if(energy.length>8){
+      const sortedD = Array.from(energy).sort((a,b)=>a-b);
+      const p10 = sortedD[Math.floor(sortedD.length*0.10)];
+      const p90 = sortedD[Math.floor(sortedD.length*0.90)];
+      const meanE = sortedD.reduce((a,b)=>a+b,0)/sortedD.length || 1e-6;
+      dynamicContrast = +clamp01((p90-p10)/(meanE*2.2)).toFixed(2);
+    }
+
+    // ---------- build-up / drop detection (energy-arc tension landmarks) ----------
+    // A "build-up" is a sustained (>=5s) climb in overall energy toward a peak; a
+    // "drop" is a sharp jump that clears a large chunk of the track's own dynamic
+    // range in under a second. Same smoothed-envelope idea as the silence/quiet-window
+    // detection above, just watching the slope instead of the level. This doesn't try
+    // to be a genre-aware structural analyzer — it's an energy-only proxy, same
+    // "good enough to act on, not claiming musicological ground truth" spirit as
+    // danceability and dynamicContrast above.
+    const smoothWin = Math.max(1, Math.round(1.2/hopSec));
+    const smoothed = new Float32Array(nFrames);
+    { let acc=0; for(let i=0;i<nFrames;i++){ acc+=energy[i]; if(i>=smoothWin) acc-=energy[i-smoothWin]; smoothed[i]=acc/Math.min(i+1,smoothWin); } }
+    const sortedSm = Float32Array.from(smoothed).sort();
+    const smP10 = sortedSm[Math.floor(sortedSm.length*0.1)] || 0;
+    const smP90 = sortedSm[Math.floor(sortedSm.length*0.9)] || 1e-6;
+    const smRange = Math.max(smP90-smP10, 1e-6);
+    const buildUpsRaw = [];
+    const minRiseFrames = Math.max(1, Math.round(5/hopSec));
+    { let runStart = 0;
+      for(let i=1;i<nFrames;i++){
+        if(smoothed[i] < smoothed[runStart] - smRange*0.03 || i===nFrames-1){
+          const runLen = i-runStart;
+          if(runLen >= minRiseFrames){
+            const rise = (smoothed[i-1]-smoothed[runStart])/smRange;
+            if(rise > 0.35) buildUpsRaw.push({ start:+(runStart*hopSec).toFixed(2), end:+((i-1)*hopSec).toFixed(2), riseStrength:+clamp01(rise).toFixed(2) });
+          }
+          runStart = i;
+        }
+      }
+    }
+    const dropsRaw = [];
+    const jumpFrames = Math.max(1, Math.round(0.8/hopSec));
+    for(let i=jumpFrames;i<nFrames;i++){
+      const jump = (smoothed[i]-smoothed[i-jumpFrames])/smRange;
+      if(jump > 0.5){
+        const t = +(i*hopSec).toFixed(2);
+        if(!dropsRaw.length || t-dropsRaw[dropsRaw.length-1].t > 2) dropsRaw.push({ t, jumpStrength:+clamp01(jump).toFixed(2) });
+      }
+    }
+    // keep only the strongest handful — a full track can have several fills/risers,
+    // but only the biggest few are useful as transition-planning landmarks
+    const buildUps = buildUpsRaw.sort((a,b)=>b.riseStrength-a.riseStrength).slice(0,4).sort((a,b)=>a.start-b.start);
+    const drops = dropsRaw.sort((a,b)=>b.jumpStrength-a.jumpStrength).slice(0,4).sort((a,b)=>a.t-b.t);
+
+    // ---------- produced filter-sweep ("vacuum") detection ----------
+    // Heuristic only, same "evidence, not ground truth" discipline as buildUps/
+    // drops above. A produced filter-pull (the classic DJ/production "vacuum" move)
+    // leaves a signature in the brightness timeline: spectral centroid sags below
+    // the track's own norm through the build-up or the seconds before a drop, then
+    // snaps back sharply right at the hit. This can't tell "a filter automation was
+    // used" apart from "the arrangement itself thins out here" with certainty —
+    // it's scored per build-up/drop event as producedFilterSweepLikelihood (0-1),
+    // not a track-wide claim, and BAD-D only uses it to soften its own added
+    // filter-pull, never to skip or fake a track's own sound.
+    function brightnessAt(tSec){
+      const idx = Math.max(0, Math.min(nFrames-1, Math.round(tSec/hopSec)));
+      return frameBrightness[idx]||0;
+    }
+    function avgBrightness(t0,t1){
+      let sum=0,count=0;
+      for(let t=t0;t<t1;t+=hopSec){ sum+=brightnessAt(t); count++; }
+      return count ? sum/count : brightnessAt(t0);
+    }
+    const brightSorted = Float32Array.from(frameBrightness).sort();
+    const brightMedian = brightSorted[Math.floor(brightSorted.length*0.5)] || 0;
+    const brightRange = Math.max((brightSorted[Math.floor(brightSorted.length*0.9)]||1) - (brightSorted[Math.floor(brightSorted.length*0.1)]||0), 1e-6);
+    function filterSweepScore(start,end){
+      const dur = Math.max(0.3, end-start);
+      const preBright = avgBrightness(start, start+dur*0.7);
+      const postBright = avgBrightness(end, Math.min(end+0.6, Math.max(0,(nFrames-1))*hopSec));
+      const sag = (brightMedian-preBright)/brightRange;
+      const recovery = (postBright-preBright)/brightRange;
+      return +clamp01(Math.max(0,sag)*0.5 + Math.max(0,recovery)*0.5).toFixed(2);
+    }
+    drops.forEach(d=>{ d.producedFilterSweepLikelihood = filterSweepScore(Math.max(0,d.t-1.5), d.t); });
+    buildUps.forEach(b=>{ b.producedFilterSweepLikelihood = filterSweepScore(b.start, b.end); });
+
+    // ---------- reverb tail estimate ----------
+    // Heuristic only. Measures how long energy takes to fall back toward the
+    // track's own noise floor after each detected onset (reusing the onsets
+    // already found for BPM above), averaged across every onset with enough
+    // signal to measure. Dry, tightly-mixed material decays fast; a heavily
+    // reverberant master (or a naturally long-ringing sustained pad/cymbal —
+    // this genuinely can't tell the two apart) holds energy longer. Reported as
+    // a bounded 0-1 "tail length" score against this app's own fixed window, not
+    // a measured RT60 in seconds — and null, not a fake 0, when there weren't
+    // enough usable onsets to say anything.
+    const REVERB_TAIL_WINDOW_SEC = 0.6;
+    const tailWinFrames = Math.max(1, Math.round(REVERB_TAIL_WINDOW_SEC/hopSec));
+    const energySortedForTail = Float32Array.from(energy).sort();
+    const tailNoiseFloor = energySortedForTail[Math.floor(energySortedForTail.length*0.1)] || 0;
+    const tailScores = [];
+    onsets.forEach(t=>{
+      const idx = Math.max(0, Math.round(t/hopSec));
+      const peak = energy[idx]||0;
+      if(peak <= tailNoiseFloor*1.2) return; // too quiet an onset to measure a tail from
+      const threshold = tailNoiseFloor + (peak-tailNoiseFloor)*0.25;
+      let held = 0;
+      for(let k=1;k<=tailWinFrames && idx+k<nFrames;k++){
+        if(energy[idx+k] > threshold) held++; else break;
+      }
+      tailScores.push(held/tailWinFrames);
+    });
+    const reverbTailEstimate = tailScores.length ? +clamp01(tailScores.reduce((a,b)=>a+b,0)/tailScores.length).toFixed(2) : null;
+
+    // Keep the original bounded analysis frame set intact for existing feature and
+    // hazard readers, then retain a separately bounded DISPLAY-ONLY set for the
+    // spectrogram. The second list only references already-created Float32 frames;
+    // it never changes the STFT, fingerprint, queue, or transition calculations.
+    const heatFrames = sampleSpectrogramFrames(spec, 300);
+    const visualFrames = sampleSpectrogramFrames(spec, r1SpectroProfile().frameLimit);
+
+    const fingerprint = {
+      bpm: bpm||null,
+      bpmAlt: bpmAlt||null,
+      confidence: +confidence.toFixed(2),
+      energyCurve: compactFloatSeries(energy,256),
+      bassProfile: +bands.low.toFixed(3),
+      vocalLikelihood: +vocalLikelihood.toFixed(2),
+      instrumentalLikelihood: +clamp01(1-vocalLikelihood).toFixed(2),
+      spectralCentroid: Math.round(centroid),
+      danceability: +danceability.toFixed(2),
+      tempoStability: +tempoStability.toFixed(2),
+      cuePoint: +cuePoint.toFixed(2),
+      key: keyInfo.key,
+      camelot: keyInfo.camelot,
+      keyConfidence: +keyInfo.keyConfidence.toFixed(2),
+      beatPhase: +beatPhase.toFixed(3),
+      beatsPerBar: 4, // assumed — this app doesn't detect meter, 4/4 covers the overwhelming majority of DJ-relevant material
+      hookStart, hookEnd, hookStrength,
+      dynamicContrast,
+      silenceIntro, silenceOutro, introUsability: +introUsability.toFixed(2), outroUsability: +outroUsability.toFixed(2),
+      quietWindows: quietWindows
+        .sort((a,b)=>b.duration-a.duration)
+        .slice(0,6)
+        .sort((a,b)=>a.start-b.start),
+      lufsEstimate,
+      samplePeak: +samplePeak.toFixed(4),
+      clippedFraction: +clippedFraction.toFixed(4),
+      duration: +buf.duration.toFixed(1),
+      buildUps, drops,
+      reverbTailEstimate,
+      sonicFootprint
+    };
+    fingerprint.signalQuality = classifySignalQuality(fingerprint);
+
+    return { fingerprint, energy, spectro: heatFrames, spectroVisual: visualFrames, spectroMeta: { binHz, sr }, bands, onsets };
+  }
+
+  // Lightweight counterpart to computeFingerprint, used whenever a track's real
+  // fingerprint is already known (loaded from the library cache / prior analysis).
+  // It re-runs only the STFT pass needed to redraw the heatmap/energy/band visuals
+  // for THIS deck, and skips flux, onset picking, BPM histogram, tempo-stability
+  // windows, and hook search entirely — those numbers already exist and were being
+  // recomputed and thrown away on every single deck load.
+  //
+  // This matters most during a GO/Auto DJ set: advanceQueueInto() calls
+  // loadFromLibrary() on every transition, which used to mean a full
+  // computeFingerprint() pass (a many-tens-of-MB transient allocation) on the main
+  // thread for every track change over the course of a set — the real source of
+  // the crash. This path is roughly a third of the work and allocation.
+
+    function computeVisuals(buf){
+    const data = buf.numberOfChannels>1 ? mixDown(buf) : buf.getChannelData(0);
+    const sr = buf.sampleRate;
+    const fftSize = 2048, hop = 1024;
+    const nFrames = Math.max(0, Math.floor((data.length - fftSize) / hop));
+    const window = hannWindow(fftSize);
+    const binHz = sr / fftSize;
+    const nBins = fftSize/2;
+
+    const spec = new Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      const start = i*hop;
+      const windowed = new Float64Array(fftSize);
+      for(let j=0;j<fftSize;j++) windowed[j] = (data[start+j]||0) * window[j];
+      spec[i] = simpleFFTMag(windowed);
+    }
+
+    let lowSum=0, midSum=0, highSum=0;
+    const bandCurve = {
+      low:new Float32Array(nFrames),
+      mid:new Float32Array(nFrames),
+      high:new Float32Array(nFrames)
+    };
+    for(let i=0;i<nFrames;i++){
+      const mags = spec[i];
+      let l=0,m=0,h=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b];
+        if(freq<250) l+=mag; else if(freq<2000) m+=mag; else h+=mag;
+      }
+      const total=l+m+h||1;
+      bandCurve.low[i]=l/total;
+      bandCurve.mid[i]=m/total;
+      bandCurve.high[i]=h/total;
+      lowSum+=l; midSum+=m; highSum+=h;
+    }
+    const bandTotal = lowSum+midSum+highSum || 1;
+    const bands = { low: lowSum/bandTotal, mid: midSum/bandTotal, high: highSum/bandTotal };
+    const vocalLikelihood = clamp01(bands.mid*2.7 - bands.low*0.8 - bands.high*0.35);
+    // Conservative sibilance evidence: excessive 4–10 kHz energy during frames that
+    // also resemble the existing vocal-profile band. This is a heuristic risk signal,
+    // not word, letter, gender, or source separation detection; cymbals and guitars can
+    // occupy the same range, so the later high-confidence vocal gate stays mandatory.
+    let sibilanceEvidence=0, sibilanceFrames=0;
+    for(let i=0;i<nFrames;i++){
+      const mags=spec[i]; let total=0, low=0, mid=0, sib=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b]; total+=mag;
+        if(freq<250) low+=mag; else if(freq<2000) mid+=mag;
+        if(freq>=4000 && freq<=10000) sib+=mag;
+      }
+      if(total<=0) continue;
+      const lowShare=low/total, midShare=mid/total, sibShare=sib/total;
+      const vocalFrame=clamp01(midShare*3-lowShare*0.8-(1-midShare-lowShare)*0.25);
+      if(vocalFrame<0.28) continue;
+      const sibRatio=sib/Math.max(1e-9,mid);
+      sibilanceEvidence += clamp01((sibShare-0.08)*7+(sibRatio-0.3)*1.2);
+      sibilanceFrames++;
+    }
+    const sibilanceRisk=clamp01((sibilanceEvidence/Math.max(1,sibilanceFrames))*clamp01(vocalLikelihood*1.4));
+
+    const energy = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      let sum=0; const start=i*hop;
+      for(let j=0;j<hop;j++){ const v=data[start+j]||0; sum+=v*v; }
+      energy[i]=Math.sqrt(sum/hop);
+    }
+
+    const heatFrames = sampleSpectrogramFrames(spec, 300);
+    const visualFrames = sampleSpectrogramFrames(spec, r1SpectroProfile().frameLimit);
+
+    return { energy, spectro: heatFrames, spectroVisual: visualFrames, spectroMeta: { binHz, sr }, bands, bandCurve, vocalLikelihood, sibilanceRisk };
+
+  }
+
+  // Builds a bounded, track-local dynamic EQ map from the same STFT and RMS
+  // evidence already used by the song fingerprint. This is an adaptive
+  // corrective layer, not "perfect EQ": it can reduce a band's local dominance
+  // and gently support a weak band, but it never adds gain to silence and stays
+  // within a small producer-safe range.
+
+    return Object.freeze({
+      computeFingerprint,
+      computeVisuals,
+      pearsonCorr,
+      detectKey,
+      classifySignalQuality,
+      compactFloatSeries,
+      sampleSpectrogramFrames,
+      hannWindow,
+      mixDown,
+      simpleFFTMag,
+      nextPow2,
+      fft
+    });
+  }
+
+  root.BADD_AUDIO_ENGINE_R1 = Object.freeze({ createAudioEngine });
+})(window.__BADD_LAB_BASELINE_ROOT);
+
+</script>
+<script>
+/* ===== LAB-PATCHED analysis engine — same file, same math, same output
+   (checked live below). The only change: computeFingerprint is async and
+   yields to the event loop every 32 STFT frames instead of running the
+   whole per-track analysis as one uninterruptible task. See EXP-007 in the
+   GitHub lab record for the full diff and CPU-profile evidence for why this
+   specific loop was chosen. */
+/* BAD-D // SIGNAL — AUDIO ENGINE (analysis/DSP core)
+ * Carried forward unchanged since the v15.57.0 six-band precision EQ pass; kept isolated
+ * from DOM, UI, Deck, AudioContext/AudioNode, Auto-DJ, Library, and Testing Deck access.
+ *
+ * The spectrogram-profile provider is an explicit application adapter dependency. It affects
+ * only the DISPLAY-ONLY spectroVisual frame limit; the STFT and fingerprint calculations are
+ * preserved verbatim. Production signatures remain computeFingerprint(buf), computeVisuals(buf).
+ */
+(function(root){
+  'use strict';
+
+  const KK_MAJOR = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  const KK_MINOR = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const CAMELOT_MAJOR_NUM = [8,3,10,5,12,7,2,9,4,11,6,1];
+
+    function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+  // Rate to apply to `toBpm` so it sounds in time with `fromBpm`. Checks the track's
+  // own tempo plus its octave-doubled/halved reading — a raw fromBpm/toBpm ratio can
+  // demand an absurd pitch bend if the detector's fold picked the "wrong" octave for
+  // this particular pairing (this is exactly the ambiguity the BPM display fix above
+  // is surfacing to you visually — Auto DJ has to resolve the same ambiguity numerically).
+
+  function createAudioEngine(options={}){
+    const getSpectroProfile = typeof options.getSpectroProfile === 'function'
+      ? options.getSpectroProfile
+      : (()=>({frameLimit:720}));
+    function r1SpectroProfile(){ return getSpectroProfile() || {frameLimit:720}; }
+
+    function pearsonCorr(a, b){
+    const n = a.length;
+    const meanA = a.reduce((s,v)=>s+v,0)/n, meanB = b.reduce((s,v)=>s+v,0)/n;
+    let num=0, dA=0, dB=0;
+    for(let i=0;i<n;i++){
+      const da=a[i]-meanA, db=b[i]-meanB;
+      num += da*db; dA += da*da; dB += db*db;
+    }
+    const denom = Math.sqrt(dA*dB);
+    return denom ? num/denom : 0;
+  }
+
+    function detectKey(chroma){
+    const total = chroma.reduce((s,v)=>s+v,0) || 1;
+    const norm = Array.from(chroma, v=>v/total);
+    let best = null;
+    for(let pc=0; pc<12; pc++){
+      // rotate the profile TO this tonic rather than rotating the chroma — simpler to reason about
+      const majProfile = KK_MAJOR.map((_,i)=>KK_MAJOR[(i-pc+12)%12]);
+      const minProfile = KK_MINOR.map((_,i)=>KK_MINOR[(i-pc+12)%12]);
+      const corrMaj = pearsonCorr(norm, majProfile);
+      const corrMin = pearsonCorr(norm, minProfile);
+      if(!best || corrMaj>best.corr) best = {pc, mode:'major', corr:corrMaj};
+      if(corrMin>best.corr) best = {pc, mode:'minor', corr:corrMin};
+    }
+    const camelotNum = best.mode==='major' ? CAMELOT_MAJOR_NUM[best.pc] : CAMELOT_MAJOR_NUM[(best.pc+3)%12];
+    const camelotLetter = best.mode==='major' ? 'B' : 'A';
+    return {
+      key: NOTE_NAMES[best.pc] + (best.mode==='minor' ? ' min' : ' maj'),
+      camelot: camelotNum + camelotLetter,
+      keyConfidence: clamp01(best.corr)
+    };
+  }
+
+  // How well two Camelot-coded keys mix, per standard harmonic-mixing rules:
+  // identical key, relative major/minor, or one step around the wheel at the same
+  // mode are all considered "in key"; everything else falls off with wheel distance.
+
+    function classifySignalQuality(fp){
+    const reasons = [];
+    let tier = 'GOOD';
+    const lufs = typeof fp.lufsEstimate==='number' ? fp.lufsEstimate : -60;
+    const clipped = fp.clippedFraction||0;
+    const duration = fp.duration||0;
+    const deadAir = (fp.silenceIntro||0)+(fp.silenceOutro||0);
+    const deadAirRatio = duration>0 ? Math.min(1, deadAir/duration) : 1;
+
+    // hard triggers — any one alone makes a numeric score misleading
+    if(duration < 3){
+      tier='DEGENERATE'; reasons.push('under 3 seconds — too short to analyze reliably');
+    }
+    if(lufs <= -55){
+      tier='DEGENERATE'; reasons.push('extremely low usable audio energy (near-silent or empty)');
+    }
+    if(deadAirRatio > 0.85){
+      tier='DEGENERATE'; reasons.push('most of the file is dead air, not usable audio');
+    }
+
+    // soft signals — individually tolerable, combined mean "trust this less"
+    if(tier!=='DEGENERATE'){
+      let score = 1;
+      if(clipped > 0.02){ score-=0.3; reasons.push(`${(clipped*100).toFixed(1)}% of samples are clipped/brickwalled`); }
+      if(lufs < -30){ score-=0.25; reasons.push('overall loudness is very low'); }
+      if(fp.bpm && (fp.confidence||0) < 0.35){ score-=0.25; reasons.push('BPM reading has low confidence'); }
+      if(deadAirRatio > 0.4){ score-=0.2; reasons.push('a large portion of the track is dead air'); }
+      if(score < 0.65) tier='WEAK';
+    }
+    return { tier, reasons }; // tier: 'GOOD' | 'WEAK' | 'DEGENERATE'
+  }
+
+  // ---------- Track Health Gate (dead-space detection / auto-repair / auto-reject) ----------
+  // Distinct from the existing Signal Quality Gate (which flags low-CONFIDENCE
+  // analysis, e.g. "this BPM estimate is shaky"). This gates on actual audio CONTENT
+  // defects — dead air, broken files — and can exclude a track from the playable
+  // pipeline entirely, or repair it first. Runs BEFORE computeFingerprint, on a
+  // lightweight standalone energy-only pass (not the full STFT/chroma/BPM pass),
+  // so a defective or repairable track never gets the expensive analysis wasted on
+  // audio that either needs fixing first or shouldn't be analyzed at all.
+
+  // Same RMS-envelope + relative-silence-threshold math computeFingerprint's own
+  // intro/outro silence detection uses, factored out standalone so the Health Gate
+  // can decide which buffer (original or repaired) computeFingerprint should actually
+  // analyze, without running the full fingerprint pass twice per import.
+
+    function compactFloatSeries(values,maxPoints=256){
+    const n=values?.length||0;if(!n)return [];
+    if(n<=maxPoints)return Array.from(values,v=>+Number(v||0).toFixed(4));
+    const out=new Array(maxPoints);
+    for(let i=0;i<maxPoints;i++){const a=Math.floor(i*n/maxPoints),b=Math.max(a+1,Math.floor((i+1)*n/maxPoints));let sum=0;for(let j=a;j<b;j++)sum+=Number(values[j]||0);out[i]=+(sum/(b-a)).toFixed(4);}
+    return out;
+  }
+
+    function sampleSpectrogramFrames(spec, limit){
+    const frames=[];
+    const step=Math.max(1,Math.ceil(spec.length/Math.max(1,limit)));
+    for(let i=0;i<spec.length;i+=step)frames.push(spec[i]);
+    return frames;
+  }
+
+    function hannWindow(n){
+    const w = new Float64Array(n);
+    for(let i=0;i<n;i++) w[i] = 0.5*(1-Math.cos(2*Math.PI*i/(n-1)));
+    return w;
+  }
+
+    function mixDown(buf){
+    const ch0=buf.getChannelData(0), ch1=buf.getChannelData(1);
+    const out=new Float32Array(ch0.length);
+    for(let i=0;i<ch0.length;i++) out[i]=(ch0[i]+ch1[i])/2;
+    return out;
+  }
+
+  // minimal radix-2 FFT magnitude (real input, zero-padded/truncated to power of 2)
+
+    function simpleFFTMag(realIn){
+    const n = nextPow2(realIn.length);
+    const re = new Float64Array(n);
+    const im = new Float64Array(n);
+    for(let i=0;i<realIn.length && i<n;i++) re[i]=realIn[i];
+    fft(re, im);
+    const half = n/2;
+    // Float32 here (not Float64) — this array is what gets retained per analyzed
+    // frame, so halving it directly halves the peak memory of a full-track STFT
+    // pass. The FFT itself above still runs at double precision; only the stored
+    // magnitude output is downcast, which is well within audio's needed precision.
+    const mags = new Float32Array(half);
+    for(let i=0;i<half;i++) mags[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);
+    return mags;
+  }
+
+    function nextPow2(v){ let p=1; while(p<v) p*=2; return p; }
+
+    function fft(re, im){
+    const n = re.length;
+    if(n<=1) return;
+    // bit-reversal
+    for(let i=1,j=0;i<n;i++){
+      let bit=n>>1;
+      for(;j&bit;bit>>=1) j^=bit;
+      j^=bit;
+      if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; }
+    }
+    for(let len=2; len<=n; len<<=1){
+      const ang = -2*Math.PI/len;
+      const wr = Math.cos(ang), wi = Math.sin(ang);
+      for(let i=0;i<n;i+=len){
+        let curWr=1, curWi=0;
+        for(let k=0;k<len/2;k++){
+          const ur=re[i+k], ui=im[i+k];
+          const vr=re[i+k+len/2]*curWr - im[i+k+len/2]*curWi;
+          const vi=re[i+k+len/2]*curWi + im[i+k+len/2]*curWr;
+          re[i+k]=ur+vr; im[i+k]=ui+vi;
+          re[i+k+len/2]=ur-vr; im[i+k+len/2]=ui-vi;
+          const nWr = curWr*wr - curWi*wi;
+          const nWi = curWr*wi + curWi*wr;
+          curWr=nWr; curWi=nWi;
+        }
+      }
+    }
+  }
+
+    async function computeFingerprint(buf){
+    const data = buf.numberOfChannels>1
+      ? mixDown(buf) : buf.getChannelData(0);
+    const sr = buf.sampleRate;
+
+    // clipped-master detection: a brickwalled/over-limited master shows up as a run
+    // of samples sitting right at (or past) full-scale rather than a natural peak —
+    // count how much of the track is at that ceiling. Cheap single pass over the
+    // raw samples, done once up front before anything else touches `data`.
+    let clipSamples = 0, samplePeak = 0;
+    const clipCeiling = 0.98;
+    for(let i=0;i<data.length;i++){ const av=Math.abs(data[i]); if(av>=clipCeiling) clipSamples++; if(av>samplePeak) samplePeak=av; }
+    const clippedFraction = data.length ? clipSamples/data.length : 0;
+
+    const fftSize = 2048;
+    // was 512 (75% overlap). 1024 (50% overlap) halves the frame count — and
+    // therefore the peak size of the `spec` array below — with negligible loss
+    // of onset-timing precision for the 60-200bpm range this app targets.
+    const hop = 1024;
+    const nFrames = Math.max(0, Math.floor((data.length - fftSize) / hop));
+    const window = hannWindow(fftSize);
+    const binHz = sr / fftSize;
+    const nBins = fftSize/2;
+
+    // full STFT — reused for onset flux, heatmap, band energy, centroid
+    const spec = new Array(nFrames);
+    const frameTimes = new Float64Array(nFrames);
+    // Compact dynamic sonic-footprint accumulators. We keep only 64 temporal bins
+    // rather than the full spectral matrix, so the retained fingerprint stays small
+    // while the transition scorer can still inspect the character at the handoff.
+    const fpBins = Math.min(64, Math.max(1,nFrames));
+    const fpLow = new Float64Array(fpBins), fpMid = new Float64Array(fpBins), fpHigh = new Float64Array(fpBins);
+    const fpBright = new Float64Array(fpBins), fpCounts = new Uint32Array(fpBins);
+    for(let i=0;i<nFrames;i++){
+      const start = i*hop;
+      const windowed = new Float64Array(fftSize);
+      for(let j=0;j<fftSize;j++) windowed[j] = (data[start+j]||0) * window[j];
+      spec[i] = simpleFFTMag(windowed);
+      frameTimes[i] = start/sr;
+      if(i>0 && i%32===0) await new Promise(r=>setTimeout(r,0));
+    }
+
+    // spectral flux: sum of positive frame-to-frame magnitude increases
+    const flux = new Float64Array(nFrames);
+    for(let i=1;i<nFrames;i++){
+      let sum=0;
+      const cur=spec[i], prev=spec[i-1];
+      for(let b=0;b<nBins;b++){ const d=cur[b]-prev[b]; if(d>0) sum+=d; }
+      flux[i]=sum;
+    }
+    const fluxMax = Math.max(...flux, 1e-9);
+    for(let i=0;i<nFrames;i++) flux[i]/=fluxMax;
+
+    // peak-pick onsets above local mean+std within ~1s window
+    const localWin = Math.max(4, Math.round(sr/hop));
+    const onsets=[];
+    for(let i=localWin;i<nFrames-1;i++){
+      let mean=0;
+      for(let k=i-localWin;k<i;k++) mean+=flux[k];
+      mean/=localWin;
+      let variance=0;
+      for(let k=i-localWin;k<i;k++){ const d=flux[k]-mean; variance+=d*d; }
+      const std = Math.sqrt(variance/localWin);
+      if(flux[i] > mean+1.5*std && flux[i]>=flux[i-1] && flux[i]>=flux[i+1]){
+        onsets.push(frameTimes[i]);
+      }
+    }
+
+    // BPM via octave-folded inter-onset interval histogram
+    const ioIntervals=[];
+    for(let i=1;i<onsets.length;i++){
+      const d = onsets[i]-onsets[i-1];
+      if(d>0.2 && d<1.5) ioIntervals.push(d);
+    }
+    let bpm=0, bpmAlt=0, confidence=0;
+    if(ioIntervals.length>4){
+      const buckets={};
+      ioIntervals.forEach(iv=>{
+        let b = Math.round(60/iv);
+        while(b<70) b*=2;
+        while(b>180) b/=2;
+        b = Math.round(b);
+        buckets[b] = (buckets[b]||0)+1;
+      });
+      const ranked = Object.keys(buckets).map(k=>[+k,buckets[k]]).sort((a,b)=>b[1]-a[1]);
+      const total = ranked.reduce((s,r)=>s+r[1],0);
+      bpm = ranked[0][0];
+      confidence = total? ranked[0][1]/total : 0;
+      // check for a half/double-time alternate reading worth surfacing
+      const alt = ranked.find(r => r[0]===bpm*2 || r[0]===Math.round(bpm/2));
+      if(alt) bpmAlt = alt[0];
+    }
+
+    // ---------- beat grid phase ----------
+    // BPM alone gives you the beat INTERVAL but not where the beats actually fall in
+    // time. Find that anchor by testing candidate phase offsets across one beat
+    // interval and keeping whichever one the onsets cluster tightest around — this
+    // is what lets a transition snap to an actual beat instead of just "the BPM was
+    // roughly right." One beat's worth of candidates is plenty of resolution; this
+    // is O(20 x onset count), trivial next to the STFT pass above.
+    let beatPhase = 0;
+    if(bpm && onsets.length>4){
+      const interval = 60/bpm;
+      let bestPhase = 0, bestScore = Infinity;
+      for(let c=0;c<20;c++){
+        const candidate = (c/20)*interval;
+        let score = 0;
+        for(const o of onsets){
+          const rem = ((o-candidate)%interval+interval)%interval;
+          const dist = Math.min(rem, interval-rem);
+          score += dist*dist;
+        }
+        if(score<bestScore){ bestScore=score; bestPhase=candidate; }
+      }
+      beatPhase = bestPhase;
+    }
+
+    // band energy + spectral centroid + chroma (pitch-class energy for key detection),
+    // all averaged across all frames in one pass over `spec` — reusing the same STFT
+    // rather than adding a second full loop over every frame/bin.
+    const A4 = 440;
+    // precompute each bin's pitch class once outside the hot loop; -1 = ignored
+    // (sub-bass rumble below 55Hz and non-harmonic noise above 5kHz both just add
+    // noise to a chroma vector, so they're excluded from key detection only)
+    const pcAtBin = new Int8Array(nBins);
+    for(let b=0;b<nBins;b++){
+      const freq = b*binHz;
+      if(freq<55 || freq>5000){ pcAtBin[b] = -1; continue; }
+      const midi = 69 + 12*Math.log2(freq/A4);
+      pcAtBin[b] = ((Math.round(midi)%12)+12)%12;
+    }
+    let lowSum=0, midSum=0, highSum=0, centroidSum=0, centroidW=0;
+    const chroma = new Float64Array(12);
+    // Frame-resolution brightness (spectral centroid per frame), kept separate from
+    // the compacted 64-bin sonicFootprint.brightness below — the compacted version
+    // is too coarse to line up precisely with a specific build-up/drop timestamp,
+    // which the filter-sweep detector further down needs.
+    const frameBrightness = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      const mags = spec[i];
+      let l=0,m=0,h=0, frameCentroidSum=0, frameCentroidWeight=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b];
+        if(freq<250) l+=mag;
+        else if(freq<2000) m+=mag;
+        else h+=mag;
+        centroidSum += freq*mag;
+        centroidW += mag;
+        frameCentroidSum += freq*mag;
+        frameCentroidWeight += mag;
+        if(pcAtBin[b]>=0) chroma[pcAtBin[b]] += mag;
+      }
+      lowSum+=l; midSum+=m; highSum+=h;
+      frameBrightness[i] = frameCentroidWeight ? frameCentroidSum/frameCentroidWeight : 0;
+      const fi=Math.min(fpBins-1,Math.floor(i*fpBins/Math.max(1,nFrames)));
+      const bt=l+m+h||1;
+      fpLow[fi]+=l/bt; fpMid[fi]+=m/bt; fpHigh[fi]+=h/bt;
+      fpBright[fi]+=frameBrightness[i];
+      fpCounts[fi]++;
+    }
+    const bandTotal = lowSum+midSum+highSum || 1;
+    const bands = { low: lowSum/bandTotal, mid: midSum/bandTotal, high: highSum/bandTotal };
+    // A conservative spectral proxy: sustained mid-band dominance often carries
+    // vocal intelligibility, but instruments can occupy the same range. This is a
+    // ducking hint only, never a claim that the source has been separated.
+    const vocalLikelihood = clamp01(bands.mid*2.7 - bands.low*0.8 - bands.high*0.35);
+    const centroid = centroidW ? centroidSum/centroidW : 0;
+    const keyInfo = detectKey(chroma);
+
+    // energy envelope for the timeline view (frame RMS from time domain, decimated)
+    const energy = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      let sum=0;
+      const start=i*hop;
+      for(let j=0;j<hop;j++){ const v=data[start+j]||0; sum+=v*v; }
+      energy[i]=Math.sqrt(sum/hop);
+    }
+    const hopSec = hop/sr;
+    const maxEnergyForFp = energy.length ? Array.from(energy).reduce((m,v)=>Math.max(m,Number(v)||0),0) : 0;
+    const sonicFootprint = { version:1, sampleCount:fpBins, low:[], mid:[], high:[], brightness:[], energy:[] };
+    for(let i=0;i<fpBins;i++){
+      const c=Math.max(1,fpCounts[i]);
+      sonicFootprint.low.push(+clamp01(fpLow[i]/c).toFixed(3));
+      sonicFootprint.mid.push(+clamp01(fpMid[i]/c).toFixed(3));
+      sonicFootprint.high.push(+clamp01(fpHigh[i]/c).toFixed(3));
+      sonicFootprint.brightness.push(+clamp01((fpBright[i]/c)/9000).toFixed(3));
+      const a=Math.floor(i*nFrames/fpBins), b=Math.max(a+1,Math.floor((i+1)*nFrames/fpBins));
+      let es=0; for(let j=a;j<b;j++) es+=Number(energy[j])||0;
+      sonicFootprint.energy.push(+clamp01(es/(b-a)/Math.max(1e-6,maxEnergyForFp)).toFixed(3));
+    }
+
+    // ---------- silence detection (intro / outro) ----------
+    // A frame counts as silent if its RMS sits well below the track's OWN typical
+    // level — a relative threshold, not a fixed number, so this reads the same on a
+    // hushed acoustic intro and a wall-of-noise master. Walks in from each end and
+    // stops at the first non-silent frame, so a quiet-but-present pad bed doesn't
+    // get miscounted as silence the way a fixed dB floor would.
+    const sortedEnergy = Float32Array.from(energy).sort();
+    const medianEnergy = sortedEnergy[Math.floor(sortedEnergy.length/2)] || 0;
+    const silenceThresh = Math.max(0.002, medianEnergy*0.08);
+    let introSilenceFrames = 0;
+    for(let i=0;i<nFrames;i++){ if(energy[i]<silenceThresh) introSilenceFrames++; else break; }
+    let outroSilenceFrames = 0;
+    for(let i=nFrames-1;i>=0;i--){ if(energy[i]<silenceThresh) outroSilenceFrames++; else break; }
+    const silenceIntro = +(introSilenceFrames*hopSec).toFixed(2);
+    const silenceOutro = +(outroSilenceFrames*hopSec).toFixed(2);
+    // usable-for-mixing score: some lead-in/lead-out silence is fine (even wanted,
+    // for a clean cut point) — it only costs points once it eats into time you'd
+    // actually want to be crossfading during. Free up to 1.5s, fully penalized by 8s+.
+    const introUsability = clamp01(1 - Math.max(0, silenceIntro-1.5)/6.5);
+    const outroUsability = clamp01(1 - Math.max(0, silenceOutro-1.5)/6.5);
+
+    // ---------- quiet windows (mid-track) ----------
+    // Same relative-threshold idea as intro/outro silence, but scanning the whole
+    // track for sustained low-energy passages (breakdowns, bridges, breaks)
+    // instead of just the two ends. These become candidate windows for the
+    // ramp-assisted beatmatch path: a gradual tempo nudge hidden inside a quiet
+    // passage is far less audible than the same nudge dropped in as an instant
+    // snap right at the crossfade, so a track that HAS one of these can be
+    // beatmatched across a wider BPM gap than one that doesn't.
+    const quietThresh = Math.max(0.004, medianEnergy*0.25);
+    const minQuietFrames = Math.max(1, Math.round(2.5/hopSec));
+    const quietWindows = [];
+    {
+      let runStart = null;
+      for(let i=0;i<nFrames;i++){
+        const isQuiet = energy[i] < quietThresh;
+        if(isQuiet && runStart===null) runStart = i;
+        if((!isQuiet || i===nFrames-1) && runStart!==null){
+          const runEnd = isQuiet ? i : i-1;
+          if(runEnd-runStart+1 >= minQuietFrames){
+            const startSec = +(runStart*hopSec).toFixed(2);
+            const endSec = +((runEnd+1)*hopSec).toFixed(2);
+            // skip anything that's really just the already-captured intro/outro
+            // silence — only mid-track passages are useful as a ramp window
+            if(startSec > silenceIntro+0.5 && endSec < buf.duration-silenceOutro-0.5){
+              quietWindows.push({ start:startSec, end:endSec, duration:+(endSec-startSec).toFixed(2) });
+            }
+          }
+          runStart = null;
+        }
+      }
+    }
+
+    // ---------- LUFS-lite integrated loudness ----------
+    // A true broadcast LUFS measure needs K-weighting (a specific pre-filter) and
+    // gating (excluding quiet passages from the average) — this is a lighter proxy:
+    // RMS energy across all non-silent frames, converted to a dB-like scale and
+    // calibrated so "typical streaming-loud master" lands near -14, matching the
+    // ballpark people actually mean when they say LUFS in a DJ context. Good enough
+    // to catch "this track is way louder/quieter than the rest of the library" and
+    // compensate for it — not meant to be broadcast-spec accurate.
+    let loudSum=0, loudCount=0;
+    for(let i=0;i<nFrames;i++){ if(energy[i]>=silenceThresh){ loudSum+=energy[i]*energy[i]; loudCount++; } }
+    const rmsLoud = loudCount ? Math.sqrt(loudSum/loudCount) : 0;
+    const lufsEstimate = rmsLoud>0 ? +(20*Math.log10(rmsLoud) + 3).toFixed(1) : -60;
+
+    // danceability: onset regularity (low IOI variance) + mid-band energy + tempo in dance range
+    let ioiVar=0;
+    if(ioIntervals.length>4){
+      const mean = ioIntervals.reduce((a,b)=>a+b,0)/ioIntervals.length;
+      ioiVar = ioIntervals.reduce((a,b)=>a+(b-mean)*(b-mean),0)/ioIntervals.length;
+    }
+    const regularity = Math.max(0, 1 - ioiVar*20);
+    const tempoScore = (bpm>=80 && bpm<=170) ? 1 : 0.4;
+    const danceability = Math.min(1, (regularity*0.5 + bands.mid*0.3 + tempoScore*0.2));
+
+    // tempo stability: variance of windowed local-tempo estimates (8s windows, 4s step).
+    // A single global BPM can be statistically dominant (high confidence) on a track
+    // whose tempo still drifts a lot underneath — this catches that case so Auto DJ
+    // knows whether "the BPM" is trustworthy enough to beatmatch against.
+    const winSec = 8, stepSec = 4;
+    const localEstimates = [];
+    for(let t=0; t<buf.duration; t+=stepSec){
+      const segOnsets = onsets.filter(o=>o>=t && o<t+winSec);
+      if(segOnsets.length>3){
+        const segIoi=[];
+        for(let i=1;i<segOnsets.length;i++){
+          const d=segOnsets[i]-segOnsets[i-1];
+          if(d>0.1 && d<2.0) segIoi.push(d);
+        }
+        if(segIoi.length>2){
+          segIoi.sort((a,b)=>a-b);
+          const med = segIoi[Math.floor(segIoi.length/2)];
+          localEstimates.push(60/med);
+        }
+      }
+    }
+    let tempoStability = 1;
+    if(localEstimates.length>2){
+      const m = localEstimates.reduce((a,b)=>a+b,0)/localEstimates.length;
+      const variance = localEstimates.reduce((a,b)=>a+(b-m)*(b-m),0)/localEstimates.length;
+      const cov = m ? Math.sqrt(variance)/m : 0;
+      tempoStability = Math.max(0, 1 - cov*1.5);
+    }
+
+    // auto-cue point: first sustained (~1s) run above 35% of peak energy, so Auto DJ
+    // brings a track in past a quiet/dead-air intro rather than at sample 0.
+    const maxEnergy = Math.max(...energy, 1e-6);
+    const cueThresh = maxEnergy*0.35;
+    const needFrames = Math.max(1, Math.round(1.0/hopSec));
+    let cuePoint = 0, run=0;
+    for(let i=0;i<energy.length;i++){
+      if(energy[i]>=cueThresh){ run++; if(run>=needFrames){ cuePoint = Math.max(0,(i-needFrames+1)*hopSec); break; } }
+      else run=0;
+    }
+
+    // hook / key-moment detection: find the highest-sustained-energy window in the
+    // track, skipping the intro and outro, so Auto DJ can splice straight to the
+    // hook instead of running a full track top-to-bottom. hookStrength reports how
+    // far that window sits above the track's OWN median energy (not a flat 0-1
+    // absolute scale) — a quiet, restrained mix and a wall-of-sound mix can both have
+    // a real hook, they just each need judging against their own dynamic range.
+    // Earlier this normalized against the single loudest instantaneous frame in the
+    // whole song and subtracted an unscaled variance penalty, which went negative
+    // (then got floored to 0%) on almost any real, dynamically-varied track.
+    const hookWinSec = Math.min(24, Math.max(12, buf.duration*0.14));
+    const hookWinFrames = Math.max(1, Math.round(hookWinSec/hopSec));
+    const introSkipFrames = Math.round((buf.duration*0.12)/hopSec);
+    const outroSkipFrames = Math.round((buf.duration*0.08)/hopSec);
+    let hookStart = 0, hookEnd = Math.min(buf.duration, hookWinSec), hookStrength = 0;
+    if(energy.length > hookWinFrames + introSkipFrames + outroSkipFrames){
+      const sortedE = Array.from(energy).sort((a,b)=>a-b);
+      const medianE = sortedE[Math.floor(sortedE.length/2)] || 1e-6;
+      const peakE = sortedE[sortedE.length-1] || 1e-6;
+      const range = Math.max(peakE-medianE, 1e-6);
+      let windowSum = 0;
+      for(let i=introSkipFrames; i<introSkipFrames+hookWinFrames; i++) windowSum += energy[i];
+      let bestStart = introSkipFrames, bestScore = -Infinity;
+      const lastStart = energy.length - hookWinFrames - outroSkipFrames;
+      for(let i=introSkipFrames; i<=lastStart; i++){
+        if(i>introSkipFrames){ windowSum += energy[i+hookWinFrames-1] - energy[i-1]; }
+        const avg = windowSum/hookWinFrames;
+        let variance = 0;
+        for(let k=i;k<i+hookWinFrames;k++){ const d=energy[k]-avg; variance += d*d; }
+        variance /= hookWinFrames;
+        // how far this window sits above the track's own median (0 = typical level,
+        // 1 = as loud as the track's single loudest frame), lightly discounted if
+        // it's really just one spike surrounded by quiet rather than a held moment
+        const prominence = (avg-medianE)/range;
+        const penalty = (Math.sqrt(variance)/(avg||1e-6)) * 0.2;
+        const score = prominence - penalty;
+        if(score>bestScore){ bestScore=score; bestStart=i; }
+      }
+      hookStart = +(bestStart*hopSec).toFixed(2);
+      hookEnd = +Math.min(buf.duration, hookStart+hookWinSec).toFixed(2);
+      hookStrength = +clamp01(bestScore).toFixed(2);
+    }
+
+    // dynamic contrast: how far the track's quiet sections sit from its loud ones,
+    // normalized by its own average level — captures build/drop/restraint structure
+    // (a "creative strength" signal) that hookStrength's single window can't, since a
+    // track can have real structural tension without one dominant sustained-loud block
+    let dynamicContrast = 0;
+    if(energy.length>8){
+      const sortedD = Array.from(energy).sort((a,b)=>a-b);
+      const p10 = sortedD[Math.floor(sortedD.length*0.10)];
+      const p90 = sortedD[Math.floor(sortedD.length*0.90)];
+      const meanE = sortedD.reduce((a,b)=>a+b,0)/sortedD.length || 1e-6;
+      dynamicContrast = +clamp01((p90-p10)/(meanE*2.2)).toFixed(2);
+    }
+
+    // ---------- build-up / drop detection (energy-arc tension landmarks) ----------
+    // A "build-up" is a sustained (>=5s) climb in overall energy toward a peak; a
+    // "drop" is a sharp jump that clears a large chunk of the track's own dynamic
+    // range in under a second. Same smoothed-envelope idea as the silence/quiet-window
+    // detection above, just watching the slope instead of the level. This doesn't try
+    // to be a genre-aware structural analyzer — it's an energy-only proxy, same
+    // "good enough to act on, not claiming musicological ground truth" spirit as
+    // danceability and dynamicContrast above.
+    const smoothWin = Math.max(1, Math.round(1.2/hopSec));
+    const smoothed = new Float32Array(nFrames);
+    { let acc=0; for(let i=0;i<nFrames;i++){ acc+=energy[i]; if(i>=smoothWin) acc-=energy[i-smoothWin]; smoothed[i]=acc/Math.min(i+1,smoothWin); } }
+    const sortedSm = Float32Array.from(smoothed).sort();
+    const smP10 = sortedSm[Math.floor(sortedSm.length*0.1)] || 0;
+    const smP90 = sortedSm[Math.floor(sortedSm.length*0.9)] || 1e-6;
+    const smRange = Math.max(smP90-smP10, 1e-6);
+    const buildUpsRaw = [];
+    const minRiseFrames = Math.max(1, Math.round(5/hopSec));
+    { let runStart = 0;
+      for(let i=1;i<nFrames;i++){
+        if(smoothed[i] < smoothed[runStart] - smRange*0.03 || i===nFrames-1){
+          const runLen = i-runStart;
+          if(runLen >= minRiseFrames){
+            const rise = (smoothed[i-1]-smoothed[runStart])/smRange;
+            if(rise > 0.35) buildUpsRaw.push({ start:+(runStart*hopSec).toFixed(2), end:+((i-1)*hopSec).toFixed(2), riseStrength:+clamp01(rise).toFixed(2) });
+          }
+          runStart = i;
+        }
+      }
+    }
+    const dropsRaw = [];
+    const jumpFrames = Math.max(1, Math.round(0.8/hopSec));
+    for(let i=jumpFrames;i<nFrames;i++){
+      const jump = (smoothed[i]-smoothed[i-jumpFrames])/smRange;
+      if(jump > 0.5){
+        const t = +(i*hopSec).toFixed(2);
+        if(!dropsRaw.length || t-dropsRaw[dropsRaw.length-1].t > 2) dropsRaw.push({ t, jumpStrength:+clamp01(jump).toFixed(2) });
+      }
+    }
+    // keep only the strongest handful — a full track can have several fills/risers,
+    // but only the biggest few are useful as transition-planning landmarks
+    const buildUps = buildUpsRaw.sort((a,b)=>b.riseStrength-a.riseStrength).slice(0,4).sort((a,b)=>a.start-b.start);
+    const drops = dropsRaw.sort((a,b)=>b.jumpStrength-a.jumpStrength).slice(0,4).sort((a,b)=>a.t-b.t);
+
+    // ---------- produced filter-sweep ("vacuum") detection ----------
+    // Heuristic only, same "evidence, not ground truth" discipline as buildUps/
+    // drops above. A produced filter-pull (the classic DJ/production "vacuum" move)
+    // leaves a signature in the brightness timeline: spectral centroid sags below
+    // the track's own norm through the build-up or the seconds before a drop, then
+    // snaps back sharply right at the hit. This can't tell "a filter automation was
+    // used" apart from "the arrangement itself thins out here" with certainty —
+    // it's scored per build-up/drop event as producedFilterSweepLikelihood (0-1),
+    // not a track-wide claim, and BAD-D only uses it to soften its own added
+    // filter-pull, never to skip or fake a track's own sound.
+    function brightnessAt(tSec){
+      const idx = Math.max(0, Math.min(nFrames-1, Math.round(tSec/hopSec)));
+      return frameBrightness[idx]||0;
+    }
+    function avgBrightness(t0,t1){
+      let sum=0,count=0;
+      for(let t=t0;t<t1;t+=hopSec){ sum+=brightnessAt(t); count++; }
+      return count ? sum/count : brightnessAt(t0);
+    }
+    const brightSorted = Float32Array.from(frameBrightness).sort();
+    const brightMedian = brightSorted[Math.floor(brightSorted.length*0.5)] || 0;
+    const brightRange = Math.max((brightSorted[Math.floor(brightSorted.length*0.9)]||1) - (brightSorted[Math.floor(brightSorted.length*0.1)]||0), 1e-6);
+    function filterSweepScore(start,end){
+      const dur = Math.max(0.3, end-start);
+      const preBright = avgBrightness(start, start+dur*0.7);
+      const postBright = avgBrightness(end, Math.min(end+0.6, Math.max(0,(nFrames-1))*hopSec));
+      const sag = (brightMedian-preBright)/brightRange;
+      const recovery = (postBright-preBright)/brightRange;
+      return +clamp01(Math.max(0,sag)*0.5 + Math.max(0,recovery)*0.5).toFixed(2);
+    }
+    drops.forEach(d=>{ d.producedFilterSweepLikelihood = filterSweepScore(Math.max(0,d.t-1.5), d.t); });
+    buildUps.forEach(b=>{ b.producedFilterSweepLikelihood = filterSweepScore(b.start, b.end); });
+
+    // ---------- reverb tail estimate ----------
+    // Heuristic only. Measures how long energy takes to fall back toward the
+    // track's own noise floor after each detected onset (reusing the onsets
+    // already found for BPM above), averaged across every onset with enough
+    // signal to measure. Dry, tightly-mixed material decays fast; a heavily
+    // reverberant master (or a naturally long-ringing sustained pad/cymbal —
+    // this genuinely can't tell the two apart) holds energy longer. Reported as
+    // a bounded 0-1 "tail length" score against this app's own fixed window, not
+    // a measured RT60 in seconds — and null, not a fake 0, when there weren't
+    // enough usable onsets to say anything.
+    const REVERB_TAIL_WINDOW_SEC = 0.6;
+    const tailWinFrames = Math.max(1, Math.round(REVERB_TAIL_WINDOW_SEC/hopSec));
+    const energySortedForTail = Float32Array.from(energy).sort();
+    const tailNoiseFloor = energySortedForTail[Math.floor(energySortedForTail.length*0.1)] || 0;
+    const tailScores = [];
+    onsets.forEach(t=>{
+      const idx = Math.max(0, Math.round(t/hopSec));
+      const peak = energy[idx]||0;
+      if(peak <= tailNoiseFloor*1.2) return; // too quiet an onset to measure a tail from
+      const threshold = tailNoiseFloor + (peak-tailNoiseFloor)*0.25;
+      let held = 0;
+      for(let k=1;k<=tailWinFrames && idx+k<nFrames;k++){
+        if(energy[idx+k] > threshold) held++; else break;
+      }
+      tailScores.push(held/tailWinFrames);
+    });
+    const reverbTailEstimate = tailScores.length ? +clamp01(tailScores.reduce((a,b)=>a+b,0)/tailScores.length).toFixed(2) : null;
+
+    // Keep the original bounded analysis frame set intact for existing feature and
+    // hazard readers, then retain a separately bounded DISPLAY-ONLY set for the
+    // spectrogram. The second list only references already-created Float32 frames;
+    // it never changes the STFT, fingerprint, queue, or transition calculations.
+    const heatFrames = sampleSpectrogramFrames(spec, 300);
+    const visualFrames = sampleSpectrogramFrames(spec, r1SpectroProfile().frameLimit);
+
+    const fingerprint = {
+      bpm: bpm||null,
+      bpmAlt: bpmAlt||null,
+      confidence: +confidence.toFixed(2),
+      energyCurve: compactFloatSeries(energy,256),
+      bassProfile: +bands.low.toFixed(3),
+      vocalLikelihood: +vocalLikelihood.toFixed(2),
+      instrumentalLikelihood: +clamp01(1-vocalLikelihood).toFixed(2),
+      spectralCentroid: Math.round(centroid),
+      danceability: +danceability.toFixed(2),
+      tempoStability: +tempoStability.toFixed(2),
+      cuePoint: +cuePoint.toFixed(2),
+      key: keyInfo.key,
+      camelot: keyInfo.camelot,
+      keyConfidence: +keyInfo.keyConfidence.toFixed(2),
+      beatPhase: +beatPhase.toFixed(3),
+      beatsPerBar: 4, // assumed — this app doesn't detect meter, 4/4 covers the overwhelming majority of DJ-relevant material
+      hookStart, hookEnd, hookStrength,
+      dynamicContrast,
+      silenceIntro, silenceOutro, introUsability: +introUsability.toFixed(2), outroUsability: +outroUsability.toFixed(2),
+      quietWindows: quietWindows
+        .sort((a,b)=>b.duration-a.duration)
+        .slice(0,6)
+        .sort((a,b)=>a.start-b.start),
+      lufsEstimate,
+      samplePeak: +samplePeak.toFixed(4),
+      clippedFraction: +clippedFraction.toFixed(4),
+      duration: +buf.duration.toFixed(1),
+      buildUps, drops,
+      reverbTailEstimate,
+      sonicFootprint
+    };
+    fingerprint.signalQuality = classifySignalQuality(fingerprint);
+
+    return { fingerprint, energy, spectro: heatFrames, spectroVisual: visualFrames, spectroMeta: { binHz, sr }, bands, onsets };
+  }
+
+  // Lightweight counterpart to computeFingerprint, used whenever a track's real
+  // fingerprint is already known (loaded from the library cache / prior analysis).
+  // It re-runs only the STFT pass needed to redraw the heatmap/energy/band visuals
+  // for THIS deck, and skips flux, onset picking, BPM histogram, tempo-stability
+  // windows, and hook search entirely — those numbers already exist and were being
+  // recomputed and thrown away on every single deck load.
+  //
+  // This matters most during a GO/Auto DJ set: advanceQueueInto() calls
+  // loadFromLibrary() on every transition, which used to mean a full
+  // computeFingerprint() pass (a many-tens-of-MB transient allocation) on the main
+  // thread for every track change over the course of a set — the real source of
+  // the crash. This path is roughly a third of the work and allocation.
+
+    function computeVisuals(buf){
+    const data = buf.numberOfChannels>1 ? mixDown(buf) : buf.getChannelData(0);
+    const sr = buf.sampleRate;
+    const fftSize = 2048, hop = 1024;
+    const nFrames = Math.max(0, Math.floor((data.length - fftSize) / hop));
+    const window = hannWindow(fftSize);
+    const binHz = sr / fftSize;
+    const nBins = fftSize/2;
+
+    const spec = new Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      const start = i*hop;
+      const windowed = new Float64Array(fftSize);
+      for(let j=0;j<fftSize;j++) windowed[j] = (data[start+j]||0) * window[j];
+      spec[i] = simpleFFTMag(windowed);
+    }
+
+    let lowSum=0, midSum=0, highSum=0;
+    const bandCurve = {
+      low:new Float32Array(nFrames),
+      mid:new Float32Array(nFrames),
+      high:new Float32Array(nFrames)
+    };
+    for(let i=0;i<nFrames;i++){
+      const mags = spec[i];
+      let l=0,m=0,h=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b];
+        if(freq<250) l+=mag; else if(freq<2000) m+=mag; else h+=mag;
+      }
+      const total=l+m+h||1;
+      bandCurve.low[i]=l/total;
+      bandCurve.mid[i]=m/total;
+      bandCurve.high[i]=h/total;
+      lowSum+=l; midSum+=m; highSum+=h;
+    }
+    const bandTotal = lowSum+midSum+highSum || 1;
+    const bands = { low: lowSum/bandTotal, mid: midSum/bandTotal, high: highSum/bandTotal };
+    const vocalLikelihood = clamp01(bands.mid*2.7 - bands.low*0.8 - bands.high*0.35);
+    // Conservative sibilance evidence: excessive 4–10 kHz energy during frames that
+    // also resemble the existing vocal-profile band. This is a heuristic risk signal,
+    // not word, letter, gender, or source separation detection; cymbals and guitars can
+    // occupy the same range, so the later high-confidence vocal gate stays mandatory.
+    let sibilanceEvidence=0, sibilanceFrames=0;
+    for(let i=0;i<nFrames;i++){
+      const mags=spec[i]; let total=0, low=0, mid=0, sib=0;
+      for(let b=0;b<nBins;b++){
+        const freq=b*binHz, mag=mags[b]; total+=mag;
+        if(freq<250) low+=mag; else if(freq<2000) mid+=mag;
+        if(freq>=4000 && freq<=10000) sib+=mag;
+      }
+      if(total<=0) continue;
+      const lowShare=low/total, midShare=mid/total, sibShare=sib/total;
+      const vocalFrame=clamp01(midShare*3-lowShare*0.8-(1-midShare-lowShare)*0.25);
+      if(vocalFrame<0.28) continue;
+      const sibRatio=sib/Math.max(1e-9,mid);
+      sibilanceEvidence += clamp01((sibShare-0.08)*7+(sibRatio-0.3)*1.2);
+      sibilanceFrames++;
+    }
+    const sibilanceRisk=clamp01((sibilanceEvidence/Math.max(1,sibilanceFrames))*clamp01(vocalLikelihood*1.4));
+
+    const energy = new Float32Array(nFrames);
+    for(let i=0;i<nFrames;i++){
+      let sum=0; const start=i*hop;
+      for(let j=0;j<hop;j++){ const v=data[start+j]||0; sum+=v*v; }
+      energy[i]=Math.sqrt(sum/hop);
+    }
+
+    const heatFrames = sampleSpectrogramFrames(spec, 300);
+    const visualFrames = sampleSpectrogramFrames(spec, r1SpectroProfile().frameLimit);
+
+    return { energy, spectro: heatFrames, spectroVisual: visualFrames, spectroMeta: { binHz, sr }, bands, bandCurve, vocalLikelihood, sibilanceRisk };
+
+  }
+
+  // Builds a bounded, track-local dynamic EQ map from the same STFT and RMS
+  // evidence already used by the song fingerprint. This is an adaptive
+  // corrective layer, not "perfect EQ": it can reduce a band's local dominance
+  // and gently support a weak band, but it never adds gain to silence and stays
+  // within a small producer-safe range.
+
+    return Object.freeze({
+      computeFingerprint,
+      computeVisuals,
+      pearsonCorr,
+      detectKey,
+      classifySignalQuality,
+      compactFloatSeries,
+      sampleSpectrogramFrames,
+      hannWindow,
+      mixDown,
+      simpleFFTMag,
+      nextPow2,
+      fft
+    });
+  }
+
+  root.BADD_AUDIO_ENGINE_R1 = Object.freeze({ createAudioEngine });
+})(window.__BADD_LAB_EXPERIMENT_ROOT);
+
+</script>
+
+<script>
+(function(){
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $('statusText'), progressEl = $('progressBar');
+  const fileInput = $('fileInput'), fileListEl = $('fileList');
+  const startBtn = $('startBtn'), stopBtn = $('stopBtn'), resetBtn = $('resetBtn'), exportBtn = $('exportBtn'), genBtn = $('genBtn');
+  const longtaskLogEl = $('longtaskLog'), errorLogEl = $('errorLog');
+  const verdictEl = $('verdict'), verdictDetailEl = $('verdictDetail');
+  const playerEl = $('player'), playWhileEl = $('playWhile');
+
+  let files = [];
+  let running = false;
+  let stopRequested = false;
+  let lastRun = null;
+
+  function setStatus(text, kind){
+    statusEl.textContent = text;
+    statusEl.className = kind || '';
+  }
+  function logError(msg){
+    if(errorLogEl.textContent === 'No errors.') errorLogEl.textContent = '';
+    errorLogEl.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  }
+  function logLongTask(phase, dur, startedAt){
+    if(longtaskLogEl.textContent.startsWith('(long tasks')) longtaskLogEl.textContent = '';
+    longtaskLogEl.textContent += phase.toUpperCase() + '  ' + dur.toFixed(1) + 'ms  @' + startedAt.toFixed(0) + 'ms\n';
+    longtaskLogEl.scrollTop = longtaskLogEl.scrollHeight;
+  }
+
+  window.addEventListener('error', (e) => logError('page error: ' + e.message));
+  window.addEventListener('unhandledrejection', (e) => logError('unhandled rejection: ' + (e.reason && e.reason.message || e.reason)));
+
+  function renderFileList(){
+    if(!files.length){ fileListEl.textContent = 'No files chosen yet.'; return; }
+    fileListEl.textContent = files.map(f => f.name + ' (' + (f.size/1e6).toFixed(2) + 'MB)').join('\n');
+  }
+
+  fileInput.addEventListener('change', () => {
+    files = Array.from(fileInput.files || []);
+    renderFileList();
+    if(files.length) playerEl.src = URL.createObjectURL(files[0]);
+  });
+
+  // ---- synthetic test-tone generator (client-side WAV, no upload needed) ----
+  function makeSynthWavBlob(durationSec, freqHz, sampleRate){
+    sampleRate = sampleRate || 44100;
+    const n = Math.floor(durationSec * sampleRate);
+    const bytesPerSample = 2;
+    const dataSize = n * bytesPerSample;
+    const buf = new ArrayBuffer(44 + dataSize);
+    const v = new DataView(buf);
+    const writeStr = (o, s) => { for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+    writeStr(0,'RIFF'); v.setUint32(4, 36+dataSize, true); writeStr(8,'WAVE');
+    writeStr(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24, sampleRate, true); v.setUint32(28, sampleRate*bytesPerSample, true);
+    v.setUint16(32, bytesPerSample, true); v.setUint16(34, 16, true);
+    writeStr(36,'data'); v.setUint32(40, dataSize, true);
+    let o = 44;
+    for(let i=0;i<n;i++){
+      const t = i/sampleRate;
+      const val = 0.2*Math.sin(2*Math.PI*freqHz*t);
+      v.setInt16(o, Math.max(-32767, Math.min(32767, Math.round(val*32767))), true);
+      o += 2;
+    }
+    return new Blob([buf], {type:'audio/wav'});
+  }
+
+  genBtn.addEventListener('click', () => {
+    const n = 12, durSec = 45;
+    files = [];
+    for(let i=0;i<n;i++){
+      const blob = makeSynthWavBlob(durSec + i*0.5, 220 + (i%8)*30, 44100);
+      files.push(new File([blob], 'lab-test-tone-' + String(i+1).padStart(2,'0') + '.wav', {type:'audio/wav'}));
+    }
+    renderFileList();
+    playerEl.src = URL.createObjectURL(files[0]);
+    setStatus(n + ' built-in test tones generated. Press START TEST.', '');
+  });
+
+  // ---- long-task collection ----
+  function installLongTaskObserver(phaseGetter, bucket){
+    let obs = null;
+    try{
+      obs = new PerformanceObserver((list) => {
+        for(const e of list.getEntries()){
+          const phase = phaseGetter();
+          if(!phase) continue;
+          bucket[phase].push({start:e.startTime, dur:e.duration});
+          logLongTask(phase, e.duration, e.startTime);
+        }
+      });
+      obs.observe({entryTypes:['longtask']});
+    }catch(e){
+      logError('PerformanceObserver longtask unavailable: ' + e.message + ' (this browser may not support it — the rest of the test still runs, but long-task numbers will read 0)');
+    }
+    return obs;
+  }
+
+  async function runImportPhase(engineRoot, phaseName, filesList, onProgress){
+    const engine = engineRoot.BADD_AUDIO_ENGINE_R1.createAudioEngine();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = performance.now();
+    const fingerprints = [];
+    for(let i=0;i<filesList.length;i++){
+      if(stopRequested) break;
+      const f = filesList[i];
+      onProgress(i, filesList.length, f.name);
+      const arrayBuf = await f.arrayBuffer();
+      let audioBuf;
+      try{
+        // Callback-style decodeAudioData (not the Promise-based form) --
+        // matches the real app's own call pattern. Verified this matters:
+        // the Promise-based await ctx.decodeAudioData(...) form did not
+        // reliably surface the analysis work that follows it as a
+        // detectable PerformanceObserver longtask entry in this browser,
+        // even though performance.now() confirmed the same ~450-500ms of
+        // real synchronous blocking either way. Callback-style resolves
+        // through a task boundary the longtask API actually sees.
+        audioBuf = await new Promise((resolve, reject) => ctx.decodeAudioData(arrayBuf, resolve, reject));
+      }catch(e){
+        logError(phaseName + ': could not decode ' + f.name + ': ' + e.message);
+        continue;
+      }
+      try{
+        const result = await engine.computeFingerprint(audioBuf);
+        fingerprints.push({name: f.name, fingerprint: result.fingerprint});
+      }catch(e){
+        logError(phaseName + ': analysis failed on ' + f.name + ': ' + e.message);
+      }
+    }
+    const durationMs = performance.now() - t0;
+    try{ await ctx.close(); }catch(_){}
+    return { durationMs, fingerprints };
+  }
+
+  function fmtMs(ms){ return ms==null ? '—' : (ms/1000).toFixed(1) + 's'; }
+  function fmtMsShort(ms){ return ms==null ? '—' : ms.toFixed(0) + 'ms'; }
+
+  function paintMetrics(prefix, res, longTasks, durationMs){
+    const count = longTasks.length;
+    const total = longTasks.reduce((s,t)=>s+t.dur, 0);
+    const max = count ? Math.max(...longTasks.map(t=>t.dur)) : 0;
+    const pct = durationMs ? (100*total/durationMs) : 0;
+    $('m-dur-' + prefix).textContent = fmtMs(durationMs);
+    $('m-count-' + prefix).textContent = count;
+    $('m-blocked-' + prefix).textContent = fmtMsShort(total);
+    $('m-max-' + prefix).textContent = fmtMsShort(max);
+    $('m-pct-' + prefix).textContent = pct.toFixed(1) + '%';
+    return { count, total, max, pct };
+  }
+
+  async function runFullTest(){
+    running = true; stopRequested = false;
+    startBtn.disabled = true; stopBtn.disabled = false; exportBtn.disabled = true;
+    errorLogEl.textContent = 'No errors.';
+    longtaskLogEl.textContent = '(long tasks over 50ms will appear here as they\'re detected)';
+    verdictEl.className = 'verdict pending'; verdictEl.textContent = 'Running…';
+    verdictDetailEl.textContent = '';
+
+    let currentPhase = null;
+    const buckets = { baseline: [], experiment: [] };
+    installLongTaskObserver(() => currentPhase, buckets);
+
+    if(playWhileEl.checked && playerEl.src){
+      try{ await playerEl.play(); }catch(e){ logError('could not start playback (browser may require a tap first): ' + e.message); }
+    }
+
+    setStatus('Running BASELINE (unmodified engine)…', 'busy');
+    currentPhase = 'baseline';
+    const baselineResult = await runImportPhase(window.__BADD_LAB_BASELINE_ROOT, 'BASELINE', files, (i, n, name) => {
+      progressEl.style.width = Math.round(50 * (i/n)) + '%';
+      setStatus('BASELINE: analyzing ' + (i+1) + '/' + n + ' — ' + name, 'busy');
+    });
+    currentPhase = null;
+    const baselineMetrics = paintMetrics('b', baselineResult, buckets.baseline, baselineResult.durationMs);
+
+    if(!stopRequested){
+      setStatus('Running EXPERIMENT (lab-patched engine)…', 'busy');
+      currentPhase = 'experiment';
+      const experimentResult = await runImportPhase(window.__BADD_LAB_EXPERIMENT_ROOT, 'EXPERIMENT', files, (i, n, name) => {
+        progressEl.style.width = (50 + Math.round(50 * (i/n))) + '%';
+        setStatus('EXPERIMENT: analyzing ' + (i+1) + '/' + n + ' — ' + name, 'busy');
+      });
+      currentPhase = null;
+      const experimentMetrics = paintMetrics('e', experimentResult, buckets.experiment, experimentResult.durationMs);
+
+      // correctness check: does every experiment fingerprint match baseline's?
+      let allMatch = baselineResult.fingerprints.length === experimentResult.fingerprints.length;
+      for(let i=0;i<baselineResult.fingerprints.length && allMatch;i++){
+        const b = baselineResult.fingerprints[i], e = experimentResult.fingerprints.find(x=>x.name===b.name);
+        if(!e || JSON.stringify(b.fingerprint) !== JSON.stringify(e.fingerprint)) allMatch = false;
+      }
+      $('m-match-e').textContent = allMatch ? 'YES' : 'NO — MISMATCH';
+      $('m-match-e').className = allMatch ? 'num metric-good' : 'num metric-bad';
+
+      lastRun = { baselineResult, experimentResult, baselineMetrics, experimentMetrics, buckets, allMatch, ranAt: new Date().toISOString() };
+
+      progressEl.style.width = '100%';
+      if(!allMatch){
+        verdictEl.className = 'verdict fail';
+        verdictEl.textContent = 'FAIL — fingerprint output differs between baseline and experiment';
+        verdictDetailEl.textContent = 'The patched engine produced different analysis results than the original. Do not trust the experiment build — this needs investigation before it means anything about scheduling.';
+        setStatus('Test complete — correctness check FAILED.', 'bad');
+      } else {
+        const blockedDropPct = baselineMetrics.total ? (100*(1 - experimentMetrics.total/baselineMetrics.total)) : 0;
+        verdictEl.className = 'verdict pass';
+        verdictEl.textContent = 'Fingerprints match. Main-thread blocking dropped ' + blockedDropPct.toFixed(0) + '%.';
+        verdictDetailEl.textContent = 'Baseline blocked the main thread for ' + fmtMsShort(baselineMetrics.total) + ' (worst single block ' + fmtMsShort(baselineMetrics.max) + '). Experiment blocked it for ' + fmtMsShort(experimentMetrics.total) + ' (worst ' + fmtMsShort(experimentMetrics.max) + '). Import took ' + (experimentResult.durationMs > baselineResult.durationMs ? 'longer' : 'about the same or less') + ' overall (' + fmtMs(baselineResult.durationMs) + ' -> ' + fmtMs(experimentResult.durationMs) + ') — that trade-off is expected and is the cost of yielding. The number that matters for audio timing is the blocking reduction, not the total time. Now use the AUDIO TEST above: did you actually hear anything different between the two passes?';
+        setStatus('Test complete.', 'ok');
+      }
+    } else {
+      setStatus('Stopped by user.', '');
+      verdictEl.className = 'verdict pending';
+      verdictEl.textContent = 'Stopped before completion.';
+    }
+
+    playerEl.pause();
+    running = false;
+    startBtn.disabled = false; stopBtn.disabled = true;
+    exportBtn.disabled = !lastRun;
+  }
+
+  startBtn.addEventListener('click', () => {
+    if(!files.length){ setStatus('Choose files or generate test tones first.', 'bad'); return; }
+    if(running) return;
+    runFullTest();
+  });
+  stopBtn.addEventListener('click', () => { stopRequested = true; setStatus('Stopping…', ''); });
+  resetBtn.addEventListener('click', () => {
+    if(running) stopRequested = true;
+    files = []; fileInput.value = '';
+    renderFileList();
+    playerEl.pause(); playerEl.removeAttribute('src');
+    progressEl.style.width = '0%';
+    errorLogEl.textContent = 'No errors.';
+    longtaskLogEl.textContent = '(long tasks over 50ms will appear here as they\'re detected)';
+    verdictEl.className = 'verdict pending'; verdictEl.textContent = 'Run the test to see a verdict.'; verdictDetailEl.textContent = '';
+    ['m-dur-b','m-dur-e','m-count-b','m-count-e','m-blocked-b','m-blocked-e','m-max-b','m-max-e','m-pct-b','m-pct-e','m-match-e'].forEach(id => { $(id).textContent = '—'; $(id).className = 'num'; });
+    exportBtn.disabled = true;
+    lastRun = null;
+    setStatus('Idle — choose files, then press START TEST.', '');
+  });
+  exportBtn.addEventListener('click', () => {
+    if(!lastRun) return;
+    const blob = new Blob([JSON.stringify(lastRun, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'badd-lab-exp007-diagnostics-' + Date.now() + '.json';
+    a.click();
+  });
+})();
+</script>
+</body>
+</html>

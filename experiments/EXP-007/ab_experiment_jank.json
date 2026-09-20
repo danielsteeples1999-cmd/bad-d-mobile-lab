@@ -1,0 +1,48 @@
+{
+  "target": "experiments/EXP-007/lab-yield-patch.html",
+  "wavCount": 20,
+  "startedAt": "2026-09-20T12:31:17.346Z",
+  "idleMs": 5000,
+  "longtaskApiSupported": true,
+  "idlePhase": {
+    "durationMs": 5000,
+    "longTasks": [],
+    "count": 0,
+    "totalBlockedMs": 0,
+    "maxTaskMs": 0
+  },
+  "importPhase": {
+    "durationMs": 20736,
+    "longTasks": [
+      {
+        "start": 5335.600000000035,
+        "dur": 54
+      },
+      {
+        "start": 6125.800000000047,
+        "dur": 139
+      },
+      {
+        "start": 7129.300000000047,
+        "dur": 67
+      },
+      {
+        "start": 8957.800000000047,
+        "dur": 69
+      },
+      {
+        "start": 9102.400000000023,
+        "dur": 155
+      },
+      {
+        "start": 12796,
+        "dur": 60
+      }
+    ],
+    "count": 6,
+    "totalBlockedMs": 544,
+    "maxTaskMs": 155
+  },
+  "consoleErrors": [],
+  "pageErrors": []
+}

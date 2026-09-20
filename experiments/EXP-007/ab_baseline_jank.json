@@ -1,0 +1,104 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 20,
+  "startedAt": "2026-09-20T12:30:52.618Z",
+  "idleMs": 5000,
+  "longtaskApiSupported": true,
+  "idlePhase": {
+    "durationMs": 5000,
+    "longTasks": [],
+    "count": 0,
+    "totalBlockedMs": 0,
+    "maxTaskMs": 0
+  },
+  "importPhase": {
+    "durationMs": 19016,
+    "longTasks": [
+      {
+        "start": 5328.600000000035,
+        "dur": 664
+      },
+      {
+        "start": 6078.700000000012,
+        "dur": 546
+      },
+      {
+        "start": 6692.100000000035,
+        "dur": 762
+      },
+      {
+        "start": 7535.100000000035,
+        "dur": 982
+      },
+      {
+        "start": 8599.600000000035,
+        "dur": 753
+      },
+      {
+        "start": 9410,
+        "dur": 545
+      },
+      {
+        "start": 10014.100000000035,
+        "dur": 684
+      },
+      {
+        "start": 10733.600000000035,
+        "dur": 745
+      },
+      {
+        "start": 11546.400000000023,
+        "dur": 759
+      },
+      {
+        "start": 12351.700000000012,
+        "dur": 548
+      },
+      {
+        "start": 12959.299999999988,
+        "dur": 760
+      },
+      {
+        "start": 13836.700000000012,
+        "dur": 830
+      },
+      {
+        "start": 14713.5,
+        "dur": 565
+      },
+      {
+        "start": 15321.400000000023,
+        "dur": 792
+      },
+      {
+        "start": 16202.900000000023,
+        "dur": 569
+      },
+      {
+        "start": 16821.600000000035,
+        "dur": 620
+      },
+      {
+        "start": 17503.600000000035,
+        "dur": 682
+      },
+      {
+        "start": 18285,
+        "dur": 611
+      },
+      {
+        "start": 18956.600000000035,
+        "dur": 540
+      },
+      {
+        "start": 19539.70000000001,
+        "dur": 690
+      }
+    ],
+    "count": 20,
+    "totalBlockedMs": 13647,
+    "maxTaskMs": 982
+  },
+  "consoleErrors": [],
+  "pageErrors": []
+}
