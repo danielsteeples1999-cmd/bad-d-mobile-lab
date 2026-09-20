@@ -1,6 +1,16 @@
 ## EXPERIMENT ID
 EXP-007 — Trace the real scheduler, find the exact bottleneck, build and A/B test the minimal fix
 
+> **UPDATE (EXP-008):** Daniel ran this record's HTML artifact on his real
+> Android device (P9 Pro 5G). The scheduling result reproduced strongly
+> (94,910ms → 15,176ms main-thread blocked, matching this record's headless
+> A/B in direction and rough magnitude). **But the correctness check reported
+> a fingerprint MISMATCH** — something this record's own headless
+> correctness check (byte-identical fingerprints) did not catch. **The
+> "KEEP" decision below is suspended.** Do not treat the yield patch as
+> correctness-validated until EXP-008 resolves. Full forensic investigation,
+> device profile, and next steps: `experiments/EXP-008/README.md`.
+
 ## PROBLEM
 EXP-006 measured severe main-thread blocking during bulk import (71.5% of
 the window, max 863ms) but explicitly could not say whether it threatens
