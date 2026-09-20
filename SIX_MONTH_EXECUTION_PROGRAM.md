@@ -1,26 +1,28 @@
-# CLAUDE MOBILE LAB — SIX-MONTH EXECUTION PROGRAM
+# CLAUDE MOBILE LAB — EXECUTION PROGRAM
 
 ## Purpose
 
-This is the long-horizon program for the isolated mobile laboratory.
+This is a long-horizon research program, NOT a schedule.
 
-You are not expected to complete every item mechanically. Use the program as a six-month search space. Reorder work when evidence says a different path is more valuable.
+There are no deadlines, monthly time targets, weekly targets, hour targets, completion promises, or expectations that a particular amount of work must be completed within a particular period.
+
+The six sections are **maturity stages**. Move forward when the evidence and foundations justify it. Stay on a stage when deeper testing is valuable. Revisit earlier stages whenever new evidence exposes a problem.
 
 The single command is:
 
-> RUN THE SIX-MONTH MOBILE LAB PROGRAM. START WITH THE HIGHEST-VALUE REVERSIBLE EXPERIMENT, MEASURE IT, RECORD IT, AND KEEP MOVING UNTIL STOPPED.
+> RUN THE MOBILE LAB PROGRAM. START WITH THE HIGHEST-VALUE REVERSIBLE EXPERIMENT, MEASURE IT, RECORD IT, AND CONTINUE UNTIL STOPPED.
 
 Never modify the production BAD-D source of truth from this repository.
 
 ---
 
-# MONTH 1 — MAKE THE LAB SCIENTIFIC
+# STAGE 1 — MAKE THE LAB SCIENTIFIC
 
 ## Goal
 
 Turn the mobile build into something that can reproduce, measure, break, recover, and explain problems.
 
-## Week 1 — Establish the baseline
+### Establish the baseline
 
 Build:
 
@@ -46,7 +48,7 @@ Record:
 - failures
 - recovery state
 
-## Week 2 — Startup war room
+### Startup war room
 
 Find every startup failure mode:
 
@@ -61,8 +63,6 @@ Find every startup failure mode:
 - unavailable browser APIs
 - malformed recovery state
 
-Create startup probes that fail loudly and safely.
-
 Target:
 
 APP OPENS → UI BECOMES USABLE → OPTIONAL WORK STARTS
@@ -71,7 +71,7 @@ not
 
 LOAD EVERYTHING → HOPE IT WORKS → SHOW ERROR.
 
-## Week 3 — RAM and lifetime
+### RAM and lifetime
 
 Create controlled experiments for:
 
@@ -86,10 +86,12 @@ Create controlled experiments for:
 - caches
 - IndexedDB growth
 - repeated upload/delete cycles
+- repeated scans
+- interrupted scans
 
-Test 1 track, 5 tracks, 20 tracks, large files, repeated scans, and interrupted scans.
+Test across small, normal, large, repeated, and interrupted workloads.
 
-## Week 4 — Audio protection
+### Audio protection
 
 Measure:
 
@@ -102,31 +104,31 @@ Measure:
 - long scan + playback
 - memory pressure + playback
 
-Create a regression test that makes it impossible to call a RAM improvement successful if audio becomes worse.
+Create a regression test that prevents a RAM improvement being called successful if audio becomes worse.
 
-## Month 1 exit criteria
+### Stage 1 exit evidence
 
-Have:
+Advance when the lab has:
 
-1. Baseline report.
+1. Baseline evidence.
 2. Experiment ledger.
 3. Startup diagnostics.
 4. Memory diagnostics.
 5. Audio stability diagnostics.
-6. Browser capability matrix.
-7. At least 10 documented experiments.
-8. At least 3 deliberately failed experiments.
-9. Reproducible test procedures.
+6. Browser capability information.
+7. Reproducible test procedures.
+8. Multiple documented experiments.
+9. Documented failed experiments.
 
 ---
 
-# MONTH 2 — BUILD THE MOBILE GOVERNOR
+# STAGE 2 — BUILD THE MOBILE GOVERNOR
 
 ## Goal
 
 Make heavy work adapt to the device instead of treating every phone as a desktop.
 
-## Week 5 — Workload model
+### Workload model
 
 Create a workload estimate using observable inputs:
 
@@ -143,7 +145,7 @@ Do not pretend this is a perfect device benchmark.
 
 It is a control signal.
 
-## Week 6 — Concurrency experiments
+### Concurrency experiments
 
 Compare:
 
@@ -162,7 +164,7 @@ Measure:
 - audio stability
 - failure rate
 
-## Week 7 — Cooperative scheduling
+### Cooperative scheduling
 
 Test:
 
@@ -173,13 +175,11 @@ Test:
 - worker-based analysis where useful
 - avoiding giant synchronous loops
 
-The goal is not merely faster completion.
-
 The goal is:
 
 FAST ENOUGH + RESPONSIVE + AUDIO SAFE.
 
-## Week 8 — Cooling and recovery
+### Cooling and recovery
 
 Build a state model such as:
 
@@ -193,27 +193,26 @@ Test automatic slowdown after pressure.
 
 Do not allow cooling logic to silently discard evidence.
 
-## Month 2 exit criteria
+### Stage 2 exit evidence
 
-Have:
+Advance when the lab has:
 
-- adaptive workload model
-- benchmark matrix
-- concurrency comparison
-- scheduling comparison
-- cooling model
-- measurable reason for each governor decision
-- rollback switch for experimental governors
+- adaptive workload evidence
+- concurrency comparisons
+- scheduling comparisons
+- cooling behavior
+- measurable reasons for governor decisions
+- rollback controls for experimental governors
 
 ---
 
-# MONTH 3 — MAKE INTERRUPTION BORING
+# STAGE 3 — MAKE INTERRUPTION BORING
 
 ## Goal
 
 Assume the browser will kill, suspend, reload, background, or interrupt the app.
 
-## Week 9 — Checkpoint architecture
+### Checkpoint architecture
 
 Define the minimum trustworthy checkpoint:
 
@@ -230,7 +229,7 @@ Define the minimum trustworthy checkpoint:
 
 Never call partial data complete.
 
-## Week 10 — Recovery testing
+### Recovery testing
 
 Inject:
 
@@ -247,13 +246,13 @@ Inject:
 Measure:
 
 - detection
-- recovery time
+- recovery behavior
 - repeated work
 - lost evidence
 - incorrect state
 - user confusion
 
-## Week 11 — Corruption and duplication
+### Corruption and duplication
 
 Test:
 
@@ -267,7 +266,7 @@ Test:
 
 Recovery must choose the last trustworthy state, not simply the newest state.
 
-## Week 12 — Device-local diagnostics
+### Device-local diagnostics
 
 Prototype an exportable diagnostic package containing:
 
@@ -286,19 +285,19 @@ Prototype an exportable diagnostic package containing:
 
 Keep private user audio/data out unless explicitly necessary.
 
-## Month 3 exit criteria
+### Stage 3 exit evidence
 
 A user should be able to lose the page during a long operation without turning the entire test run into a disaster.
 
 ---
 
-# MONTH 4 — TESTING DECK AS AN EVIDENCE ENGINE
+# STAGE 4 — TESTING DECK AS AN EVIDENCE ENGINE
 
 ## Goal
 
 Turn the Testing Deck into a trustworthy experimental laboratory.
 
-## Week 13 — Admission
+### Admission
 
 Define explicit states:
 
@@ -314,7 +313,7 @@ REQUIRES HUMAN TEST
 
 Do not infer state from UI appearance alone.
 
-## Week 14 — Evidence contract
+### Evidence contract
 
 Every test result should be traceable to:
 
@@ -327,7 +326,7 @@ Every test result should be traceable to:
 - uncertainty
 - failure state
 
-## Week 15 — Component evidence
+### Component evidence
 
 Test components separately:
 
@@ -350,7 +349,7 @@ Test components separately:
 
 Never allow one attractive score to erase component evidence.
 
-## Week 16 — Human evidence boundary
+### Human evidence boundary
 
 Maintain:
 
@@ -361,7 +360,7 @@ HUMAN + AUTO VERIFIED
 
 Automation cannot create human evidence.
 
-## Month 4 exit criteria
+### Stage 4 exit evidence
 
 Testing Deck can explain:
 
@@ -377,13 +376,13 @@ WHAT STILL NEEDS A HUMAN?
 
 ---
 
-# MONTH 5 — CREATIVE INTELLIGENCE LAB
+# STAGE 5 — CREATIVE INTELLIGENCE LAB
 
 ## Goal
 
-Use the mobile lab to explore better music intelligence without contaminating measured evidence.
+Explore better music intelligence without contaminating measured evidence.
 
-## Week 17 — Style representation
+### Style representation
 
 Separate:
 
@@ -397,9 +396,9 @@ Separate:
 
 Do not collapse them into one genre label.
 
-## Week 18 — Controlled genre bleeding
+### Controlled genre bleeding
 
-Build candidate experiments:
+Build candidate experiments such as:
 
 - country → industrial
 - folk → dark trap
@@ -409,7 +408,7 @@ Build candidate experiments:
 - orchestral → street percussion
 - precise rhythm → deliberately wrong texture
 
-Test whether the transformation is:
+Test whether each transformation is:
 
 - recognizable
 - useful
@@ -417,7 +416,7 @@ Test whether the transformation is:
 - reversible
 - musically coherent
 
-## Week 19 — Search engines for weird ideas
+### Search engines for weird ideas
 
 Implement disposable candidate generators using:
 
@@ -435,7 +434,7 @@ Implement disposable candidate generators using:
 - evolutionary search
 - uncertainty-driven search
 
-## Week 20 — Human preference
+### Human preference
 
 Prototype preference capture for:
 
@@ -449,7 +448,7 @@ Prototype preference capture for:
 
 Treat preference as musical taste, not medical measurement.
 
-## Month 5 exit criteria
+### Stage 5 exit evidence
 
 Produce a catalogue of creative experiments with:
 
@@ -465,23 +464,15 @@ No candidate becomes production truth merely because it sounds interesting.
 
 ---
 
-# MONTH 6 — INTEGRATION, SOAK TESTING, AND FUTURE ARCHITECTURE
+# STAGE 6 — INTEGRATION, SOAK TESTING, AND FUTURE ARCHITECTURE
 
 ## Goal
 
 Find what survives reality.
 
-## Week 21 — Long-duration tests
+### Long-duration testing
 
-Run:
-
-- 30-minute
-- 1-hour
-- multi-hour
-
-tests where practical.
-
-Watch for:
+Run sufficiently long tests to expose:
 
 - memory drift
 - growing queues
@@ -492,7 +483,9 @@ Watch for:
 - storage growth
 - checkpoint growth
 
-## Week 22 — Large playlist tests
+Do not use a fixed duration as proof of safety. Continue until the test has meaningful evidence for the question being investigated.
+
+### Large-playlist testing
 
 Test:
 
@@ -507,7 +500,7 @@ Test:
 
 Measure scaling rather than assuming linear behavior.
 
-## Week 23 — Adversarial mobile tests
+### Adversarial mobile tests
 
 Deliberately combine:
 
@@ -523,7 +516,7 @@ Deliberately combine:
 
 The objective is to discover failure combinations that normal testing misses.
 
-## Week 24 — Architecture decision month
+### Architecture decisions
 
 For every major subsystem classify:
 
@@ -542,69 +535,81 @@ Produce:
 - known limitations
 - production-ready recommendations
 - rollback plans
-- next six-month research queue
+- next research queue
 
-## Month 6 exit criteria
+### Stage 6 exit evidence
 
-The lab should know substantially more than it did six months earlier.
+The lab should know substantially more than it did before entering this stage.
 
 The most valuable output may be a fix, a benchmark, a rejected architecture, a safer fallback, or a discovery that changes the roadmap.
 
 ---
 
-# CONTINUOUS RULES — ALL SIX MONTHS
+# CONTINUOUS RULES — ALL STAGES
 
-1. Never silently modify production.
-2. Never silently change version identity.
-3. Never fabricate evidence.
-4. Never convert estimates into facts.
-5. Never treat human testing as automated testing.
-6. Never sacrifice audio quality for a benchmark win.
-7. Never hide failure to make the UI look successful.
-8. Never let one bad track kill the whole playlist.
-9. Never require the human to choose a reversible implementation detail when the lab can test it.
-10. Never keep complexity without evidence that it earns its cost.
-11. Always record what failed.
-12. Always record what changed.
-13. Always record the next question.
-14. When uncertain about DJ safety, fail closed.
-15. When an experiment is cheap and reversible, run it.
-16. When an experiment is expensive, first design a cheaper falsification test.
-17. When a result looks too good, try to break it.
-18. When a result looks bad, determine whether the mechanism or measurement is wrong.
-19. Prefer component evidence over opaque scores.
-20. Preserve provenance.
+1. There are no deadlines.
+2. There are no quotas for hours, days, weeks, or months.
+3. There is no requirement to finish a stage by a calendar date.
+4. Do not rush an experiment to satisfy an artificial schedule.
+5. Do not stretch work merely to fill a schedule.
+6. Move forward when evidence justifies it.
+7. Stay on a stage when deeper investigation has high value.
+8. Revisit earlier stages whenever new evidence exposes a problem.
+9. Never silently modify production.
+10. Never silently change version identity.
+11. Never fabricate evidence.
+12. Never convert estimates into facts.
+13. Never treat human testing as automated testing.
+14. Never sacrifice audio quality for a benchmark win.
+15. Never hide failure to make the UI look successful.
+16. Never let one bad track kill the whole playlist.
+17. Never require the human to choose a reversible implementation detail when the lab can test it.
+18. Never keep complexity without evidence that it earns its cost.
+19. Always record what failed.
+20. Always record what changed.
+21. Always record the next question.
+22. When uncertain about DJ safety, fail closed.
+23. When an experiment is cheap and reversible, run it.
+24. When an experiment is expensive, first design a cheaper falsification test.
+25. When a result looks too good, try to break it.
+26. When a result looks bad, determine whether the mechanism or measurement is wrong.
+27. Prefer component evidence over opaque scores.
+28. Preserve provenance.
 
-# MONTHLY DELIVERABLE FORMAT
+# SESSION DELIVERABLE
 
-At the end of each month produce:
+At the end of each meaningful work session produce:
 
-## Executive Summary
-What changed?
+## What changed
+Concrete changes.
 
 ## Evidence
-What measurements changed?
+Measurements and observations.
 
 ## Failures
-What did not work?
+What did not work.
 
 ## Regressions
-What became worse?
+What became worse.
 
 ## Surprises
-What was not expected?
+What was not expected.
 
-## Reusable Tools
-What diagnostic/benchmark/prototype should survive?
+## Reusable tools
+Diagnostics, benchmarks, prototypes, or tests worth keeping.
 
-## Decisions
+## Decision
 KEEP / REVERT / DEFER / INVESTIGATE
 
-## Next Month
-Top 10 experiments, ranked by expected information gain and reversibility.
+## Next experiments
+The highest-value next experiments, selected by expected information gain, evidence quality, reversibility, and cost.
+
+Do not rank work by calendar urgency.
 
 # IMPORTANT
 
 This is a research program, not a promise that every feature will be implemented.
+
+The stages are a map of the search space, not a timetable.
 
 The lab exists to make BAD-D smarter about what is actually worth building.
