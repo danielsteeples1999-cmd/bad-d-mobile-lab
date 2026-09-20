@@ -80,13 +80,41 @@ was simply never applied to `computeFingerprint`/`runPreparationScans`/`buildDia
 ## MEASUREMENTS (MACHINE MEASUREMENT — see `pilot_deck_5files.json`)
 - 5/5 tracks failed with identical error text.
 - Time to first failure: ~504ms (well within one decode).
-- Heap: flat at 10MB (never had a chance to grow — nothing after the failed
-  fingerprint call retains anything).
+- Heap: reported flat at 10MB — per EXP-005, `performance.memory` is frozen
+  in this sandbox, so this specific number is uninformative either way;
+  irrelevant to this finding regardless, since the failure is a scope bug,
+  not a memory effect.
 - Confirmed directly in a fresh page context:
   `typeof window.computeFingerprint` → `"undefined"`,
   `typeof window.BADD_R1_AUDIO` → `"undefined"`,
   `typeof window.runPreparationScans` → `"undefined"`,
   `typeof window.buildDiagnosis` → `"undefined"`.
+
+## UPDATE — manual "DIAGNOSE" button independently confirmed (same session, follow-up)
+The prior session's NEXT QUESTION #1 asked whether the manual "ANALYZE TRACK
++ BUILD SUNO FIX" button (`diagnose()`, same `testing-deck-script` IIFE,
+same bare `computeFingerprint` reference) hits the identical bug. Re-tried
+and succeeded this time (prior attempt failed because the button lives
+inside `.tdBody`, which is `display:none` until `#testingDeckToggle` is
+clicked — `st.on = !st.on; root.classList.toggle('on', st.on)` — that step
+was missing from the earlier attempt).
+
+**MACHINE MEASUREMENT:** loaded the reference build, clicked
+`#testingDeckToggle`, staged 1 synthetic file via `#testingFiles`, waited
+for the (failing) auto-pipeline pass to finish, then clicked
+`#testingDiagnose` directly. Result: `#testingDiagnosis` read
+`"Diagnosis unavailable: Fingerprint engine unavailable"`.
+
+This confirms the same root cause reaches a second, independent entry
+point — but via a **different code path with different error handling**:
+`diagnose()` guards the call with `if(typeof computeFingerprint!=='function') throw new Error('Fingerprint engine unavailable')`,
+producing a clean user-facing message, while `runAutoPipelineQueue()` calls
+`computeFingerprint(...)` bare with no guard, producing a raw
+`ReferenceError` that only shows up in the optimizer readout text/console.
+Same bug, inconsistent defensiveness between the two call sites — worth
+noting for whoever fixes this upstream, since the guarded version is the
+better pattern to extend to the other call site once the underlying export
+is fixed.
 
 ## FAILURES
 The feature itself: 100% failure rate, not intermittent. This is a MACHINE
@@ -126,10 +154,7 @@ change" discipline — but it has to land in `bad_d_meomory` by someone with
 push access there.
 
 ## NEXT QUESTION
-1. (Cheap, same session if picked back up) Confirm the manual "DIAGNOSE"
-   button (`diagnose()`, same IIFE, same bare `computeFingerprint` call) fails
-   the same way — currently inferred from reading the code, not independently
-   re-run.
+1. ~~Confirm the manual "DIAGNOSE" button fails the same way~~ — **done, see UPDATE above.**
 2. Once fixed upstream: re-run EXP-002's realistic-file-size caveat against
    the *Testing Deck* path too, and revisit the heap-pressure-asymmetry
    hypothesis from the graveyard — it becomes testable again the moment

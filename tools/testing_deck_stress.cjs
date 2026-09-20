@@ -12,6 +12,15 @@
 // pipeline pass. This tool exists to see whether that asymmetry shows up as a
 // measurable difference in heap behavior, not just as a difference on paper.
 //
+// KNOWN ISSUE (see experiments/EXP-005): this tool still reads heap via
+// page.evaluate(() => performance.memory), which EXP-005 found returns a
+// frozen, non-responsive value in this sandbox's headless Chromium (a real
+// 160MB allocation did not move it, under three configurations). Treat any
+// heapUsedMB/heapLimitMB this tool reports as UNINFORMATIVE until it's
+// ported to CDP Runtime.getHeapUsage() the way bulk_import_stress.cjs was.
+// Not fixed here because Testing Deck's own pipeline is broken before heap
+// would matter (EXP-003) — lower priority than the library-intake path.
+//
 // Usage:
 //   NODE_PATH=/opt/node22/lib/node_modules [BADD_HEAP_MB=256] node tools/testing_deck_stress.cjs \
 //     <path-to-html> <wavDir> <outfile.json> [pollMs] [timeoutMs]

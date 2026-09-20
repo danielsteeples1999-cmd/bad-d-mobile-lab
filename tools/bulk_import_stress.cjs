@@ -1,13 +1,21 @@
 #!/usr/bin/env node
 // Diagnostic tool: drives the real #fileLib bulk-import input with N synthetic
-// WAV files and polls window.library.length + performance.memory while the
+// WAV files and polls window.library.length + real heap usage while the
 // app's own processLibraryQueue()/yieldForMemoryPressure() run, unmodified.
 // This exercises the actual shipped intake path black-box, through the UI,
 // rather than reaching into internal closures.
 //
+// Heap is read via CDP Runtime.getHeapUsage(), NOT page.evaluate(() =>
+// performance.memory) — EXP-005 (see experiments/) found performance.memory
+// returns a frozen, non-responsive value in this sandbox's headless
+// Chromium (verified: a real 160MB allocation did not move it, under three
+// different configurations). Runtime.getHeapUsage()'s backingStorageSize
+// DID move correctly in the same test (0 -> ~160MB), so that's what this
+// tool now reports. Don't revert to performance.memory without re-running
+// that sanity check first.
+//
 // Set BADD_HEAP_MB to launch Chromium with a constrained V8 old-space, as a
-// cheap proxy for a memory-limited mobile Chrome tab (real phones report a
-// much lower performance.memory.jsHeapSizeLimit than a desktop headless run).
+// cheap proxy for a memory-limited mobile Chrome tab.
 //
 // Usage:
 //   NODE_PATH=/opt/node22/lib/node_modules [BADD_HEAP_MB=256] node tools/bulk_import_stress.cjs \
@@ -56,6 +64,8 @@ const { resolve, join } = require('node:path');
   try {
     const context = await browser.newContext({ ...devices['Pixel 7'] });
     const page = await context.newPage();
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Runtime.enable');
 
     page.on('console', (msg) => { if (msg.type() === 'error') result.consoleErrors.push(msg.text()); });
     page.on('pageerror', (err) => result.pageErrors.push(err.message || String(err)));
@@ -75,16 +85,22 @@ const { resolve, join } = require('node:path');
       if (page.isClosed() || result.crashed) break;
       let snap;
       try {
-        snap = await page.evaluate(() => {
-          const m = performance.memory;
-          const statusEl = document.getElementById('libStatus');
-          return {
-            libraryLength: (typeof window.library !== 'undefined' && Array.isArray(window.library)) ? window.library.length : null,
-            statusText: statusEl ? statusEl.textContent : null,
-            heapUsedMB: m ? +(m.usedJSHeapSize / 1e6).toFixed(2) : null,
-            heapLimitMB: m ? +(m.jsHeapSizeLimit / 1e6).toFixed(2) : null,
-          };
-        });
+        const [pageSnap, heap] = await Promise.all([
+          page.evaluate(() => {
+            const statusEl = document.getElementById('libStatus');
+            return {
+              libraryLength: (typeof window.library !== 'undefined' && Array.isArray(window.library)) ? window.library.length : null,
+              statusText: statusEl ? statusEl.textContent : null,
+            };
+          }),
+          cdp.send('Runtime.getHeapUsage'),
+        ]);
+        snap = {
+          ...pageSnap,
+          heapUsedMB: +(heap.usedSize / 1e6).toFixed(2),
+          heapTotalMB: +(heap.totalSize / 1e6).toFixed(2),
+          backingStorageMB: +(heap.backingStorageSize / 1e6).toFixed(2),
+        };
       } catch (e) {
         result.pageErrors.push('evaluate failed (page likely crashed): ' + e.message);
         result.crashed = true;

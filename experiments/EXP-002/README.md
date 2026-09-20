@@ -1,6 +1,16 @@
 ## EXPERIMENT ID
 EXP-002 — Library bulk-import stress test under a constrained-heap proxy
 
+> **CORRECTION (added after EXP-005):** the heap numbers below were read via
+> `page.evaluate(() => performance.memory)`. EXP-005 found this API returns a
+> frozen, non-responsive value in this sandbox's headless Chromium (a real
+> 160MB allocation did not move it). **The "flat 10MB heap" claim below is
+> retracted as memory evidence.** The completion/error findings (45/45
+> committed, 0 errors, no crash) are unaffected and still stand — those don't
+> depend on the broken metric. EXP-005 re-ran an equivalent batch with a
+> validated CDP-based instrument and got real, moving, still-reassuring
+> numbers — see `experiments/EXP-005/README.md`.
+
 ## PROBLEM
 `PROJECT_STATE.md` and `docs/MOBILE_CRASH_SAFETY_AND_SCAN_GOVERNOR.md` (both
 in `bad_d_meomory`, as of 2026-09-18/17) state: "The current repository does

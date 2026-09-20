@@ -1,0 +1,265 @@
+{
+  "target": "reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html",
+  "wavCount": 50,
+  "startedAt": "2026-09-20T11:58:48.155Z",
+  "samples": [
+    {
+      "tMs": 109,
+      "libraryLength": 0,
+      "statusText": "analyzing 1/50: synth_track_001.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 1273,
+      "libraryLength": 0,
+      "statusText": "analyzing 1/50: synth_track_001.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 2555,
+      "libraryLength": 1,
+      "statusText": "analyzing 2/50: synth_track_002.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 3632,
+      "libraryLength": 2,
+      "statusText": "analyzing 3/50: synth_track_003.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 4753,
+      "libraryLength": 3,
+      "statusText": "analyzing 4/50: synth_track_004.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 6641,
+      "libraryLength": 5,
+      "statusText": "analyzing 6/50: synth_track_006.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 8341,
+      "libraryLength": 7,
+      "statusText": "analyzing 8/50: synth_track_008.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 9344,
+      "libraryLength": 9,
+      "statusText": "analyzing 10/50: synth_track_010.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 10843,
+      "libraryLength": 10,
+      "statusText": "analyzing 11/50: synth_track_011.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 11996,
+      "libraryLength": 11,
+      "statusText": "analyzing 12/50: synth_track_012.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 13050,
+      "libraryLength": 12,
+      "statusText": "analyzing 13/50: synth_track_013.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 14768,
+      "libraryLength": 14,
+      "statusText": "analyzing 15/50: synth_track_015.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 16575,
+      "libraryLength": 16,
+      "statusText": "cooling memory 16/50 · 3% heap used",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 17578,
+      "libraryLength": 18,
+      "statusText": "analyzing 19/50: synth_track_019.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 18582,
+      "libraryLength": 19,
+      "statusText": "analyzing 20/50: synth_track_020.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 20372,
+      "libraryLength": 20,
+      "statusText": "analyzing 21/50: synth_track_021.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 22008,
+      "libraryLength": 22,
+      "statusText": "analyzing 23/50: synth_track_023.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 23757,
+      "libraryLength": 24,
+      "statusText": "cooling memory 24/50 · 3% heap used",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 25512,
+      "libraryLength": 26,
+      "statusText": "analyzing 27/50: synth_track_027.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 27061,
+      "libraryLength": 28,
+      "statusText": "analyzing 29/50: synth_track_029.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 28675,
+      "libraryLength": 30,
+      "statusText": "analyzing 31/50: synth_track_031.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 30325,
+      "libraryLength": 32,
+      "statusText": "cooling memory 32/50 · 3% heap used",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 31932,
+      "libraryLength": 34,
+      "statusText": "analyzing 35/50: synth_track_035.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 32959,
+      "libraryLength": 35,
+      "statusText": "analyzing 36/50: synth_track_036.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 34517,
+      "libraryLength": 37,
+      "statusText": "analyzing 38/50: synth_track_038.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 36326,
+      "libraryLength": 39,
+      "statusText": "analyzing 40/50: synth_track_040.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 38029,
+      "libraryLength": 41,
+      "statusText": "analyzing 42/50: synth_track_042.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 39690,
+      "libraryLength": 43,
+      "statusText": "analyzing 44/50: synth_track_044.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 41375,
+      "libraryLength": 45,
+      "statusText": "analyzing 46/50: synth_track_046.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 43069,
+      "libraryLength": 47,
+      "statusText": "analyzing 48/50: synth_track_048.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 44616,
+      "libraryLength": 49,
+      "statusText": "analyzing 50/50: synth_track_050.wav",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 45619,
+      "libraryLength": 50,
+      "statusText": "50 track(s) in library · analyzed 50, 0 from cache · five-scan prepared 50",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 46620,
+      "libraryLength": 50,
+      "statusText": "50 track(s) in library · analyzed 50, 0 from cache · five-scan prepared 50",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 47623,
+      "libraryLength": 50,
+      "statusText": "50 track(s) in library · analyzed 50, 0 from cache · five-scan prepared 50",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 48625,
+      "libraryLength": 50,
+      "statusText": "50 track(s) in library · analyzed 50, 0 from cache · five-scan prepared 50",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    },
+    {
+      "tMs": 49628,
+      "libraryLength": 50,
+      "statusText": "50 track(s) in library · analyzed 50, 0 from cache · five-scan prepared 50",
+      "heapUsedMB": 10,
+      "heapLimitMB": 386
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "finalLibraryLength": 50,
+  "crashed": false,
+  "timedOut": false,
+  "heapConstraintMb": 256
+}
