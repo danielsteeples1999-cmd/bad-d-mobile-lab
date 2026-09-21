@@ -13,14 +13,14 @@ question yet. `FAILURE` = doesn't meet an established requirement.
 `PROMISING — INSUFFICIENT REPLICATION` = observed once, not reproduced.
 `REPRODUCED` = repeated evidence agrees.
 
-Last updated: EXP-015. Engineering-cycle orchestrators exist for two real
+Last updated: EXP-016. Engineering-cycle orchestrators exist for two real
 task shapes (`tools/engineering-cycle/run_cycle.cjs` for batch/scale,
 `run_cycle_audio_autodj.cjs` for real-audio/real-algorithm), sharing
-`cycle-lib.cjs`; a direct bug-fix task (CANCEL-OBS-001) used existing
-tooling (`run_experiment.cjs`) plus one focused regression script instead
-of a new orchestrator. PRIORITIZE is advisory-only by design (recommends,
-doesn't edit this file); every queue edit below is still a reviewed human
-action, not an automated one.
+`cycle-lib.cjs`; direct bug-fix and boundary-investigation tasks
+(CANCEL-OBS-001, AUTODJ-BOUNDARY-001) used existing tooling plus one
+focused new script each instead of a new orchestrator. PRIORITIZE is
+advisory-only by design (recommends, doesn't edit this file); every queue
+edit below is still a reviewed human action, not an automated one.
 
 ```
 PRIORITY QUEUE
@@ -30,29 +30,25 @@ P0 — BLOCKING / CRITICAL
 (none open)
 
 P1 — HIGH VALUE
-[ ] AUTODJ-BOUNDARY-001 — define/unblock the real Auto-DJ production boundary
+[ ] AUTODJ-PLAYBACK-001 — real-device/live-playback correctness of the transition scheduler
     STATUS: BLOCKED
-    WHY: UNKNOWN, but not resolvable by more lab code — AUDIO-AUTODJ-001
-         (EXP-014) proved the engineering-cycle machinery drives the REAL
-         production fingerprint algorithm on real audio end to end; the
-         remaining gap toward the actual Auto-DJ boundary is live
-         transition-DECISION correctness (startTransition/
-         armBeatSnappedTransition), which is entangled with live playback
-         state this public lab's headless harness doesn't construct.
-    EVIDENCE: adapters/AUTODJ_PRODUCTION_BOUNDARY.md — explicit BLOCKED/
-         UNVERIFIED boundary and a proposed minimal adapter contract
-         (planNextTransition(...): pure decision function, no playback
-         side effects) that would let this lab test it without live
-         device access.
-    RISK: BLOCKED on a maintainer decision (does such a pure decision
-         function exist or make sense to extract on the production side)
-         — not something this session can resolve unilaterally, and
-         explicitly not a reason to build a mock/simulated scheduler and
-         call it equivalent.
-    NEXT EXPERIMENT: N/A while blocked — needs a human decision on the
-         adapter contract first.
-    EXIT CONDITION: maintainer confirms or rejects the proposed adapter
-         contract, or provides another testable boundary.
+    WHY: UNKNOWN, not resolvable by more lab code — EXP-016 resolved the
+         DECISION half of AUTODJ-BOUNDARY-001 (scoreTransition/
+         previewTimingPlan, real evidence, no maintainer decision needed).
+         What's left is startTransition's actual AudioContext scheduling/
+         automation once a decision is made, and real-device output
+         fidelity — EXP-007/008 already found a sandbox scheduling win
+         didn't reproduce cleanly on Daniel's real device (unresolved
+         fingerprint mismatch). A headless lab harness doesn't construct
+         live playback state; this needs real-device testing (manual, as
+         before) or a maintainer-defined seam, not another extraction tool.
+    EVIDENCE: adapters/AUTODJ_PRODUCTION_BOUNDARY.md (items 2-4, unchanged
+         since EXP-014); experiments/EXP-007,EXP-008 (the original
+         sandbox-vs-real-device mismatch).
+    RISK: genuinely blocked on real-device access this lab doesn't have.
+    NEXT EXPERIMENT: N/A while blocked.
+    EXIT CONDITION: real-device testing closes EXP-008's original mismatch,
+         or a maintainer provides another testable seam.
 
 P2 — IMPORTANT
 [ ] RESUME-001 — bulk-media-intake has no resumability
@@ -199,4 +195,33 @@ DONE
          tools/bulk-media-intake/regression_cancel_obs.cjs (new, self-
          validated reusable regression test — fails on old code, passes on
          fixed code).
+
+[x] AUTODJ-BOUNDARY-001 — define/unblock the real Auto-DJ production boundary (EXP-016)
+    RESULT: RESOLVED for the decision layer. Code archaeology found
+         previewTimingPlan/scoreTransition (reference/...html:8344/6757)
+         already exist as a pure decision seam, documented in the
+         production code's OWN comment as calling "the exact same
+         estimation/decision/planning functions startTransition does...
+         applies nothing, touches no audio param, fires no logEvent" — no
+         maintainer decision was actually needed. Built
+         tools/make_transition_debug_page.cjs (whole-page extraction, one
+         verified-unique inserted export line, read-only against
+         reference/) and ran a real end-to-end decision: 2 real fixtures
+         -> real decode -> real computeFingerprint (108 BPM / 118 BPM,
+         full 34-field fingerprints) -> real scoreTransition -> real
+         previewTimingPlan, which detected an in-progress "buildup" and
+         extended the crossfade to 9.9s to let it resolve. Attacked with
+         5 cases: MALFORMED_INPUT/DUPLICATE_EXECUTION/INCOMPATIBLE_INPUT
+         SURVIVED (valid scores); MISSING_CAPABILITY/UNEXPECTED_ORDERING
+         FAILED (production code throws on a null-fingerprint or
+         undefined toDeck -- a real finding, not a lab bug, recorded not
+         fixed). REPEATED_EXECUTION regression check: SURVIVED
+         (byte-identical output across 2 calls on identical input).
+         The original planNextTransition(...) contract proposed in
+         EXP-014 was superseded -- structurally wrong guess, corrected
+         with the real function signatures. Real-device/live-playback
+         correctness remains a SEPARATE, still-genuinely-blocked question
+         -> AUTODJ-PLAYBACK-001.
+    EVIDENCE: experiments/EXP-016/{README.md,transition_decision_result.json,attack_regression_result.json},
+         adapters/AUTODJ_PRODUCTION_BOUNDARY.md (updated).
 ```

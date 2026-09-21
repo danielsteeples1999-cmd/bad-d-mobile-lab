@@ -1,10 +1,21 @@
-# Auto-DJ production boundary — BLOCKED/UNVERIFIED
+# Auto-DJ production boundary
 
 Written as part of EXP-014 (AUDIO-AUTODJ-001), per this session's explicit
 instruction: do not fake production validation. State exactly what this
 public lab can and cannot verify, and what would be needed to close the
 gap, without touching `bad_d_meomory` or claiming access this lab doesn't
 have.
+
+**UPDATE (EXP-016):** item 1 below (transition-decision correctness) is
+no longer BLOCKED. Reading the actual production code (not proposing from
+outside it) found `previewTimingPlan`/`scoreTransition` already exist as
+exactly the pure decision seam this document originally guessed at with
+`planNextTransition(...)` — and they're reachable from this public lab
+with zero production-side change. EXP-016 ran a real end-to-end decision
+(real audio → real fingerprints → real score → real arbitrated plan),
+attacked it, and confirmed determinism. See `experiments/EXP-016/README.md`
+for full evidence. Items 2–4 below are unchanged and remain genuinely
+blocked — this update only resolves item 1.
 
 ## What EXP-014 actually proved (CAN be measured locally, today)
 - Real decode of real (if synthetic) audio via Web Audio `decodeAudioData`.
@@ -23,18 +34,21 @@ infrastructure. It is NOT production validation — see below.
 
 ## What is BLOCKED — cannot be verified from this public repo today
 
-1. **Live transition scheduling/decision correctness.**
-   `startTransition()`/`armBeatSnappedTransition()` (production build,
-   main IIFE, ~lines 8371/9075 per prior sessions' forensic notes) decide
-   *when* and *how* to crossfade during an actual live set — using
-   playback position, deck state, and the fingerprint together. EXP-006/
-   007 measured *main-thread blocking risk* around that scheduler (long
-   tasks vs. its ~80ms continuity reserve), not whether its transition
-   *decisions* are correct. No test in this lab exercises that decision
-   logic end to end, because it is entangled with live playback state
-   (`AudioContext` scheduling, deck UI state) that only exists inside a
-   running, user-driven session of the full app — not something this
-   lab's headless harness constructs today.
+1. ~~**Live transition scheduling/decision correctness.**~~ **RESOLVED by
+   EXP-016** — the *decision* half of this (what `startTransition` would
+   decide, via `scoreTransition`/`previewTimingPlan`) is now proven
+   reachable and exercised with real audio, real fingerprints, attacks,
+   and a determinism check. What remains genuinely unresolved is the
+   *scheduling/playback* half: `startTransition()`/`armBeatSnappedTransition()`
+   (main IIFE, lines 8371/9075 — confirmed directly this cycle, not
+   carried forward from an earlier unverified note) also perform the
+   actual `AudioContext` graph changes and `setTimeout` scheduling once
+   the decision is made; EXP-006/007 measured main-thread blocking risk
+   around that scheduler, not whether the live automation it drives
+   (EQ moves, crossfade curve, vocal-collision mitigation) executes
+   correctly against a real playing buffer. That remains untested from
+   this lab, same reasoning as before: it's entangled with live playback
+   state a headless harness doesn't construct.
 
 2. **Real-device audio-output correctness.**
    EXP-007/008's own history is the direct evidence for this: a scheduling
@@ -57,35 +71,39 @@ infrastructure. It is NOT production validation — see below.
    produced here can be pushed back; any adoption of a lab finding into
    production is a separate, human-driven action outside this repo's scope.
 
-## The smallest adapter/contract that would unblock #1
+## The seam that actually unblocked #1 (superseding the `planNextTransition` guess below)
 
-Not claimed to exist — this is a proposal, explicitly UNVERIFIED, for what
-would let this lab test real transition-decision correctness without
-needing live playback or device access:
+The `planNextTransition(...)` contract originally proposed here was a
+guess made without reading the production code, and turned out to be
+structurally wrong (single fingerprint pair instead of full deck objects;
+one function instead of two). The real, already-existing seam:
+
+```
+scoreTransition(fromDeck, toDeck) -> ScoreResult
+previewTimingPlan(fromDeck, toDeck, ScoreResult) -> { arb, negativeShiftCandidate }
+```
+
+where `fromDeck`/`toDeck` are `{ id, fingerprint, playRate, offset,
+startedAt, playToTime }` and `fingerprint` is exactly `computeFingerprint`'s
+real output (EXP-014's already-proven extraction). No new contract needed
+— see `experiments/EXP-016/README.md` for the exact location, full
+dependency scan, and a real end-to-end call. `tools/make_transition_debug_page.cjs`
+is the extraction tool (whole-page, one inserted export line, read-only
+against `reference/`).
+
+Original guess kept below for the record, not because it's still accurate:
 
 ```
 planNextTransition(
   currentDeckState: { positionSec, trackDurationSec, bpm, ... },
-  incomingTrackFingerprint: FingerprintResult,  // the exact shape EXP-014
-                                                  // already proves this lab
-                                                  // can produce from real audio
+  incomingTrackFingerprint: FingerprintResult,
   config: TransitionConfig
 ) -> TransitionPlan { triggerAtSec, crossfadeDurationSec, beatSnapOffsetMs, ... }
 ```
 
-If the production scheduler's *decision* logic were exposed as one pure
-function like this — no `AudioContext`, no DOM, no side effects, just
-state in and a plan out — this lab could unit/property-test it directly
-against real fingerprints (now provably obtainable per EXP-014) without
-needing playback or a real device at all. Today, `startTransition`/
-`armBeatSnappedTransition` mix that decision with the scheduling side
-effects (`setTimeout`, actual `AudioContext` graph changes), which is
-exactly what makes it untestable from here in isolation.
-
-**Status: BLOCKED/UNVERIFIED.** Whether such a function exists, could be
-cleanly extracted, or is worth building is a maintainer decision on the
-production side — not something this lab can resolve by writing more code
-here.
+**Status: RESOLVED for the decision layer (EXP-016).** No maintainer
+decision was actually required — the function already existed and needed
+no production-side change to reach.
 
 ## Non-goals of this document
 Not a request for `bad_d_meomory` write access. Not a claim that any of
