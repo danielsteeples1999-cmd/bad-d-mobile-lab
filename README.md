@@ -1,45 +1,96 @@
 # BAD-D // Mobile Lab
 
-Isolated public-facing sandbox for mobile experimentation around BAD-D // SIGNAL.
+**Public, standalone AI engineering laboratory.**
 
-## Purpose
-This repository is a disposable laboratory for mobile-only experiments, diagnostics, performance work, browser compatibility tests, and prototype fixes.
+This repository exists to let an AI **build, measure, break, learn and iterate** without touching the private BAD-D production source of truth.
 
-## Safety boundary
-- Do NOT treat this repository as the BAD-D source of truth.
-- Do NOT modify or overwrite the main `bad_d_meomory` repository from this lab.
-- Do NOT change BAD-D version numbers merely to identify experiments.
-- Experiments must be reversible and clearly labeled.
-- Preserve fail-closed behavior and evidence gates when testing ideas that may later return to BAD-D.
-- No automatic promotion from this lab into production.
-- Claude/other agents may experiment here without being given permission to rewrite the main repository.
+## 🚦 Claude entrypoint
 
-## Mobile-first targets
-Priorities include:
-1. Startup reliability.
-2. RAM pressure and crash/chopping behavior.
-3. Adaptive workload governors.
-4. Persistent checkpoints and interrupted-run recovery.
-5. Audio playback stability.
-6. Browser/mobile API compatibility.
-7. Device-local diagnostic evidence.
+**Start with [CLAUDE_NOW.md](CLAUDE_NOW.md).**
 
-## Workflow
-Observe -> reproduce -> instrument -> change one thing -> test -> record evidence -> compare -> keep/revert.
+It is the compact current control plane. It tells Claude:
+- what matters now
+- what not to read
+- what it may do autonomously
+- execution budgets and stop rules
+- evidence requirements
+- how to self-test
+- when to ask Daniel
+- how to keep the repository's instructions current
 
-Every experiment should state:
-- problem reproduced
-- hypothesis
-- change made
-- device/browser context
-- measured result
-- regressions
-- next experiment
+Then read **[EXPERIMENT_PRIORITY_QUEUE.md](EXPERIMENT_PRIORITY_QUEUE.md)**.
 
 ## Promotion rule
 Nothing in this repository is a production change until separately reviewed against the main BAD-D repository and deliberately promoted.
 
-## Current state (2026-09-20)
+Do **not** begin by reading the whole repository.
+
+## Current operating model
+
+**question → baseline → experiment → test → attack → evidence → reusable capability → next question**
+
+The lab is deliberately being built as a **compounding AI engineering workbench**, not a pile of one-off experiments.
+
+Every useful experiment should make future work:
+- faster
+- cheaper in context
+- easier to verify
+- safer
+- more reusable
+- more informative
+
+## Hard boundary
+
+This is **not** the BAD-D production repository.
+
+- Never modify or overwrite production from this lab.
+- Never place production secrets, credentials or private user data here.
+- Never auto-promote an experiment.
+- Never weaken evidence or fail-closed gates.
+- Never change production version identity to label an experiment.
+- Future integration must use an explicit adapter/contract.
+
+**Standalone now. Integratable later.**
+
+## Evidence standard
+
+A file existing is not verification.
+
+Runtime claims need runtime evidence.  
+Performance claims need benchmark evidence.  
+Mobile claims need appropriate browser/device evidence.  
+Audio claims need appropriate signal/listening evidence.  
+Recovery claims need interruption/recovery evidence.
+
+When exact decoded PCM equality is the hypothesis, do not create the fixture through bit-depth conversion and then hide differences with tolerance. Investigate the fixture when the measured samples disagree.
+
+## What the lab is building
+
+The long-term toolbox includes:
+- experiment runner
+- deterministic fixtures
+- benchmark/comparison tools
+- startup and capability probes
+- memory/resource instrumentation
+- failure injection
+- regression detection
+- evidence validation
+- searchable experiment memory
+- adapter/contract validation
+
+Build these only when a real experiment needs them.
+
+## Deep reference — read on demand
+
+- [CLAUDE_EXECUTIVE_BRAIN.md](CLAUDE_EXECUTIVE_BRAIN.md) — architecture and long-range reasoning
+- [CLAUDE_BUILD_ORDER.md](CLAUDE_BUILD_ORDER.md) — detailed build method
+- [CLAUDE_TOKEN_EFFICIENCY.md](CLAUDE_TOKEN_EFFICIENCY.md) — context/token discipline
+- [GOAL_CROSSWALK.md](GOAL_CROSSWALK.md) — cross-goal leverage
+- [CLAUDE_COMPLETION_STATUS_PROTOCOL.md](CLAUDE_COMPLETION_STATUS_PROTOCOL.md) — completion/evidence reporting
+
+Historical/research documents are reference material, not startup instructions.
+
+## Current state (2026-09-21)
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full intended shape,
 [`SECURITY.md`](SECURITY.md) for what never gets committed here, and
@@ -52,13 +103,20 @@ experimental to (eventually, human-accepted) usable by BAD-D.
 - `tools/*.cjs` — reusable diagnostic harnesses (Playwright-based) against
   that reference build: startup smoke test, synthetic-WAV generator,
   bulk-import stress tests, CPU profiling, checkpoint-based correctness
-  forensics.
+  forensics, and (`tools/engineering-cycle/`) a schema-versioned
+  DISCOVER→...→PRIORITIZE cycle runner.
 - `tools/bulk-media-intake/` — standalone media ingestion lab tool (queue,
   hashing/dedup, decode validation, cancellation), scoped to local files and
   authorized direct URLs only — see its own `SECURITY.md` note on why
   platform-specific downloading (e.g. YouTube) is intentionally out of scope.
+- `tools/lab-harness/`, `tools/fixture-acceptance/` — shared Playwright/CDP
+  session helper and the fixture-acceptance gate (content-identical-pair
+  claims must pass this before an experiment interprets them).
 - `contracts/` — JSON schemas for cross-tool result formats
-  (`media-result.schema.json`).
+  (`media-result.schema.json`, `fixture-acceptance.schema.json`,
+  `engineering-cycle.schema.json`).
+- `adapters/` — explicit BLOCKED/UNVERIFIED boundary docs for what this lab
+  cannot verify without production-side access or real-device testing.
 - `experiments/` — the permanent experiment log. Start at
   [`experiments/README.md`](experiments/README.md).
 
@@ -71,3 +129,16 @@ crash-hardening problem. See
 root-cause writeup and evidence. This cannot be fixed from this lab (no
 write access to `bad_d_meomory`); it needs to be handed to whoever owns that
 repo.
+
+## Definition of progress
+
+A large diff is not progress.
+
+A large document is not progress.
+
+A feature count is not progress.
+
+**Progress is a measurable reduction in uncertainty plus reusable capability.**
+
+The lab should leave the next AI with less to read and more it can actually do.
+>>>>>>> origin/main
