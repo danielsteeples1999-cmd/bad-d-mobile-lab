@@ -1,0 +1,157 @@
+{
+  "concurrency": 8,
+  "fileCount": 20,
+  "cancelAfterMs": null,
+  "durationMs": 1577,
+  "statusText": "Done. 20/20 passed validation.",
+  "summary": [
+    {
+      "name": "synth_track_001.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "e31350a1f179…",
+      "timingMs": "403"
+    },
+    {
+      "name": "synth_track_002.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "4289921446df…",
+      "timingMs": "364"
+    },
+    {
+      "name": "synth_track_003.wav",
+      "status": "passed",
+      "duration": "50.0s",
+      "sha256": "6bbbd22be874…",
+      "timingMs": "433"
+    },
+    {
+      "name": "synth_track_004.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "743d2ac8a74f…",
+      "timingMs": "464"
+    },
+    {
+      "name": "synth_track_005.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "9e394b305f97…",
+      "timingMs": "497"
+    },
+    {
+      "name": "synth_track_006.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "3dc369478940…",
+      "timingMs": "508"
+    },
+    {
+      "name": "synth_track_007.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "71531549f9be…",
+      "timingMs": "540"
+    },
+    {
+      "name": "synth_track_008.wav",
+      "status": "passed",
+      "duration": "50.1s",
+      "sha256": "f1ab72dd7f28…",
+      "timingMs": "572"
+    },
+    {
+      "name": "synth_track_009.wav",
+      "status": "passed",
+      "duration": "50.2s",
+      "sha256": "efd33bb19223…",
+      "timingMs": "620"
+    },
+    {
+      "name": "synth_track_010.wav",
+      "status": "passed",
+      "duration": "50.2s",
+      "sha256": "64b21c807523…",
+      "timingMs": "624"
+    },
+    {
+      "name": "synth_track_011.wav",
+      "status": "passed",
+      "duration": "50.2s",
+      "sha256": "09d8c9947653…",
+      "timingMs": "625"
+    },
+    {
+      "name": "synth_track_012.wav",
+      "status": "passed",
+      "duration": "50.2s",
+      "sha256": "9bc17d532ff4…",
+      "timingMs": "629"
+    },
+    {
+      "name": "synth_track_013.wav",
+      "status": "passed",
+      "duration": "50.2s",
+      "sha256": "9553b83356c7…",
+      "timingMs": "635"
+    },
+    {
+      "name": "synth_track_014.wav",
+      "status": "passed",
+      "duration": "50.3s",
+      "sha256": "aca5004ca4e5…",
+      "timingMs": "631"
+    },
+    {
+      "name": "synth_track_015.wav",
+      "status": "passed",
+      "duration": "50.3s",
+      "sha256": "b177c6f051f2…",
+      "timingMs": "629"
+    },
+    {
+      "name": "synth_track_016.wav",
+      "status": "passed",
+      "duration": "50.3s",
+      "sha256": "18a291fcc3d3…",
+      "timingMs": "627"
+    },
+    {
+      "name": "synth_track_017.wav",
+      "status": "passed",
+      "duration": "50.3s",
+      "sha256": "783721fc6b24…",
+      "timingMs": "419"
+    },
+    {
+      "name": "synth_track_018.wav",
+      "status": "passed",
+      "duration": "50.3s",
+      "sha256": "4b50993121b3…",
+      "timingMs": "410"
+    },
+    {
+      "name": "synth_track_019.wav",
+      "status": "passed",
+      "duration": "50.4s",
+      "sha256": "f2761d2e4588…",
+      "timingMs": "415"
+    },
+    {
+      "name": "synth_track_020.wav",
+      "status": "passed",
+      "duration": "50.4s",
+      "sha256": "04eeba617e10…",
+      "timingMs": "412"
+    }
+  ],
+  "passedCount": 20,
+  "failedCount": 0,
+  "cancelledCount": 0,
+  "warningCount": 0,
+  "maxHeapMB": 3.9,
+  "heapSampleCount": 10,
+  "consoleErrors": [],
+  "pageErrors": []
+}
