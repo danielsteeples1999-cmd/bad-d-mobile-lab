@@ -104,6 +104,21 @@ Use MCP/external services only when they materially improve the current experime
 Keep tool output compact and machine-readable.
 Temporary scratch files should be deleted unless they become reusable infrastructure.
 
+## 10. Use Claude Code's capabilities intelligently
+
+When the environment provides them, use the native capabilities instead of rebuilding them inside the lab:
+
+- **Plan mode** for large/ambiguous changes before execution.
+- **Subagents** for genuinely parallel, isolated or independently verifiable work; avoid delegation for simple sequential work.
+- **Hooks** for repeatable checks such as tests, linting, evidence validation or cleanup.
+- **MCP/connectors** when an external system materially improves the current experiment.
+- **Checkpoints/version control** before risky multi-step changes so experiments remain reversible.
+- **Background tasks** for long-running processes when they do not block the main investigation.
+- **Sandboxing/contained execution** where available for safer autonomous experimentation.
+- **Evals** for reusable tools: build realistic tasks, run them repeatedly, measure success, then improve the tool rather than merely changing prompts.
+
+Do not add a lab feature just because Claude Code already has the capability. Use the native capability first; build a repository capability only when it creates durable project-specific value.
+
 ## 10. Self-validation
 Before declaring success, run the strongest cheap validation available:
 static/syntax check → focused test → benchmark → failure/edge attack → regression check → evidence record
