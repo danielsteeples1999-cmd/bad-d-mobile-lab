@@ -1,112 +1,100 @@
 # BAD-D // Mobile Lab
 
-Public, isolated engineering laboratory for mobile experimentation around BAD-D // SIGNAL.
+**Public, standalone AI engineering laboratory.**
 
-This repository exists so an agent can **build, measure, break, learn and iterate** without touching the production BAD-D source of truth.
+This repository exists to let an AI **build, measure, break, learn and iterate** without touching the private BAD-D production source of truth.
 
-## Compounding AI-build principle
+## 🚦 Claude entrypoint
 
-This lab is also a **toolbox for AI software engineering**.
+**Start with [CLAUDE_NOW.md](CLAUDE_NOW.md).**
 
-The goal is not to build isolated demos for individual bugs. When an experiment creates useful instrumentation, benchmarking, diagnostics, failure injection, regression checks, evidence tooling, codebase discovery, or adapter contracts, that capability should become reusable infrastructure for future AI work.
+It is the compact current control plane. It tells Claude:
+- what matters now
+- what not to read
+- what it may do autonomously
+- execution budgets and stop rules
+- evidence requirements
+- how to self-test
+- when to ask Daniel
+- how to keep the repository's instructions current
 
-**Every experiment should make the next experiment cheaper, faster, safer, or more intelligent.**
+Then read **[EXPERIMENT_PRIORITY_QUEUE.md](EXPERIMENT_PRIORITY_QUEUE.md)**.
 
-Think:
+Do **not** begin by reading the whole repository.
 
-**problem → measurement → tool → evidence → reusable capability → better next build**
+## Current operating model
 
-The lab therefore optimizes for compounding capability, not repository size or feature count.
+**question → baseline → experiment → test → attack → evidence → reusable capability → next question**
 
-## The operating idea
+The lab is deliberately being built as a **compounding AI engineering workbench**, not a pile of one-off experiments.
 
-**Current code → reproduce → instrument → experiment → measure → compare → record → next experiment**
+Every useful experiment should make future work:
+- faster
+- cheaper in context
+- easier to verify
+- safer
+- more reusable
+- more informative
 
-The lab is deliberately structured to minimize wasted agent context.
-
-### Start here
-
-1. [CLAUDE_BUILD_ORDER.md](CLAUDE_BUILD_ORDER.md) — what to read and how to spend engineering effort.
-2. [EXPERIMENT_PRIORITY_QUEUE.md](EXPERIMENT_PRIORITY_QUEUE.md) — current highest-value work.
-3. [CLAUDE_EXECUTIVE_BRAIN.md](CLAUDE_EXECUTIVE_BRAIN.md) — compressed project reasoning and long-range intent.
-4. [CLAUDE_TOKEN_EFFICIENCY.md](CLAUDE_TOKEN_EFFICIENCY.md) — context/token discipline.
-5. [GOAL_CROSSWALK.md](GOAL_CROSSWALK.md) — how individual experiments connect to multiple BAD-D goals.
-6. [CLAUDE_COMPLETION_STATUS_PROTOCOL.md](CLAUDE_COMPLETION_STATUS_PROTOCOL.md) — evidence-based completion reporting.
-
-## Critical boundary
+## Hard boundary
 
 This is **not** the BAD-D production repository.
 
-- Do not modify or overwrite production from here.
-- Do not assume production access.
-- Do not put secrets, credentials, private user data or production-only information here.
-- Do not change production version identity to label experiments.
-- Do not automatically promote experiments.
-- Preserve fail-closed behavior and evidence gates.
-- Experiments must remain reversible or clearly disposable.
-
-## What Claude should optimize for
-
-Not repository size.
-
-Not documentation volume.
-
-Not feature count.
-
-Optimize for:
-
-**useful engineering per token + useful evidence per test minute + reusable knowledge per experiment**
-
-When a small experiment can answer a large architectural question, do it first.
-
-## Main research areas
-
-- startup reliability
-- RAM pressure and object lifetime
-- bulk-import scheduling
-- adaptive workload governors
-- cooperative yielding
-- persistent scope-buffer strategies
-- audio continuity under load
-- checkpoint/recovery
-- browser/mobile capability detection
-- device-local diagnostics
-- Testing Deck evidence integrity
-- regression/soak/failure-injection testing
-- music-analysis evidence
-- transition and journey experiments
-- future adapter contracts
-
-## Standalone-tool principle
-
-Tools should be independently runnable and measurable.
-
-Later they may connect to BAD-D through a small adapter/contract rather than sharing production internals.
+- Never modify or overwrite production from this lab.
+- Never place production secrets, credentials or private user data here.
+- Never auto-promote an experiment.
+- Never weaken evidence or fail-closed gates.
+- Never change production version identity to label an experiment.
+- Future integration must use an explicit adapter/contract.
 
 **Standalone now. Integratable later.**
 
-## Evidence rule
+## Evidence standard
 
 A file existing is not verification.
 
-Runtime claims require runtime evidence.
-Performance claims require benchmark evidence.
-Mobile claims require mobile/device evidence.
-Audio claims require audio evidence.
-Recovery claims require interruption/recovery evidence.
+Runtime claims need runtime evidence.  
+Performance claims need benchmark evidence.  
+Mobile claims need appropriate browser/device evidence.  
+Audio claims need appropriate signal/listening evidence.  
+Recovery claims need interruption/recovery evidence.
 
-Use the completion protocol.
+When exact decoded PCM equality is the hypothesis, do not create the fixture through bit-depth conversion and then hide differences with tolerance. Investigate the fixture when the measured samples disagree.
 
-## Workflow
+## What the lab is building
 
-**Observe → reproduce → hypothesize → discriminate → change → test → compare → record → keep/revert → advance.**
+The long-term toolbox includes:
+- experiment runner
+- deterministic fixtures
+- benchmark/comparison tools
+- startup and capability probes
+- memory/resource instrumentation
+- failure injection
+- regression detection
+- evidence validation
+- searchable experiment memory
+- adapter/contract validation
 
-Failed experiments are useful if they make the next decision smarter.
+Build these only when a real experiment needs them.
 
-## Long-term architecture
+## Deep reference — read on demand
 
-Keep the experimental BUILD side powerful.
+- [CLAUDE_EXECUTIVE_BRAIN.md](CLAUDE_EXECUTIVE_BRAIN.md) — architecture and long-range reasoning
+- [CLAUDE_BUILD_ORDER.md](CLAUDE_BUILD_ORDER.md) — detailed build method
+- [CLAUDE_TOKEN_EFFICIENCY.md](CLAUDE_TOKEN_EFFICIENCY.md) — context/token discipline
+- [GOAL_CROSSWALK.md](GOAL_CROSSWALK.md) — cross-goal leverage
+- [CLAUDE_COMPLETION_STATUS_PROTOCOL.md](CLAUDE_COMPLETION_STATUS_PROTOCOL.md) — completion/evidence reporting
 
-Keep the eventual PLAY / SET / GO path predictable, low-latency, evidence-backed and fail-closed.
+Historical/research documents are reference material, not startup instructions.
 
-The lab exists to make the future system smarter without making the live DJ experience more fragile.
+## Definition of progress
+
+A large diff is not progress.
+
+A large document is not progress.
+
+A feature count is not progress.
+
+**Progress is a measurable reduction in uncertainty plus reusable capability.**
+
+The lab should leave the next AI with less to read and more it can actually do.
