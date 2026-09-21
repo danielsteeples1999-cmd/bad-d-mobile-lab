@@ -1,315 +1,452 @@
-# CLAUDE BUILD ORDER — INFORMATION-FIRST EXECUTION
+# CLAUDE BUILD ORDER — COMPOUNDING AI ENGINEERING LAB
 
 ## Purpose
 
-This file exists to prevent Claude from wasting context/tokens rediscovering project intent, reading irrelevant material, or polishing low-value work.
+This lab is not merely a place to reproduce BAD-D mobile bugs.
 
-The lab is an **engineering experiment engine**, not a documentation exercise.
+It is a **compounding engineering system for AI-built software**.
 
-The goal is maximum useful engineering per token, per test minute, and per human interaction.
+Every useful experiment should leave behind something reusable: a probe, benchmark, fixture, diagnostic, failure injector, contract, adapter boundary, regression test, search index, evidence schema, or reasoning shortcut.
+
+The target is:
+
+**problem → measurement → tool → evidence → reusable capability → better next build**
+
+Optimize for:
+
+**useful engineering per token + evidence per test minute + reusable capability per experiment + reduced future rediscovery**
 
 ---
 
-# 1. READ ORDER — DO NOT READ THE ENTIRE REPOSITORY BY DEFAULT
+# 1. START SMALL — READ ONLY WHAT MATTERS
 
-At session start, read only:
+At session start read:
 
-1. `CLAUDE_EXECUTIVE_BRAIN.md`
+1. `README.md`
 2. `CLAUDE_BUILD_ORDER.md`
 3. `EXPERIMENT_PRIORITY_QUEUE.md`
-4. the specific artifact(s) named by the current priority item
-5. `CLAUDE_COMPLETION_STATUS_PROTOCOL.md` only when reporting status
+4. `GOAL_CROSSWALK.md`
+5. `CLAUDE_EXECUTIVE_BRAIN.md` only as targeted context
+6. the exact code/test artifact needed for the current experiment
 
-Do NOT automatically read every research document, historical plan, or expansion map.
+Do not read the whole repository by default.
 
-Use targeted retrieval.
+Search first. Read only relevant sections.
 
-If a document is not relevant to the current experiment, do not spend context on it.
-
----
-
-# 2. INSIDE-FIRST RULE
-
-The highest-value information is normally inside the current implementation and its measured behavior.
-
-Search in this order:
-
-**CURRENT CODE → CURRENT TEST → CURRENT FAILURE → MEASUREMENT → HISTORY → EXTERNAL RESEARCH**
-
-External research is used to answer a concrete unknown, not to create reading work.
-
-Historical documents are used when:
-- a mechanism was removed
-- a regression suggests an older implementation
-- a design decision needs recovery
-- an old experiment may contain a useful mechanism
-
-Do not read history merely because it exists.
+History and research are secondary to current code, tests, failures and measurements.
 
 ---
 
-# 3. PREVALENCE / PRIORITY MODEL
+# 2. THE COMPOUNDING RULE
 
-Prioritize work by:
+Before building any tool ask:
 
-**Impact × Frequency × Cross-system leverage × Evidence value × Reversibility ÷ Cost**
-
-Give extra weight to problems that affect several goals simultaneously.
-
-Examples of high-leverage work:
-
-- RAM lifetime control can improve importing, scope rendering, audio stability, long runs, crash resistance, and mobile responsiveness.
-- cooperative scheduling can improve bulk import, UI responsiveness, startup, battery pressure, and recovery.
-- checkpoint architecture can improve long scans, crashes, backgrounding, storage recovery, and Testing Deck reliability.
-- capability detection can improve startup, mobile compatibility, fallback behavior, and user clarity.
-- standardized evidence can improve Testing Deck, tuning, regression testing, and future production integration.
-
-Do not spend a full experiment on a cosmetic issue while a shared mechanism is failing.
-
----
-
-# 4. TOKEN-EFFICIENT ENGINEERING LOOP
-
-For each priority item:
-
-### A. LOCATE
-Find the smallest set of files/functions that control the behavior.
-
-### B. BASELINE
-Run or construct the cheapest meaningful reproduction.
-
-### C. HYPOTHESES
-Write 2–4 competing mechanisms.
-
-### D. DISCRIMINATE
-Choose the cheapest test that tells the hypotheses apart.
-
-### E. PATCH
-Change the smallest meaningful surface.
-
-### F. MEASURE
-Capture before/after metrics.
-
-### G. ADVERSARIAL CHECK
-Try to break the improvement.
-
-### H. DECIDE
-Keep, revert, branch, or defer.
-
-### I. RECORD
-Write a compact experiment result.
-
-### J. ADVANCE
-Immediately select the next highest-information experiment.
-
-Do not stop after "it looks better."
-
----
-
-# 5. BATCH WORK WHEN SAFE
-
-If several experiments share:
-- the same fixture
-- the same instrumentation
-- the same harness
-- the same browser page
-- the same measurement
-
-build the harness once and run multiple cheap variants.
+**What survives after this experiment?**
 
 Prefer:
 
-**ONE HARNESS → MANY CONTROLLED EXPERIMENTS**
+**one-off experiment**
+→ reusable probe  
+→ reusable fixture  
+→ benchmark  
+→ regression test  
+→ AI diagnostic capability
 
 over:
 
-**MANY DUPLICATE HARNESS BUILDS**
+**one-off experiment → throwaway result**
 
-Do not batch experiments when doing so makes causality unclear.
+A tool is high-value when a future AI can reuse it without rebuilding the same machinery.
 
 ---
 
-# 6. BUILD REUSABLE INSTRUMENTS BEFORE REPEATED MANUAL WORK
+# 3. BUILD THE AI ENGINEERING TOOLBOX
 
-If Claude performs the same manual inspection twice, consider turning it into a script/probe.
+Prioritize reusable infrastructure such as:
 
-High-value reusable probes include:
-
-- startup timeline probe
-- long-task probe
-- memory-pressure probe
-- allocation/lifetime probe
-- audio continuity probe
-- queue/concurrency probe
-- checkpoint/recovery probe
-- browser capability probe
-- storage-health probe
-- evidence validator
+- codebase scout
+- dependency/impact mapper
+- experiment generator
+- benchmark runner
 - regression comparator
+- memory/RAM probe
+- startup timeline probe
+- long-task/UI responsiveness probe
+- audio continuity probe
+- queue/scheduler probe
+- storage-health probe
+- checkpoint/recovery tester
+- browser capability matrix
+- failure-injection engine
+- device/workload profiles
+- evidence validator
 - experiment report generator
+- experiment search/index
+- old-code archaeology tool
+- adapter/contract validator
 
-The tool should save future tokens, not merely add code.
+Do not create empty folders or speculative frameworks just to look complete.
 
----
-
-# 7. SYNTHETIC FIRST, REAL SECOND
-
-When a mechanism can be tested with deterministic synthetic input:
-
-1. use synthetic input to validate correctness cheaply
-2. use compact real-world fixtures to validate realism
-3. use long/hostile fixtures only after the mechanism survives basic tests
-
-Do not begin every experiment with a huge real playlist.
+Build each capability when a real experiment needs it.
 
 ---
 
-# 8. MEASURE THE REAL FAILURE, NOT A PROXY
+# 4. AI CODEBASE SCOUT
 
-If the complaint is:
-- RAM → measure memory pressure/lifetime, not just execution time
-- chopping → measure continuity/underrun/long-task behavior
-- startup → measure time-to-ready and failure points
-- import → measure throughput AND UI responsiveness AND memory
-- recovery → interrupt it and resume
-- audio quality → compare audio, not only CPU
-- evidence → validate provenance and state transitions
+When practical, create tooling that lets an AI answer cheaply:
 
-Never substitute an easy metric for the actual failure without saying so.
+- where is this behavior implemented?
+- what calls it?
+- what depends on it?
+- what tests cover it?
+- what measurements exist?
+- what previous experiments touched it?
+- what is dangerous to change?
+- what remains unknown?
 
----
+Output compact machine-readable investigation data.
 
-# 9. CHANGE ONE MECHANISM AT A TIME — UNLESS THE EXPERIMENT IS ABOUT INTERACTION
-
-Single-variable A/B is the default.
-
-Combination testing is justified when:
-- mechanisms are explicitly complementary
-- their interaction is the research question
-- testing them separately would be misleading
-
-Label combination experiments accordingly.
+The goal is to prevent future agents from reading thousands of irrelevant lines.
 
 ---
 
-# 10. FAILED WORK IS OUTPUT
+# 5. CHANGE IMPACT BEFORE PATCHING
 
-A failed experiment should produce:
+Before meaningful changes, identify:
 
-- what failed
-- where
-- under what conditions
-- likely mechanism
-- what was ruled out
-- what remains unknown
-- what should happen next
+**change → affected code → affected systems → affected tests → performance effects → audio risks → evidence/promotion risks**
 
-Never make Claude rediscover a failed approach.
+Use this to choose the smallest safe change.
+
+Do not claim an impact map is complete when it is inferred rather than measured.
 
 ---
 
-# 11. OLD CODE ARCHAEOLOGY
+# 6. UNIVERSAL EXPERIMENT LOOP
 
-When an old implementation looks useful:
+For every substantive experiment:
 
-1. identify the problem it solved
-2. identify constraints at the time
-3. isolate the useful mechanism
+### LOCATE
+Find the smallest controlling surface.
+
+### REPRODUCE
+Make the failure or behavior deterministic if possible.
+
+### BASELINE
+Measure before changing anything.
+
+### HYPOTHESIZE
+Create 2–4 plausible mechanisms.
+
+### DISCRIMINATE
+Run the cheapest test that separates them.
+
+### BUILD
+Implement the smallest useful experiment.
+
+### MEASURE
+Capture comparable before/after data.
+
+### ATTACK
+Try to break the result.
+
+### REGRESS
+Check adjacent behavior.
+
+### EXTRACT
+Turn reusable instrumentation into a reusable capability.
+
+### RECORD
+Store compact evidence.
+
+### ADVANCE
+Choose the next highest-information experiment.
+
+Do not stop at “looks better.”
+
+---
+
+# 7. THE TOOL SHOULD IMPROVE THE NEXT TOOL
+
+For every new utility ask:
+
+1. Can another experiment call it?
+2. Can another AI session understand its output automatically?
+3. Can it produce machine-readable evidence?
+4. Can it detect regressions?
+5. Can it reduce future token usage?
+6. Can it be adapted into BAD-D later?
+7. What is the smallest reusable interface?
+
+If the answer is mostly no, keep the implementation smaller.
+
+---
+
+# 8. UNIVERSAL BENCHMARK LANGUAGE
+
+Avoid every experiment inventing its own measurements.
+
+Where appropriate standardize:
+
+- timestamp
+- duration
+- workload
+- input size
+- concurrency
+- memory observations
+- long-task observations
+- throughput
+- latency
+- errors
+- interruptions
+- recovery
+- audio continuity
+- environment/capability data
+- baseline
+- candidate
+- delta
+- evidence level
+
+One benchmark harness should support many experiments.
+
+---
+
+# 9. FAILURE INJECTION IS A FIRST-CLASS TOOL
+
+The lab should deliberately test:
+
+- storage failure
+- quota pressure
+- interrupted imports
+- corrupted checkpoints
+- missing browser capabilities
+- memory pressure
+- slow workloads
+- worker failure
+- timeout
+- background suspension
+- visibility changes
+- audio interruption
+- malformed input
+- partial input
+- unexpected exceptions
+
+The question is not only:
+
+**Can it work?**
+
+Also:
+
+**How does it fail? Does it recover safely? Does it preserve evidence?**
+
+---
+
+# 10. DEVICE REALITY
+
+Separate:
+
+**synthetic correctness → workload realism → physical device verification**
+
+Create repeatable workload profiles where useful:
+
+- fast desktop
+- modern phone
+- mid-range phone
+- low-memory phone
+- long-running
+- storage pressured
+- backgrounded
+- thermally constrained
+
+Do not pretend simulation equals physical-device evidence.
+
+---
+
+# 11. AI SELF-VALIDATION
+
+After an implementation, prefer an automated chain:
+
+**change → static check → functional test → benchmark → failure injection → regression → evidence**
+
+The AI should be able to attack its own implementation before asking Daniel to test it.
+
+Human testing is reserved for things the environment cannot establish.
+
+---
+
+# 12. EVIDENCE IS MACHINE-READABLE
+
+Every meaningful experiment should leave structured evidence containing, where applicable:
+
+- hypothesis
+- baseline
+- variables
+- environment
+- procedure
+- result
+- failures
+- regressions
+- confidence/evidence level
+- limitations
+- reusable artifacts
+- next question
+
+Never turn “file created” into “verified.”
+
+---
+
+# 13. EXPERIMENT MEMORY
+
+Do not make future AI rediscover old work.
+
+Store experiments so an agent can search:
+
+- what was tested?
+- what failed?
+- under what conditions?
+- what was ruled out?
+- what mechanism was implicated?
+- what tool was created?
+- what remains unresolved?
+- what should be tested next?
+
+Failed work is knowledge.
+
+---
+
+# 14. OLD CODE ARCHAEOLOGY
+
+When historical code is relevant:
+
+1. identify the original problem
+2. identify its constraints
+3. isolate the mechanism
 4. remove obsolete coupling
-5. reproduce the behavior in the lab
-6. compare against the current mechanism
+5. reproduce it independently
+6. compare it with the current mechanism
+7. retain only evidence-backed value
 
 Do not copy old architecture wholesale.
 
 ---
 
-# 12. DO NOT BUILD DOCUMENTATION INSTEAD OF EXPERIMENTS
-
-Documentation is useful when it:
-- prevents rediscovery
-- defines a contract
-- records evidence
-- enables the next experiment
-
-Documentation is low-value when it merely restates another document.
-
-Prefer a 30-line tested probe over a 300-line plan describing a probe.
-
----
-
-# 13. SESSION BUDGET
-
-Default internal budget for a normal task:
-
-- 5–10 minutes: locate and baseline
-- 10–30 minutes: build/test the smallest experiment
-- 5–10 minutes: adversarial/regression check
-- 2–5 minutes: record result and next question
-
-If blocked by environment, build the smallest reproducible substitute rather than spending the session explaining the blockage.
-
----
-
-# 14. DEEP REASONING WITHOUT DEEP READING
-
-Use the existing project brain as compressed context.
-
-When deeper reasoning is needed, expand only the relevant branch:
-
-**problem → mechanism → competing hypotheses → discriminating test → evidence → architectural consequence**
-
-Do not expand unrelated project history.
-
----
-
 # 15. CROSS-GOAL LEVERAGE
 
-Every major experiment should answer:
+For every major experiment answer:
 
-1. What immediate bug does this address?
-2. Which other BAD-D goals does it support?
-3. What future integration does it enable?
-4. What could it accidentally damage?
+1. What immediate problem does this address?
+2. What other goals benefit?
+3. What reusable capability does it create?
+4. What future BAD-D integration could use it?
+5. What could it damage?
+6. What evidence would justify integration?
 
-Prefer mechanisms that improve multiple layers without hiding tradeoffs.
+Prefer mechanisms with broad leverage.
+
+Examples:
+
+**scheduler**
+→ import + UI + audio + RAM + battery + Testing Deck
+
+**memory lifetime instrumentation**
+→ RAM + scope + audio + long-run stability + crash diagnosis
+
+**checkpoint engine**
+→ import + Testing Deck + recovery + background lifecycle
+
+**benchmark/evidence engine**
+→ every future experiment
+
+**failure injection**
+→ every future subsystem
 
 ---
 
-# 16. HUMAN INTERACTION BUDGET
+# 16. TOKEN ECONOMY
+
+Do not spend model context on:
+
+- giant summaries
+- duplicated documentation
+- irrelevant research
+- speculative abstractions
+- cosmetic refactors
+- explaining what the agent could test itself
+
+Spend tokens on:
+
+**locating → reasoning → coding → testing → breaking → measuring → extracting reusable capability**
+
+If a repeated manual action can become a tool, consider automating it.
+
+If a research question can be answered by a five-minute local experiment, run the experiment.
+
+---
+
+# 17. SESSION BUDGET
+
+A normal session should roughly follow:
+
+- locate/baseline
+- implement smallest experiment
+- test
+- attack
+- extract reusable value
+- record
+- advance
+
+If blocked, build the smallest reproducible substitute.
+
+Do not spend the whole session explaining why the ideal environment is unavailable.
+
+---
+
+# 18. HUMAN INTERACTION BUDGET
 
 Ask Daniel only when:
-- a real device observation is required
-- an irreversible choice is required
-- creative intent is ambiguous
+
+- physical-device evidence is required
 - credentials/permissions are required
-- production promotion is being considered
+- an irreversible decision is required
+- creative intent is genuinely ambiguous
+- production integration is being considered
 
-Otherwise decide, test, and continue.
+When asking for a test, give **one exact action**.
 
-When a human test is needed, request **one exact action**, not a questionnaire.
-
----
-
-# 17. OUTPUT CONTRACT
-
-Every meaningful experiment leaves:
-
-- compact result
-- evidence level
-- files changed
-- tests run
-- known regression status
-- next experiment
-
-Do not produce a giant narrative unless the result itself requires it.
+Otherwise continue autonomously.
 
 ---
 
-# 18. DEFINITION OF HIGH-VALUE PROGRESS
+# 19. PRODUCTION BOUNDARY
+
+This public lab is isolated.
+
+Never:
+
+- modify production BAD-D from this workflow
+- expose secrets
+- copy private user data
+- auto-promote experiments
+- weaken evidence gates
+- silently alter production version identity
+- treat lab success as production verification
+
+Future integration happens through explicit adapters/contracts.
+
+**Standalone now. Integratable later.**
+
+---
+
+# 20. DEFINITION OF HIGH-VALUE PROGRESS
 
 High-value progress means:
 
-**less uncertainty + better measured behavior + reusable instrumentation + lower future token cost**
+**less uncertainty  
++ better measured behavior  
++ reusable tooling  
++ stronger self-validation  
++ lower future token cost  
++ clearer integration boundaries**
 
 A large diff is not progress.
 
@@ -317,4 +454,4 @@ A large document is not progress.
 
 A feature count is not progress.
 
-A smaller uncertainty set is progress.
+**A capability that makes the next AI build faster, safer, more measurable and more intelligent is progress.**
