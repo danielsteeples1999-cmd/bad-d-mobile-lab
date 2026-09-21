@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/danielsteeples1999-cmd/bad-d-mobile-lab/contracts/engineering-cycle.schema.json",
+  "title": "EngineeringCycleRecord",
+  "description": "Machine-readable record of one DISCOVER->REPRODUCE->BASELINE->HYPOTHESIZE->DISCRIMINATE->BUILD->TEST->ATTACK->MEASURE->REGRESSION->RECORD->EXTRACT->PRIORITIZE->NEXT cycle. Every EXP-NNN's README.md is the human-readable account; this file (experiments/EXP-NNN/cycle.json) is the same cycle in a form another AI session can parse without inferring structure from prose. A stage's absence from `stages` means it genuinely did not apply (state why in stages[].note) -- never omit a stage silently.",
+  "type": "object",
+  "required": ["schema_version", "cycle_id", "objective", "stages", "decision", "stop_reason", "control_mode"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "cycle_id": { "type": "string", "description": "e.g. EXP-013" },
+    "queue_task_id": { "type": ["string", "null"], "description": "PRIORITY_QUEUE.md TASK-ID this cycle addresses, e.g. SCALE-100-001" },
+    "objective": { "type": "string" },
+    "current_unknown": { "type": "string" },
+    "hypothesis": { "type": "string" },
+    "competing_hypotheses": { "type": "array", "items": { "type": "string" } },
+    "control_mode": {
+      "type": "string",
+      "enum": ["LAB_AUTONOMOUS", "PRODUCTION_REQUIRES_HUMAN_APPROVAL"],
+      "description": "This lab only ever produces LAB_AUTONOMOUS records. Anything touching bad_d_meomory is out of scope for this schema entirely, not just flagged."
+    },
+    "stages": {
+      "type": "array",
+      "description": "One entry per loop stage actually executed or explicitly skipped-with-reason.",
+      "items": {
+        "type": "object",
+        "required": ["stage", "status"],
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "DISCOVER", "REPRODUCE", "BASELINE", "HYPOTHESIZE", "DISCRIMINATE",
+              "FIXTURE_VALIDATION", "BUILD", "TEST", "ATTACK", "MEASURE",
+              "REGRESSION", "RECORD", "EXTRACT", "PRIORITIZE"
+            ]
+          },
+          "status": { "type": "string", "enum": ["DONE", "SKIPPED", "FAILED", "BLOCKED"] },
+          "input": { "description": "What this stage consumed." },
+          "output": { "description": "What this stage produced." },
+          "success_condition": { "type": "string" },
+          "failure_condition": { "type": "string" },
+          "evidence": { "description": "Pointer(s) to raw evidence -- file path(s), or inline data for small results." },
+          "note": { "type": "string", "description": "Required when status is SKIPPED, FAILED, or BLOCKED -- why." }
+        }
+      }
+    },
+    "attacks": {
+      "type": "array",
+      "description": "Subset of the ATTACK stage's evidence, broken out for direct queryability.",
+      "items": {
+        "type": "object",
+        "required": ["attack", "result"],
+        "properties": {
+          "attack": { "type": "string", "enum": [
+            "MALFORMED_INPUT", "EMPTY_INPUT", "HUGE_INPUT", "TINY_INPUT",
+            "REPEATED_EXECUTION", "CONCURRENT_EXECUTION", "INTERRUPTION",
+            "CANCELLATION", "MEMORY_PRESSURE", "STORAGE_FAILURE",
+            "LIFECYCLE_INTERRUPTION", "TIMING_BOUNDARY", "SLOW_DEVICE_SIMULATION",
+            "MISSING_CAPABILITY", "CORRUPTED_STATE", "PARTIAL_COMPLETION",
+            "UNEXPECTED_ORDERING"
+          ]},
+          "relevance": { "type": "string", "description": "Why this attack was selected for this mechanism -- attacks are not applied blindly." },
+          "result": { "type": "string", "enum": ["SURVIVED", "FAILED", "NOT_APPLICABLE"] },
+          "detail": { "type": "string" },
+          "evidence": {}
+        }
+      }
+    },
+    "measurements": { "type": "object", "description": "Free-form key/value, whatever this cycle's mechanism actually measured (duration, heap, throughput, etc.)." },
+    "regression_check": {
+      "type": "object",
+      "properties": {
+        "baseline_cycle_id": { "type": ["string", "null"] },
+        "compared_metric": { "type": ["string", "null"] },
+        "result": { "type": "string", "enum": ["NO_REGRESSION", "REGRESSION_FOUND", "NOT_APPLICABLE", "NOT_CHECKED"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "decision": { "type": "string", "enum": ["KEEP", "REVERT", "DEFER", "INVESTIGATE", "REJECTED_FIXTURE"] },
+    "reusable_capability_produced": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "reuse_proof"],
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string", "description": "Repo-relative path to the artifact." },
+          "reuse_proof": { "type": "string", "enum": ["USED_ONCE", "USED_TWICE_PLUS", "NOT_YET_REUSED"], "description": "Per EXPERIMENT_PROTOCOL.md's compounding test: a tool used once is an experiment, reused is infrastructure." }
+        }
+      }
+    },
+    "next_recommended_experiment": {
+      "type": "object",
+      "properties": {
+        "task_id": { "type": ["string", "null"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "stop_reason": {
+      "type": "string",
+      "enum": [
+        "COMPLETED", "STOPPED_EVIDENCE_SATURATED", "STOPPED_BUDGET",
+        "STOPPED_FAILURE", "STOPPED_CONTRADICTION", "STOPPED_HUMAN_APPROVAL",
+        "STOPPED_PRODUCTION_BOUNDARY", "STOPPED_INVALID_FIXTURE"
+      ]
+    },
+    "human_interventions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit list of points where a human was/would be required, and why -- never left implicit."
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generator_tool": { "type": "string" }
+  }
+}

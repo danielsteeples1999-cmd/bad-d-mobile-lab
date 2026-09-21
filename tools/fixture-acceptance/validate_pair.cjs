@@ -8,10 +8,9 @@
 //          --id=<fixture_set_id> --version=<v> --intended="<text>" \
 //          --method="<generation method>" --tool=<generatorTool> [--tolerance=0]
 
-const { chromium } = require('playwright');
-const { readFileSync, writeFileSync, mkdtempSync } = require('node:fs');
-const { resolve, join } = require('node:path');
-const { tmpdir } = require('node:os');
+const { readFileSync, writeFileSync } = require('node:fs');
+const { resolve } = require('node:path');
+const { openSession } = require('../lab-harness/session.cjs');
 
 function parseArgs(argv) {
   const positional = [];
@@ -33,17 +32,8 @@ async function main() {
     process.exit(2);
   }
 
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-  const pageErrors = [];
-  page.on('pageerror', e => pageErrors.push(e.message));
-  // about:blank is an opaque origin -- crypto.subtle (Web Crypto) requires a
-  // secure context, which file:// pages get but about:blank does not
-  // reliably. Navigate to a real local page instead.
-  const tmpDir = mkdtempSync(join(tmpdir(), 'badd-fixture-accept-'));
-  const blankHtmlPath = join(tmpDir, 'blank.html');
-  writeFileSync(blankHtmlPath, '<!DOCTYPE html><html><body></body></html>');
-  await page.goto('file://' + blankHtmlPath);
+  const session = await openSession({ needsSecureContext: true }); // crypto.subtle needs a real page, not about:blank -- see tools/lab-harness/session.cjs
+  const { page, pageErrors } = session;
   await page.addScriptTag({ content: readFileSync(resolve(__dirname, 'validator.js'), 'utf8') });
 
   const fileABuf = readFileSync(resolve(fileAPath));
@@ -93,7 +83,7 @@ async function main() {
   }
 
   report.pageErrors = pageErrors;
-  await browser.close();
+  await session.close();
 
   writeFileSync(outJsonPath, JSON.stringify(report, null, 2));
   console.log(report.human_summary);
