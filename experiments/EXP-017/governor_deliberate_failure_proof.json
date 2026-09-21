@@ -1,0 +1,16 @@
+{
+  "before": {
+    "label": "PRE-FIX (no governor) under sustained simulated 90% heap pressure",
+    "totalMs": 1322.5,
+    "resultCount": 12,
+    "passedCount": 12,
+    "maxActive": 4
+  },
+  "after": {
+    "label": "POST-FIX (governor active) under identical sustained simulated 90% heap pressure",
+    "totalMs": 1205.5,
+    "resultCount": 12,
+    "passedCount": 12,
+    "maxActive": 1
+  }
+}

@@ -224,4 +224,37 @@ DONE
          -> AUTODJ-PLAYBACK-001.
     EVIDENCE: experiments/EXP-016/{README.md,transition_decision_result.json,attack_regression_result.json},
          adapters/AUTODJ_PRODUCTION_BOUNDARY.md (updated).
+
+[x] RAM-PRESSURE-001 — mobile/bulk audio RAM pressure and work-lifetime control (EXP-017)
+    RESULT: Found this lab's own heap sampling (run_experiment.cjs) read
+         only CDP usedSize, blind to ArrayBuffer/TypedArray backing-store
+         memory -- every prior RAM finding (EXP-009/010/011/013) never saw
+         it. Fixed the harness first (backingStorageSize/totalSize/
+         maxActiveConcurrent + post-run forced-GC sample). Baseline
+         (30x60s, ~153MB, concurrency 4): peakBackingMB ~85, afterForceGc
+         ~0.04MB (no leak). Concurrency sweep 1/2/4 showed peak backing
+         memory FLAT (~75-85MB) regardless of concurrency -- falsified the
+         "concurrent buffer retention" hypothesis; root cause is GC-catch-
+         up latency under a fast allocation burst, not a leak or
+         concurrency-driven retention. Fixed a minor real issue (arrayBuffer
+         reference outliving its need in processItem) -- measured impact
+         negligible, kept anyway (correct, zero-risk). Built an adaptive
+         governor in runBatch, ADAPTED from production's own existing
+         resourcePressureHigh()/yieldForMemoryPressure() (reference/...html)
+         -- same signal/threshold/backoff constant, reused not invented --
+         with an injectable memoryReader for deterministic testing
+         (performance.memory unreliable for small deltas in this sandbox,
+         per EXP-005). Deliberate-failure proof: under identical sustained
+         simulated 90% pressure, old code reached concurrency 4 (ignored
+         it), new code held at 1 (never 0, never starved) -- both delivered
+         all results, ~equal wall-clock (decode is CPU-bound enough here
+         that the safety cost was near-free). Sustained 32-track workload
+         (30 valid + 2 malformed, cancelled and uncancelled): every item
+         accounted for, no leak, quality-protection check confirmed
+         byte-identical sha256/audioContentHash/duration before vs after.
+         All 3 existing evidence-backed cycles (EXP-013/014/015)
+         re-verified with zero regression.
+    EVIDENCE: experiments/EXP-017/{README.md,baseline_30track_c4.json,
+         governor_deliberate_failure_proof.json,sustained_42track_workload.json,
+         quality_protection_comparison.json}.
 ```

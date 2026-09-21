@@ -27,9 +27,26 @@ async function runOnce(wavDir, concurrency, cancelAfterMs) {
   await page.locator('#fileInput').setInputFiles(files);
   await page.fill('#concurrency', String(concurrency));
 
-  const heapSamples = [];
+  // RAM-PRESSURE-001: Runtime.getHeapUsage().usedSize alone was found to be
+  // blind to ArrayBuffer/TypedArray backing-store memory -- exactly where
+  // decoded audio (Float32Array PCM) and raw file bytes live. A 30x60s
+  // (153MB raw) workload showed usedSize peaking at ~2MB while
+  // backingStorageSize peaked at ~138MB, matching the real dataset size.
+  // Every prior heap-based finding in this lab (EXP-009/010/011/013) used
+  // usedSize only and was blind to this. Sample all three CDP fields now.
+  const heapSamples = []; // kept for backward compat: usedSize only, existing consumers (maxHeapMB) still work
+  const backingSamples = [];
+  const totalSamples = [];
+  const activeCountSamples = [];
   const heapInterval = setInterval(async () => {
-    try { const h = await cdp.send('Runtime.getHeapUsage'); heapSamples.push(h.usedSize); } catch (_) {}
+    try {
+      const h = await cdp.send('Runtime.getHeapUsage');
+      heapSamples.push(h.usedSize);
+      backingSamples.push(h.backingStorageSize);
+      totalSamples.push(h.totalSize);
+      const active = await page.evaluate(() => window.__badLabActiveCount || 0).catch(() => 0);
+      activeCountSamples.push(active);
+    } catch (_) {}
   }, 150);
 
   const t0 = Date.now();
@@ -61,11 +78,27 @@ async function runOnce(wavDir, concurrency, cancelAfterMs) {
   });
   const statusText = await page.locator('#statusText').textContent();
 
+  // Force GC and take one more sample -- distinguishes "released after the
+  // batch, just not yet swept" from a real cross-batch retention leak, same
+  // methodology EXP-010 used for the JS-heap-only case, now extended to
+  // backing-store memory too.
+  let afterForceGc = null;
+  try {
+    await cdp.send('HeapProfiler.enable');
+    await cdp.send('HeapProfiler.collectGarbage');
+    const h = await cdp.send('Runtime.getHeapUsage');
+    afterForceGc = { usedMB: +(h.usedSize / 1e6).toFixed(2), totalMB: +(h.totalSize / 1e6).toFixed(2), backingMB: +(h.backingStorageSize / 1e6).toFixed(2) };
+  } catch (_) {}
+
   await browser.close();
 
   return {
     concurrency, fileCount: files.length, cancelAfterMs: cancelAfterMs || null,
     durationMs, statusText, summary,
+    peakBackingMB: backingSamples.length ? +(Math.max(...backingSamples) / 1e6).toFixed(2) : null,
+    peakTotalMB: totalSamples.length ? +(Math.max(...totalSamples) / 1e6).toFixed(2) : null,
+    maxActiveConcurrent: activeCountSamples.length ? Math.max(...activeCountSamples) : null,
+    afterForceGc,
     passedCount: summary.filter(r => r.status === 'passed').length,
     failedCount: summary.filter(r => r.status === 'failed').length,
     cancelledCount: summary.filter(r => r.status === 'cancelled').length,

@@ -1,0 +1,38 @@
+{
+  "cleanRun": {
+    "fileCount": 32,
+    "durationMs": 2656,
+    "statusText": "Done. 30/32 passed validation.",
+    "passedCount": 30,
+    "failedCount": 2,
+    "summaryRowCount": 32,
+    "peakBackingMB": 74.46,
+    "afterForceGc": {
+      "usedMB": 1.89,
+      "totalMB": 2.7,
+      "backingMB": 0.04
+    },
+    "pageErrors": [
+      "Unable to decode audio data",
+      "Unable to decode audio data"
+    ]
+  },
+  "cancelledRun": {
+    "fileCount": 32,
+    "cancelAfterMs": 400,
+    "durationMs": 1216,
+    "statusText": "Done. 13/32 passed validation.",
+    "passedCount": 13,
+    "failedCount": 0,
+    "cancelledCount": 19,
+    "summaryRowCount": 32,
+    "accountedFor": 32,
+    "peakBackingMB": 79.49,
+    "afterForceGc": {
+      "usedMB": 1.93,
+      "totalMB": 2.7,
+      "backingMB": 0.04
+    },
+    "pageErrors": []
+  }
+}

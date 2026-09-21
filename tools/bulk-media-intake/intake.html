@@ -129,10 +129,11 @@
     const applyNormalise = $('applyNormalise').checked;
     const experimentId = 'manual-run-' + Date.now();
 
+    window.__badLabActiveCount = 0; window.__badLabMaxActiveCount = 0; // exposed for external heap/concurrency instrumentation (tools/bulk-media-intake/run_experiment.cjs), not read by the pipeline itself
     currentRun = window.BADD_BULK_INTAKE.runBatch(items, {
       concurrency, experimentId, applyNormalise,
-      onItemStart: (idx) => { renderRow(idx, {}); },
-      onItemDone: (idx, r) => { renderRow(idx, r); if(r.errors && r.errors.length) r.errors.forEach(e => logError('item ' + idx + ': ' + e)); },
+      onItemStart: (idx) => { renderRow(idx, {}); window.__badLabActiveCount++; window.__badLabMaxActiveCount = Math.max(window.__badLabMaxActiveCount, window.__badLabActiveCount); },
+      onItemDone: (idx, r) => { renderRow(idx, r); window.__badLabActiveCount--; if(r.errors && r.errors.length) r.errors.forEach(e => logError('item ' + idx + ': ' + e)); },
       onProgress: (done, total) => { $('progressBar').style.width = Math.round(100*done/total) + '%'; $('statusText').textContent = done + '/' + total + ' complete'; },
     });
 

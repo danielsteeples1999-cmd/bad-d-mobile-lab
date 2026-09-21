@@ -1,0 +1,23 @@
+{
+  "before": {
+    "sha256": "b76158d49d1740bbddeaef23230c3c458c4cb2d6380309e160707f657273a16c",
+    "audioContentHash": "2f3e44c9",
+    "duration": 60,
+    "sampleRate": 44100,
+    "channels": 1,
+    "validationStatus": "passed",
+    "warnings": [],
+    "audioStatus": "decoded"
+  },
+  "after": {
+    "sha256": "b76158d49d1740bbddeaef23230c3c458c4cb2d6380309e160707f657273a16c",
+    "audioContentHash": "2f3e44c9",
+    "duration": 60,
+    "sampleRate": 44100,
+    "channels": 1,
+    "validationStatus": "passed",
+    "warnings": [],
+    "audioStatus": "decoded"
+  },
+  "identical": true
+}

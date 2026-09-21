@@ -156,7 +156,7 @@
     try {
       timestamps.acquisitionStartedAt = new Date().toISOString();
       if (signal && signal.aborted) { result.acquisitionStatus = 'cancelled'; return result; }
-      const arrayBuffer = await stageAcquire(item, signal);
+      let arrayBuffer = await stageAcquire(item, signal);
       pipelineStagesRun.push('acquire');
       timestamps.acquisitionCompletedAt = new Date().toISOString();
       result.acquisitionStatus = 'completed';
@@ -172,6 +172,20 @@
 
       if (signal && signal.aborted) { result.acquisitionStatus = 'cancelled'; return result; }
       const decodeResult = await stageDecodeValidate(arrayBuffer, audioCtx);
+      // RAM-PRESSURE-001: hashBytes (sha256) already ran above, and nothing
+      // past this point needs the raw bytes -- only the decoded audioBuf.
+      // Drop the reference now instead of letting it sit alive for the rest
+      // of this function (qualityCheck/normalise/audioContentHash, the
+      // longest-running stages) alongside the decoded buffer. Baseline
+      // measurement (CDP backingStorageSize, not just usedSize -- see
+      // EXPERIMENT_PROTOCOL.md) showed peak backing-store memory during a
+      // 30x60s/concurrency-4 run matched ~4 concurrent items each holding
+      // raw+decoded simultaneously; this closes that window per item
+      // without touching stageDecodeValidate's own defensive copy (still
+      // needed there -- decodeAudioData detaches/consumes its input in some
+      // browsers -- and changing that reusable stage function's contract is
+      // out of scope for this fix).
+      arrayBuffer = null;
       pipelineStagesRun.push('decodeValidate');
       result.audioStatus = decodeResult.status;
       if (decodeResult.status === 'decode-failed') {
@@ -242,18 +256,48 @@
     };
   }
 
+  // RAM-PRESSURE-001: adaptive resource governor. Adapted (not copied) from
+  // the existing production heuristic (resourcePressureHigh/
+  // yieldForMemoryPressure in reference/...html) -- same signal
+  // (performance.memory ratio) and same 0.82 "high" threshold, reused
+  // rather than invented, applied to this queue's event-driven
+  // launchNext() shape instead of production's sequential
+  // processLibraryQueue loop. `memoryReader` is injectable so this can be
+  // driven deterministically in tests -- performance.memory is
+  // quantized/unreliable for small deltas in this lab's sandbox (EXP-005),
+  // so a real high-pressure event cannot be reliably reproduced headlessly;
+  // the injection seam lets the governor's actual behavior (defer, then
+  // resume once pressure clears) be verified directly instead of only
+  // asserted.
+  function resourcePressureHigh(memoryReader) {
+    const m = (memoryReader || (() => (typeof performance !== 'undefined' ? performance.memory : null)))();
+    return !!(m && m.jsHeapSizeLimit > 0 && m.usedJSHeapSize / m.jsHeapSizeLimit >= 0.82);
+  }
+
   // ---------- bounded-concurrency batch runner with real cancellation ----------
-  function runBatch(items, { concurrency, experimentId, applyNormalise, onItemStart, onItemDone, onProgress }) {
+  function runBatch(items, { concurrency, experimentId, applyNormalise, onItemStart, onItemDone, onProgress, memoryReader, pressureRecheckMs }) {
     const controller = new AbortController();
     const audioCtx = new (global.AudioContext || global.webkitAudioContext)();
     const results = new Array(items.length);
     let nextIndex = 0, activeCount = 0, completedCount = 0;
     let resolveAll, rejectAll;
     const donePromise = new Promise((res, rej) => { resolveAll = res; rejectAll = rej; });
+    const recheckMs = pressureRecheckMs || 120; // reused from production's own yieldForMemoryPressure backoff constant
 
     function launchNext() {
       if (controller.signal.aborted) { maybeFinish(); return; }
       if (nextIndex >= items.length) { maybeFinish(); return; }
+      // Under high measured pressure, hold off launching a NEW item --
+      // don't add more concurrent decode/analysis work -- and recheck
+      // shortly rather than applying a long or unconditional delay. Never
+      // defer when activeCount is 0: a stale/quantized high reading must
+      // not starve the queue to a permanent stall (SMALL/SIMPLE TRACK ->
+      // process normally; RISING PRESSURE -> reduce concurrency/yield;
+      // PRESSURE RECOVERS -> resume -- this is the recovery half).
+      if (activeCount > 0 && resourcePressureHigh(memoryReader)) {
+        setTimeout(launchNext, recheckMs);
+        return;
+      }
       const idx = nextIndex++;
       const item = items[idx];
       activeCount++;
@@ -302,5 +346,5 @@
     return { promise: donePromise, cancel: () => controller.abort() };
   }
 
-  global.BADD_BULK_INTAKE = { TOOL_VERSION, stageMetadata, stageAcquire, stageHashBytes, stageDecodeValidate, stageQualityCheck, stageNormalise, stageAudioContentHash, processItem, runBatch };
+  global.BADD_BULK_INTAKE = { TOOL_VERSION, stageMetadata, stageAcquire, stageHashBytes, stageDecodeValidate, stageQualityCheck, stageNormalise, stageAudioContentHash, processItem, runBatch, resourcePressureHigh };
 })(typeof window !== 'undefined' ? window : globalThis);
