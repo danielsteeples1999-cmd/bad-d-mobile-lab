@@ -4,6 +4,20 @@ Public, isolated engineering laboratory for mobile experimentation around BAD-D 
 
 This repository exists so an agent can **build, measure, break, learn and iterate** without touching the production BAD-D source of truth.
 
+## Compounding AI-build principle
+
+This lab is also a **toolbox for AI software engineering**.
+
+The goal is not to build isolated demos for individual bugs. When an experiment creates useful instrumentation, benchmarking, diagnostics, failure injection, regression checks, evidence tooling, codebase discovery, or adapter contracts, that capability should become reusable infrastructure for future AI work.
+
+**Every experiment should make the next experiment cheaper, faster, safer, or more intelligent.**
+
+Think:
+
+**problem → measurement → tool → evidence → reusable capability → better next build**
+
+The lab therefore optimizes for compounding capability, not repository size or feature count.
+
 ## The operating idea
 
 **Current code → reproduce → instrument → experiment → measure → compare → record → next experiment**
