@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_set_id": "SELFTEST-GOOD-001",
+  "fixture_set_version": "1",
+  "intended_condition": "content-identical (identical data chunk), byte-different (B has an inserted LIST/INFO chunk)",
+  "validation_timestamp": "2026-09-21T03:31:58.020Z",
+  "validator_version": "0.1.0",
+  "acceptance_status": "FIXTURE_ACCEPTED",
+  "human_summary": "FIXTURE ACCEPTED — experiment may run",
+  "criteria_results": [
+    {
+      "criterion": "IDENTITY",
+      "status": "PASS",
+      "detail": "fixture_set_id and fixture_set_version provided",
+      "measured": {
+        "fixtureSetId": "SELFTEST-GOOD-001",
+        "fixtureSetVersion": "1"
+      }
+    },
+    {
+      "criterion": "INTENDED_CONDITION",
+      "status": "PASS",
+      "detail": "content-identical (identical data chunk), byte-different (B has an inserted LIST/INFO chunk)"
+    },
+    {
+      "criterion": "BASELINE_FINGERPRINT",
+      "status": "PASS",
+      "detail": "sha256 + byteLength recorded for both files before experiment execution",
+      "measured": {
+        "sha256A": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+        "sha256B": "8835989be69a56522b8c9751c97313534ac57c728696d197eda4a59c095ac1e7",
+        "byteLengthA": 705644,
+        "byteLengthB": 705718
+      }
+    },
+    {
+      "criterion": "BYTE_REPRESENTATION_VERIFICATION",
+      "status": "PASS",
+      "detail": "sha256 differs between files -- byte-difference independently proven",
+      "measured": {
+        "sha256A": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+        "sha256B": "8835989be69a56522b8c9751c97313534ac57c728696d197eda4a59c095ac1e7"
+      }
+    },
+    {
+      "criterion": "VALIDITY",
+      "status": "PASS",
+      "detail": "both fixtures decoded successfully"
+    },
+    {
+      "criterion": "UNINTENDED_DIFFERENCES",
+      "status": "PASS",
+      "detail": "no unintended sampleRate/channel/length differences found"
+    },
+    {
+      "criterion": "CONTENT_VERIFICATION",
+      "status": "PASS",
+      "detail": "decoded PCM bit-exact identical across 352800 samples",
+      "measured": {
+        "identical": true,
+        "maxAbsDiff": 0,
+        "firstDiffIndex": -1,
+        "comparedSamples": 352800
+      }
+    },
+    {
+      "criterion": "CONTROLLED_DIFFERENCE",
+      "status": "PASS",
+      "detail": "generationMethod documents the intended difference: Same synthetic 330Hz sine tone data chunk written into two WAV containers; B has an additional LIST/INFO chunk inserted between fmt and data"
+    },
+    {
+      "criterion": "REPEATABILITY",
+      "status": "PASS",
+      "detail": "generatorTool + generationMethod recorded, sufficient to regenerate",
+      "measured": {
+        "generatorTool": "make_near_duplicate_fixture.cjs",
+        "generatorVersion": null
+      }
+    },
+    {
+      "criterion": "NO_SILENT_MUTATION",
+      "status": "PASS",
+      "detail": "sha256 re-check matches baseline for both files",
+      "measured": {
+        "rA": {
+          "matches": true,
+          "actualSha256": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+          "checkedAt": "2026-09-21T03:31:58.241Z"
+        },
+        "rB": {
+          "matches": true,
+          "actualSha256": "8835989be69a56522b8c9751c97313534ac57c728696d197eda4a59c095ac1e7",
+          "checkedAt": "2026-09-21T03:31:58.246Z"
+        }
+      }
+    }
+  ],
+  "unexpected_differences": [],
+  "fingerprints": [
+    {
+      "path": "near_dup_A_plain.wav",
+      "sha256": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+      "byteLength": 705644,
+      "decodedProperties": {
+        "sampleRate": 44100,
+        "numberOfChannels": 1,
+        "duration": 8,
+        "frameLength": 352800
+      }
+    },
+    {
+      "path": "near_dup_B_with_list_chunk.wav",
+      "sha256": "8835989be69a56522b8c9751c97313534ac57c728696d197eda4a59c095ac1e7",
+      "byteLength": 705718,
+      "decodedProperties": {
+        "sampleRate": 44100,
+        "numberOfChannels": 1,
+        "duration": 8,
+        "frameLength": 352800
+      }
+    }
+  ],
+  "post_experiment_reverification": {
+    "matches_baseline": true,
+    "checkedAt": "2026-09-21T03:31:58.247Z"
+  },
+  "provenance": {
+    "generationMethod": "Same synthetic 330Hz sine tone data chunk written into two WAV containers; B has an additional LIST/INFO chunk inserted between fmt and data",
+    "generatorTool": "make_near_duplicate_fixture.cjs",
+    "generatorVersion": null
+  },
+  "pageErrors": []
+}

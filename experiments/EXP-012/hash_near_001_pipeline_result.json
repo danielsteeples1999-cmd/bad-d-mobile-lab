@@ -1,0 +1,20 @@
+[
+  {
+    "name": "near_dup_A_plain.wav",
+    "sha256": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+    "audioContentHash": "7f1fd44e",
+    "duration": 8,
+    "sampleRate": 44100,
+    "channels": 1,
+    "validationStatus": "passed"
+  },
+  {
+    "name": "near_dup_B_with_list_chunk.wav",
+    "sha256": "8835989be69a56522b8c9751c97313534ac57c728696d197eda4a59c095ac1e7",
+    "audioContentHash": "7f1fd44e",
+    "duration": 8,
+    "sampleRate": 44100,
+    "channels": 1,
+    "validationStatus": "passed"
+  }
+]

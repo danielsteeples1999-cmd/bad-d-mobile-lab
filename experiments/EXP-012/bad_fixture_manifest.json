@@ -1,0 +1,17 @@
+{
+  "mode": "bad",
+  "sampleRate": 44100,
+  "generatedAt": "2026-09-21T03:31:27.265Z",
+  "files": {
+    "bad_near_dup_A.wav": {
+      "role": "330Hz tone",
+      "byteLength": 705644
+    },
+    "bad_near_dup_B.wav": {
+      "role": "550Hz tone -- GENUINELY DIFFERENT CONTENT, mislabeled as a near-duplicate on purpose",
+      "byteLength": 705644
+    }
+  },
+  "claim": "FALSELY claims content-identical -- this fixture is intentionally invalid, used only to test that the acceptance gate rejects it",
+  "generationMethod": "Two different-frequency synthetic sine tones (330Hz, 550Hz), deliberately mismatched, to test validator rejection. See make_near_duplicate_fixture.cjs mode=bad."
+}

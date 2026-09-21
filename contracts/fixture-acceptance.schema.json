@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/danielsteeples1999-cmd/bad-d-mobile-lab/contracts/fixture-acceptance.schema.json",
+  "title": "FixtureAcceptanceReport",
+  "description": "Machine-readable output of the fixture acceptance gate (tools/fixture-acceptance/). An experiment must not interpret PASS/FAIL/SUPPORTED/UNSUPPORTED/REGRESSION/IMPROVEMENT for its primary question until the fixtures it used produced acceptance_status=ACCEPTED here. REJECTED means the experiment is invalid, not that the system under test failed. Reusable across experiments -- not specific to any one investigation.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "fixture_set_id",
+    "validation_timestamp",
+    "acceptance_status",
+    "criteria_results",
+    "fingerprints",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "fixture_set_id": { "type": "string", "description": "Stable ID for this fixture set (not per-file -- the SET is what's being validated, e.g. a claimed near-duplicate pair)." },
+    "fixture_set_version": { "type": "string" },
+    "intended_condition": { "type": "string", "description": "Plain-language statement of what this fixture set claims to represent, e.g. 'a content-identical, byte-different WAV pair (container-level difference only)'." },
+    "validation_timestamp": { "type": "string", "format": "date-time" },
+    "validator_version": { "type": "string" },
+    "acceptance_status": {
+      "type": "string",
+      "enum": ["FIXTURE_ACCEPTED", "FIXTURE_REJECTED", "FIXTURE_ACCEPTANCE_UNKNOWN"]
+    },
+    "human_summary": {
+      "type": "string",
+      "description": "One line: 'FIXTURE ACCEPTED -- experiment may run' or 'FIXTURE REJECTED -- experiment must not be interpreted', with failed criteria if rejected."
+    },
+    "criteria_results": {
+      "type": "array",
+      "description": "One entry per acceptance-gate criterion actually checked.",
+      "items": {
+        "type": "object",
+        "required": ["criterion", "status"],
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "enum": [
+              "IDENTITY", "INTENDED_CONDITION", "CONTROLLED_DIFFERENCE",
+              "UNINTENDED_DIFFERENCES", "VALIDITY", "CONTENT_VERIFICATION",
+              "BYTE_REPRESENTATION_VERIFICATION", "BASELINE_FINGERPRINT",
+              "REPEATABILITY", "NO_SILENT_MUTATION"
+            ]
+          },
+          "status": { "type": "string", "enum": ["PASS", "FAIL", "SKIPPED", "UNKNOWN"] },
+          "detail": { "type": "string" },
+          "measured": { "description": "Whatever numeric/structured value backs this criterion, if any." }
+        }
+      }
+    },
+    "unexpected_differences": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any confounding difference found that the experiment did not intend to introduce."
+    },
+    "fingerprints": {
+      "type": "array",
+      "description": "Per-file baseline identity, recorded BEFORE the experiment runs.",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "byteLength"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string" },
+          "byteLength": { "type": "integer" },
+          "decodedProperties": {
+            "type": "object",
+            "properties": {
+              "sampleRate": { "type": ["integer", "null"] },
+              "numberOfChannels": { "type": ["integer", "null"] },
+              "duration": { "type": ["number", "null"] },
+              "frameLength": { "type": ["integer", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "post_experiment_reverification": {
+      "type": "object",
+      "description": "NO_SILENT_MUTATION check: same fingerprints re-taken immediately before/after the primary experiment ran.",
+      "properties": {
+        "matches_baseline": { "type": ["boolean", "null"] },
+        "checkedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["generationMethod"],
+      "properties": {
+        "generationMethod": { "type": "string", "description": "Exactly how the fixtures were produced -- tool, parameters, enough to regenerate them." },
+        "generatorTool": { "type": ["string", "null"] },
+        "generatorVersion": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

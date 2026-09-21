@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_set_id": "SELFTEST-BAD-001",
+  "fixture_set_version": "1",
+  "intended_condition": "deliberately mislabeled: two DIFFERENT tones claimed as content-identical, to test rejection",
+  "validation_timestamp": "2026-09-21T03:31:49.624Z",
+  "validator_version": "0.1.0",
+  "acceptance_status": "FIXTURE_REJECTED",
+  "human_summary": "FIXTURE REJECTED — experiment must not be interpreted. Failed: CONTENT_VERIFICATION",
+  "criteria_results": [
+    {
+      "criterion": "IDENTITY",
+      "status": "PASS",
+      "detail": "fixture_set_id and fixture_set_version provided",
+      "measured": {
+        "fixtureSetId": "SELFTEST-BAD-001",
+        "fixtureSetVersion": "1"
+      }
+    },
+    {
+      "criterion": "INTENDED_CONDITION",
+      "status": "PASS",
+      "detail": "deliberately mislabeled: two DIFFERENT tones claimed as content-identical, to test rejection"
+    },
+    {
+      "criterion": "BASELINE_FINGERPRINT",
+      "status": "PASS",
+      "detail": "sha256 + byteLength recorded for both files before experiment execution",
+      "measured": {
+        "sha256A": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+        "sha256B": "75c674de7ea17f406bbcf324df1b06c9c6aaf0d17bc2e0cd51042600cfac9f34",
+        "byteLengthA": 705644,
+        "byteLengthB": 705644
+      }
+    },
+    {
+      "criterion": "BYTE_REPRESENTATION_VERIFICATION",
+      "status": "PASS",
+      "detail": "sha256 differs between files -- byte-difference independently proven",
+      "measured": {
+        "sha256A": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+        "sha256B": "75c674de7ea17f406bbcf324df1b06c9c6aaf0d17bc2e0cd51042600cfac9f34"
+      }
+    },
+    {
+      "criterion": "VALIDITY",
+      "status": "PASS",
+      "detail": "both fixtures decoded successfully"
+    },
+    {
+      "criterion": "UNINTENDED_DIFFERENCES",
+      "status": "PASS",
+      "detail": "no unintended sampleRate/channel/length differences found"
+    },
+    {
+      "criterion": "CONTENT_VERIFICATION",
+      "status": "FAIL",
+      "detail": "decoded PCM differs beyond tolerance: maxAbsDiff=0.3999694883823395 at sample index 1",
+      "measured": {
+        "identical": false,
+        "maxAbsDiff": 0.3999694883823395,
+        "firstDiffIndex": 1,
+        "comparedSamples": 352800
+      }
+    },
+    {
+      "criterion": "CONTROLLED_DIFFERENCE",
+      "status": "PASS",
+      "detail": "generationMethod documents the intended difference: 330Hz vs 550Hz sine tones, deliberately mismatched"
+    },
+    {
+      "criterion": "REPEATABILITY",
+      "status": "PASS",
+      "detail": "generatorTool + generationMethod recorded, sufficient to regenerate",
+      "measured": {
+        "generatorTool": "make_near_duplicate_fixture.cjs",
+        "generatorVersion": null
+      }
+    },
+    {
+      "criterion": "NO_SILENT_MUTATION",
+      "status": "PASS",
+      "detail": "sha256 re-check matches baseline for both files",
+      "measured": {
+        "rA": {
+          "matches": true,
+          "actualSha256": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+          "checkedAt": "2026-09-21T03:31:49.863Z"
+        },
+        "rB": {
+          "matches": true,
+          "actualSha256": "75c674de7ea17f406bbcf324df1b06c9c6aaf0d17bc2e0cd51042600cfac9f34",
+          "checkedAt": "2026-09-21T03:31:49.868Z"
+        }
+      }
+    }
+  ],
+  "unexpected_differences": [],
+  "fingerprints": [
+    {
+      "path": "bad_near_dup_A.wav",
+      "sha256": "a9509ee2bec8a4e8d4d7f6a14dcc09240ce124addc7a494048b5fbc1d91243fe",
+      "byteLength": 705644,
+      "decodedProperties": {
+        "sampleRate": 44100,
+        "numberOfChannels": 1,
+        "duration": 8,
+        "frameLength": 352800
+      }
+    },
+    {
+      "path": "bad_near_dup_B.wav",
+      "sha256": "75c674de7ea17f406bbcf324df1b06c9c6aaf0d17bc2e0cd51042600cfac9f34",
+      "byteLength": 705644,
+      "decodedProperties": {
+        "sampleRate": 44100,
+        "numberOfChannels": 1,
+        "duration": 8,
+        "frameLength": 352800
+      }
+    }
+  ],
+  "post_experiment_reverification": {
+    "matches_baseline": true,
+    "checkedAt": "2026-09-21T03:31:49.869Z"
+  },
+  "provenance": {
+    "generationMethod": "330Hz vs 550Hz sine tones, deliberately mismatched",
+    "generatorTool": "make_near_duplicate_fixture.cjs",
+    "generatorVersion": null
+  },
+  "pageErrors": []
+}

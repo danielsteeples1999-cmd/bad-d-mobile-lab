@@ -13,7 +13,9 @@ question yet. `FAILURE` = doesn't meet an established requirement.
 `PROMISING — INSUFFICIENT REPLICATION` = observed once, not reproduced.
 `REPRODUCED` = repeated evidence agrees.
 
-Last updated: EXP-011.
+Last updated: EXP-012. Fixture-acceptance gate now mandatory for any
+experiment whose fixtures make a *relationship* claim (content-identical,
+known-different, etc.) — see `EXPERIMENT_PROTOCOL.md`.
 
 ```
 PRIORITY QUEUE
@@ -23,23 +25,20 @@ P0 — BLOCKING / CRITICAL
 (none open)
 
 P1 — HIGH VALUE
-[ ] HASH-NEAR-001 — test audioContentHash against a real near-duplicate
+[ ] SCALE-100-001 — 100-item batch, untested past 50
     STATUS: OPEN
-    WHY: UNKNOWN + real consequence if wrong — only exact-byte duplicates
-         were tested (EXP-009); the hash's entire purpose (catching same
-         audio content saved with a different container/bit-depth) is
-         unverified. If it doesn't work, near-duplicates silently pass
-         through as distinct items — a real data-quality gap, not cosmetic.
-         Promoted from P2: cheapest remaining unknown with the highest
-         consequence-if-wrong, per the selection rule (UNKNOWN + HIGH
-         CONSEQUENCE + CHEAP TEST over SCALE-100-001's KNOWN-shape/lower-
-         information incremental scale bump).
-    EVIDENCE: experiments/EXP-009/README.md NEXT QUESTION #4.
-    RISK: dedup silently fails for re-encoded duplicates in real usage.
-    NEXT EXPERIMENT: same synthetic audio content re-saved at a different
-         bit depth/header (two files, byte-different, content-identical),
-         check whether audioContentHash still matches while sha256 differs.
-    EXIT CONDITION: matches (works as designed) or doesn't (needs fixing).
+    WHY: UNKNOWN — only remaining open item once HASH-NEAR-001 closed.
+         Section 15's own P2 list names 100 items as its own test point;
+         EXP-009's queue-scale test stopped at 50.
+    EVIDENCE: experiments/EXP-009/README.md, queue scale table.
+    RISK: low-consequence relative to HASH-NEAR-001 (no sign of scale-
+         dependent failure at 50, memory/concurrency already confirmed
+         flat at larger heavy-workload batches in EXP-010/011) — promoted
+         to P1 only because it's the last OPEN unknown, not because it's
+         high-consequence. CANCEL-OBS-001/RESUME-001 remain DEFERRED
+         (known gaps, not unknowns) per the selection rule.
+    NEXT EXPERIMENT: 100-item batch, same measurements as the 50-item run.
+    EXIT CONDITION: passes cleanly, or reveals a scale-dependent failure.
 
 P2 — IMPORTANT
 [ ] CANCEL-OBS-001 — represent never-started cancelled items in results
@@ -64,14 +63,6 @@ P2 — IMPORTANT
          where, how resume reconciles with in-flight cancellation) before
          this is worth building; deferred until something makes it urgent.
     EXIT CONDITION: N/A while deferred.
-
-[ ] SCALE-100-001 — 100-item batch, untested past 50
-    STATUS: OPEN
-    WHY: UNKNOWN — section 15's own P2 list names 100 items as its own
-         test point; EXP-009's queue-scale test stopped at 50.
-    EVIDENCE: experiments/EXP-009/README.md, queue scale table.
-    NEXT ACTION: 100-item batch, same measurements as the 50-item run.
-    EXIT CONDITION: passes cleanly, or reveals a scale-dependent failure.
 
 P3 — OPTIMISATION
 (none justified — no measured bottleneck to optimise against)
@@ -125,4 +116,26 @@ DONE
          run-to-run variance (2x stdev 225.7ms vs 4x/8x ~25-39ms) — not
          visible at n=1. Recommendation: default concurrency 4.
     EVIDENCE: experiments/EXP-011/*.json (9 runs).
+
+[x] FIXTURE-GATE-001 — build + self-test the fixture acceptance gate (EXP-012)
+    RESULT: Built reusable infrastructure (contracts/fixture-acceptance.schema.json,
+         tools/fixture-acceptance/{validator.js, validate_pair.cjs,
+         make_near_duplicate_fixture.cjs}, EXPERIMENT_PROTOCOL.md). Self-
+         tested both directions before trusting it: a deliberately invalid
+         fixture (two genuinely different tones mislabeled as identical)
+         → correctly FIXTURE_REJECTED (CONTENT_VERIFICATION failed,
+         maxAbsDiff=0.40 detected). A genuine near-duplicate (identical
+         data chunk, container-level LIST/INFO chunk difference) → correctly
+         FIXTURE_ACCEPTED, all 10 criteria PASS including NO_SILENT_MUTATION.
+    EVIDENCE: experiments/EXP-012/{bad_result,good_result}.json.
+
+[x] HASH-NEAR-001 — test audioContentHash against a real near-duplicate (EXP-012)
+    RESULT: SUPPORTED, gated on FIXTURE-GATE-001's acceptance passing first
+         (not interpreted before that). sha256 differed
+         (a9509ee2… vs 8835989b…), audioContentHash matched (7f1fd44e both)
+         — the hash correctly ignores a container-only difference. Narrow
+         claim: container-difference case only; lossy/resampled near-
+         duplicates remain untested (no MP3/AAC tooling in this sandbox,
+         same gap as EXP-002/005/008).
+    EVIDENCE: experiments/EXP-012/hash_near_001_pipeline_result.json.
 ```

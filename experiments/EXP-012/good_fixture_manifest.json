@@ -1,0 +1,17 @@
+{
+  "mode": "good",
+  "sampleRate": 44100,
+  "generatedAt": "2026-09-21T03:31:27.442Z",
+  "files": {
+    "near_dup_A_plain.wav": {
+      "role": "baseline WAV, no extra chunks",
+      "byteLength": 705644
+    },
+    "near_dup_B_with_list_chunk.wav": {
+      "role": "same data chunk + inserted LIST/INFO chunk (simulates a re-save by different software)",
+      "byteLength": 705718
+    }
+  },
+  "claim": "content-identical (identical data chunk), byte-different (different container/size)",
+  "generationMethod": "Same synthetic 330Hz sine tone data chunk written into two WAV containers; B has an additional LIST/INFO chunk inserted between fmt and data. See make_near_duplicate_fixture.cjs mode=good."
+}

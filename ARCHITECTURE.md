@@ -16,17 +16,26 @@ internals directly.
 ## Layout
 
 ```
-README.md, ARCHITECTURE.md (this file), SECURITY.md, PROMOTION_GATE.md
+README.md, ARCHITECTURE.md (this file), SECURITY.md, PROMOTION_GATE.md,
+  EXPERIMENT_PROTOCOL.md, PRIORITY_QUEUE.md
 experiments/     — EXP-NNN records: OBSERVE -> HYPOTHESIZE -> MEASURE -> ... -> DOCUMENT
 tools/           — two kinds of thing, both real, kept distinct:
   *.cjs            standalone Playwright-driven diagnostic scripts against a
                     reference BAD-D build snapshot (existing, EXP-001..008)
   <name>/           self-contained sub-lab tools with their own runnable
-                    artifact + pipeline module (e.g. bulk-media-intake/)
+                    artifact + pipeline module (e.g. bulk-media-intake/,
+                    fixture-acceptance/)
 reference/       — read-only BAD-D build snapshot used by the *.cjs diagnostics
 contracts/       — JSON schemas for cross-tool result formats
 adapters/        — documented, currently-unimplemented seams toward BAD-D
 ```
+
+`PRIORITY_QUEUE.md` is the live control system — what to work on next,
+reconstructed from real experiment evidence, not a static backlog.
+`EXPERIMENT_PROTOCOL.md` holds cross-cutting methodology rules (currently:
+the Fixture Acceptance Gate, `tools/fixture-acceptance/` — no experiment
+interprets its primary result until its fixtures prove they represent the
+condition claimed).
 
 `benchmarks/`, `results/`, and per-topic sub-labs beyond `bulk-media-intake`
 (ram-governor, audio-lab, timing-lab, crash-recovery, browser-lifecycle,
