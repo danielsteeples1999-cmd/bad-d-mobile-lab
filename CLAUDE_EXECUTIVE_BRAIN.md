@@ -995,3 +995,276 @@ Improve it.
 Record what you learned.
 
 Then find the next thing nobody thought to test.
+
+
+---
+
+# 37. TOOL QUALITY LAYER — HUMAN TOOL VS AI TOOL
+
+The laboratory must distinguish **who the tool is for**.
+
+A tool can be:
+
+- **AI-ONLY** — optimized for Claude/agents; machine-readable, deterministic, compact output, CLI/API first.
+- **HUMAN-ONLY** — optimized for Daniel; visual, understandable, safe, guided, one-action workflows.
+- **DUAL-USE** — one underlying engine with separate AI and human interfaces.
+- **INFRASTRUCTURE** — not directly operated by either; supports other tools.
+
+Do not assume that a good human UI is a good AI tool.
+
+Do not assume that machine-readable output is a good human experience.
+
+Prefer:
+
+**ONE CORE ENGINE → AI INTERFACE + HUMAN INTERFACE**
+
+The core capability should be shared where practical.
+
+## TOOL QUALITY IS AS IMPORTANT AS TOOL EXPLANATION
+
+Every tool needs two separate quality layers:
+
+### TOOL ENGINE QUALITY
+- correct
+- deterministic where possible
+- testable
+- measurable
+- failure-aware
+- bounded
+- reversible
+- resource-conscious
+- produces structured output
+- preserves evidence
+- safe under repeated execution
+
+### TOOL INTERFACE QUALITY
+- clear purpose
+- clear inputs
+- clear outputs
+- obvious failure states
+- useful error messages
+- examples
+- no hidden destructive behavior
+- minimal cognitive load
+- explicit evidence level
+- explains what was actually tested
+
+A beautiful explanation cannot rescue a bad tool.
+
+A technically excellent tool that nobody can understand is also incomplete.
+
+## AI TOOL QUALITY STANDARD
+
+AI-facing tools should prefer:
+
+- CLI/API/programmatic entry
+- stable schemas
+- JSON or similarly structured results where useful
+- predictable exit/error states
+- concise default output
+- optional verbose diagnostics
+- machine-readable evidence
+- deterministic fixtures
+- explicit resource/time limits
+- idempotent operations where practical
+- dry-run capability for risky actions
+- clear version/schema identifiers
+- no unnecessary prose
+
+AI tools should be designed to minimize context consumption.
+
+A tool should answer the agent's question rather than dumping the entire world into context.
+
+## HUMAN TOOL QUALITY STANDARD
+
+Human-facing tools should prefer:
+
+- one obvious job
+- readable status
+- useful progress
+- safe defaults
+- explicit stop/cancel
+- clear failure explanation
+- actionable next step
+- visible evidence/result
+- no technical noise unless requested
+
+A human tool should not require Daniel to understand the implementation to use it.
+
+## DUAL-USE RULE
+
+When an AI and human need the same capability:
+
+**shared engine**
+→ AI adapter
+→ human UI
+
+Do not duplicate the actual logic merely to create two interfaces.
+
+## TOOL CONTRACT
+
+Every reusable tool should define:
+
+TOOL_ID  
+PURPOSE  
+AUDIENCE  
+INPUTS  
+OUTPUTS  
+SIDE_EFFECTS  
+RESOURCE_BUDGET  
+FAILURE_MODES  
+EVIDENCE  
+TESTS  
+REUSE_TARGETS  
+VERSION/SCHEMA
+
+This makes tools composable.
+
+## TOOL SELF-TEST
+
+A new reusable tool is not complete when its implementation exists.
+
+It should have:
+
+1. happy-path test
+2. invalid-input test
+3. boundary/resource test where relevant
+4. failure-path test
+5. deterministic fixture where possible
+6. machine-readable result
+7. human-readable explanation
+8. regression test after the first real use
+
+## QUALITY GATE
+
+Before a tool enters the reusable toolbox ask:
+
+**Does it work?**
+**Can we prove it works?**
+**Can an AI use it cheaply?**
+**Can a human understand it if needed?**
+**Can another tool reuse it?**
+**Does it fail safely?**
+**Does it leave evidence?**
+**Does it reduce future work?**
+
+If not, the tool is experimental, not infrastructure.
+
+---
+
+# 38. TOOL STACK RESEARCH — INITIAL BUILDING BLOCKS
+
+Use mature existing test/automation infrastructure before inventing replacements.
+
+### Browser / end-to-end layer
+
+Playwright is a strong candidate for browser automation and AI-facing testing because it supports Chromium, Firefox and WebKit, mobile emulation, tracing, isolated browser contexts and structured accessibility-driven interaction. It also exposes a CLI and MCP integration intended for coding agents. Verify the installed version and environment before relying on any feature.
+
+Reference:
+https://playwright.dev/
+
+### Unit / integration / benchmark-adjacent layer
+
+Vitest is a strong candidate for JavaScript/TypeScript unit and integration testing. It supports fast isolated tests, snapshots, mocking, projects, coverage and benchmarking support through its ecosystem. Verify Node/Vite compatibility for the actual lab environment before adopting it.
+
+Reference:
+https://vitest.dev/
+
+### Selection rule
+
+Do not add a dependency because it sounds useful.
+
+First ask:
+
+1. Does the lab already solve this?
+2. Does an existing mature tool solve it better?
+3. Does adding it reduce future AI token cost?
+4. Does it produce evidence Claude can consume?
+5. Does it run in the actual target environment?
+6. Can it remain isolated from production?
+
+The objective is **capability density**, not dependency count.
+
+---
+
+# 39. INITIAL TOOL MAP
+
+Build toward a toolbox with these layers:
+
+## DISCOVERY
+- codebase scout
+- symbol/dependency mapper
+- change-impact mapper
+- stale/dead-wiring detector
+- old-code archaeology search
+
+## BUILD
+- experiment scaffold generator
+- deterministic fixture generator
+- workload generator
+- adapter/contract generator
+
+## TEST
+- unit/integration runner
+- browser E2E runner
+- startup probe
+- scheduler probe
+- memory probe
+- storage probe
+- audio continuity probe
+- capability probe
+
+## ATTACK
+- failure injector
+- interruption tester
+- resource-pressure tester
+- malformed-input generator
+- long-run/soak runner
+
+## MEASURE
+- benchmark runner
+- before/after comparator
+- regression detector
+- resource telemetry collector
+- evidence validator
+
+## REMEMBER
+- experiment ledger
+- searchable experiment index
+- failure knowledge base
+- reusable probe registry
+- machine-readable result store
+
+## INTEGRATE
+- explicit adapter contracts
+- compatibility checks
+- promotion/evidence gates
+- production-readiness report
+
+Do not build all of these immediately.
+
+Build the smallest tool that unlocks several others.
+
+---
+
+# 40. TOOL COMPOUNDING RULE
+
+A tool should be judged partly by what it enables next.
+
+Example:
+
+**memory probe**
+→ RAM experiment  
+→ scheduler experiment  
+→ scope experiment  
+→ long-run experiment  
+→ crash investigation  
+→ regression benchmark
+
+That is higher leverage than six isolated demos.
+
+The lab should continuously convert:
+
+**experiment → reusable instrument → reusable evidence → reusable AI capability**
+
+That is the long-term engineering strategy.
