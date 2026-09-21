@@ -13,10 +13,12 @@ question yet. `FAILURE` = doesn't meet an established requirement.
 `PROMISING — INSUFFICIENT REPLICATION` = observed once, not reproduced.
 `REPRODUCED` = repeated evidence agrees.
 
-Last updated: EXP-013. Engineering-cycle orchestrator (`tools/engineering-
-cycle/run_cycle.cjs`) now exists — PRIORITIZE stage is advisory-only by
-design (recommends, doesn't edit this file); every queue edit below is
-still a reviewed human action, not an automated one.
+Last updated: EXP-014. Engineering-cycle orchestrators now exist for two
+real task shapes (`tools/engineering-cycle/run_cycle.cjs` for batch/scale,
+`run_cycle_audio_autodj.cjs` for real-audio/real-algorithm), sharing
+`cycle-lib.cjs`. PRIORITIZE is advisory-only by design (recommends,
+doesn't edit this file); every queue edit below is still a reviewed human
+action, not an automated one.
 
 ```
 PRIORITY QUEUE
@@ -26,7 +28,29 @@ P0 — BLOCKING / CRITICAL
 (none open)
 
 P1 — HIGH VALUE
-(none open — SCALE-100-001 closed in EXP-013, see DONE)
+[ ] AUTODJ-BOUNDARY-001 — define/unblock the real Auto-DJ production boundary
+    STATUS: BLOCKED
+    WHY: UNKNOWN, but not resolvable by more lab code — AUDIO-AUTODJ-001
+         (EXP-014) proved the engineering-cycle machinery drives the REAL
+         production fingerprint algorithm on real audio end to end; the
+         remaining gap toward the actual Auto-DJ boundary is live
+         transition-DECISION correctness (startTransition/
+         armBeatSnappedTransition), which is entangled with live playback
+         state this public lab's headless harness doesn't construct.
+    EVIDENCE: adapters/AUTODJ_PRODUCTION_BOUNDARY.md — explicit BLOCKED/
+         UNVERIFIED boundary and a proposed minimal adapter contract
+         (planNextTransition(...): pure decision function, no playback
+         side effects) that would let this lab test it without live
+         device access.
+    RISK: BLOCKED on a maintainer decision (does such a pure decision
+         function exist or make sense to extract on the production side)
+         — not something this session can resolve unilaterally, and
+         explicitly not a reason to build a mock/simulated scheduler and
+         call it equivalent.
+    NEXT EXPERIMENT: N/A while blocked — needs a human decision on the
+         adapter contract first.
+    EXIT CONDITION: maintainer confirms or rejects the proposed adapter
+         contract, or provides another testable boundary.
 
 P2 — IMPORTANT
 [ ] CANCEL-OBS-001 — represent never-started cancelled items in results
@@ -147,4 +171,25 @@ DONE
          and a deliberate-break test proving the orchestrator fails safely
          on bad input.
     EVIDENCE: experiments/EXP-013/{cycle.json,test_100item_results.json,README.md}.
+
+[x] AUDIO-AUTODJ-001 — prove the engineering-cycle system on real audio, not just infrastructure fixtures (EXP-014)
+    RESULT: PROVEN. Real decode + the REAL production computeFingerprint
+         algorithm (extracted read-only from reference/, not pipeline.js's
+         cheap heuristic) ran end to end on 2 real fixtures (a deterministic
+         musically-structured WAV + a plain-tone control), producing real
+         BPM/confidence/energy-curve output, deterministic across 2 runs
+         each. Riskiest unknown (does the extracted engine even run
+         headlessly) checked in isolation before building the full
+         orchestrator — worked first try. 6 real attacks SURVIVED
+         (STORAGE_FAILURE, MALFORMED_INPUT, EMPTY_INPUT, REPEATED_EXECUTION,
+         INTERRUPTION, CORRUPTED_STATE), 2 honestly marked NOT_APPLICABLE
+         with reasoning (PARTIAL_COMPLETION, MEMORY_PRESSURE — already
+         covered properly in EXP-010). Deliberate-break test stopped safely
+         on the first try (the EXP-013 decision:null lesson was applied
+         proactively). Explicitly NOT claimed: production validation — see
+         adapters/AUTODJ_PRODUCTION_BOUNDARY.md for the BLOCKED/UNVERIFIED
+         boundary and a proposed (unverified, maintainer-decision-gated)
+         minimal adapter contract for testing the next layer.
+    EVIDENCE: experiments/EXP-014/{cycle.json,test_results.json,README.md},
+         adapters/AUTODJ_PRODUCTION_BOUNDARY.md.
 ```

@@ -25,26 +25,10 @@ const { execFileSync } = require('node:child_process');
 const { mkdtempSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { runOnce } = require('../bulk-media-intake/run_experiment.cjs');
+const { stage, parseQueueTask } = require('./cycle-lib.cjs');
 
 const SCHEMA_VERSION = '1.0.0';
 const GENERATOR_TOOL = 'tools/engineering-cycle/run_cycle.cjs';
-
-function parseQueueTask(queueMd, taskId) {
-  const lines = queueMd.split('\n');
-  const startIdx = lines.findIndex((l) => l.includes(taskId + ' —') || l.includes(taskId + ' -'));
-  if (startIdx === -1) return null;
-  const block = [];
-  for (let i = startIdx; i < lines.length; i++) {
-    if (i > startIdx && /^\[[ x]\]/.test(lines[i].trim())) break;
-    if (i > startIdx && /^(P\d|DONE)\s*[—-]/.test(lines[i].trim())) break;
-    block.push(lines[i]);
-  }
-  return block.join('\n');
-}
-
-function stage(name, status, extra = {}) {
-  return { stage: name, status, ...extra };
-}
 
 function makeTruncatedWav(sourcePath, destPath, keepBytes) {
   const full = readFileSync(sourcePath);

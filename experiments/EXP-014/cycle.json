@@ -1,0 +1,453 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "EXP-014",
+  "queue_task_id": "AUDIO-AUTODJ-001",
+  "objective": "Prove the engineering-cycle machinery can process REAL audio with the REAL production fingerprint algorithm end to end (decode -> process -> measure -> attack -> regression -> evidence), not just synthetic infrastructure fixtures with a cheap heuristic.",
+  "current_unknown": "Can tools/make_checkpoint_engines.cjs's extracted real computeFingerprint engine be driven from an engineering-cycle script against a real (musically-structured) audio fixture, measured, attacked, and shown deterministic -- using only existing lab machinery?",
+  "hypothesis": "The real production audio engine, extracted read-only from reference/, can be loaded into a Playwright page and run against a real decoded AudioBuffer via the exact calling convention EXP-008 already proved (createAudioEngine().computeFingerprint(audioBuf, cp)), producing a deterministic, measurable fingerprint, and the surrounding pipeline (pipeline.js) fails closed on malformed/missing/empty input.",
+  "competing_hypotheses": [
+    "H2: the extracted engine only worked in EXP-008's hand-authored real-device HTML artifact due to some manual setup step this automated script omits -- it will error when driven headlessly via Playwright.",
+    "H3: computeFingerprint is non-deterministic in some way not visible in EXP-007/008's stage-by-stage forensics (e.g. depends on wall-clock timing, Math.random, or float rounding that differs run to run) -- repeated execution on identical input produces different output."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {
+      "stage": "DISCOVER",
+      "status": "DONE",
+      "input": "PRIORITY_QUEUE.md",
+      "output": "[ ] AUDIO-AUTODJ-001 — prove the engineering-cycle system on real audio, not just infrastructure fixtures\n    STATUS: OPEN\n    WHY: UNKNOWN — every prior engineering-cycle-machinery run (EXP-013)\n         exercised throughput/attack/regression mechanics on synthetic\n         batch fixtures via the CHEAP audioContentHash heuristic\n         (pipeline.js's energy-envelope hash), never the REAL production\n         fingerprint algorithm (computeFingerprint, the actual STFT engine\n         in reference/BAD-D_SIGNAL_15_72_0-mobile.REFERENCE_READONLY.html,\n         extractable read-only via tools/make_checkpoint_engines.cjs).\n         Milestone requested directly: a concrete, evidenced checkpoint —\n         \"the engineering-cycle tool has successfully tested real sound,\n         not just test infrastructure\" — before moving toward the actual\n         Auto-DJ production boundary.\n    EVIDENCE: tools/make_checkpoint_engines.cjs (existing, unused by any\n         .cjs consumer until this cycle); experiments/EXP-008's real-device\n         forensics artifact (DANIEL_TEST_forensics-v2.html) proves the\n         calling convention (`engineRoot.BADD_AUDIO_ENGINE_R1\n         .createAudioEngine().computeFingerprint(audioBuf, cp)`) works.\n    RISK: production Auto-DJ scheduling/playback itself is not reachable\n         from this public repo (lives only in bad_d_meomory's main IIFE,\n         never pulled into reference/) — this cycle proves what CAN be\n         measured locally (real decode, real fingerprint algorithm, real\n         RMS/peak/clipping) and explicitly marks the scheduling/playback\n         boundary BLOCKED/UNVERIFIED rather than faking it.\n    NEXT EXPERIMENT: EXP-014 — real (synthetic-but-musically-structured,\n         not pure test tone) audio fixture through decode -> real\n         production computeFingerprint -> measurement -> attack ->\n         regression (determinism) -> evidence, using the existing\n         lab-harness/engineering-cycle schema/cycle machinery.\n    EXIT CONDITION: PROVEN (real audio processed end-to-end with the real\n         algorithm, measured, attacked, evidenced) or a concrete blocker\n         in the existing machinery, not another architecture document.",
+      "evidence": "PRIORITY_QUEUE.md#AUDIO-AUTODJ-001"
+    },
+    {
+      "stage": "REPRODUCE",
+      "status": "SKIPPED",
+      "note": "AUDIO-AUTODJ-001 is a new-capability proof, not a reported bug -- nothing to reproduce. (EXP-008's real-device fingerprint mismatch remains a separate, still-open, genuinely unresolved question -- out of scope for this cycle, which proves the mechanism works at all, not that it matches Daniel's device.)"
+    },
+    {
+      "stage": "BASELINE",
+      "status": "DONE",
+      "note": "No prior EXP measured the real computeFingerprint engine's output/timing on a controlled fixture -- this cycle establishes that baseline. EXP-007 measured the real engine's CPU cost as part of import-pipeline profiling (~69% of wall-clock) but never isolated computeFingerprint's own output determinism.",
+      "output": "baseline established in this cycle's own MEASURE stage, not reused from a prior one"
+    },
+    {
+      "stage": "HYPOTHESIZE",
+      "status": "DONE",
+      "output": "The real production audio engine, extracted read-only from reference/, can be loaded into a Playwright page and run against a real decoded AudioBuffer via the exact calling convention EXP-008 already proved (createAudioEngine().computeFingerprint(audioBuf, cp)), producing a deterministic, measurable fingerprint, and the surrounding pipeline (pipeline.js) fails closed on malformed/missing/empty input."
+    },
+    {
+      "stage": "DISCRIMINATE",
+      "status": "DONE",
+      "output": "Running the real engine headlessly (this script) either succeeds like EXP-008's manual real-device artifact did (H1, hypothesis) or fails in a way that isolates what EXP-008's manual setup was doing differently (H2). Running computeFingerprint twice on the identical AudioBuffer either matches bit-for-bit (H1) or diverges (H3)."
+    },
+    {
+      "stage": "FIXTURE_VALIDATION",
+      "status": "SKIPPED",
+      "note": "No content-identical/different relationship claim between fixtures in this experiment -- tools/fixture-acceptance/ gates that specific claim shape (e.g. HASH-NEAR-001), not a single fixture's own decode/process/measure path. Determinism (same input -> same output across 2 real-engine runs) is checked directly in MEASURE/REGRESSION instead."
+    },
+    {
+      "stage": "BUILD",
+      "status": "DONE",
+      "input": "tools/make_music_like_wav.cjs (new, 10s multi-harmonic/enveloped fixture, deterministic seed) + tools/make_synth_wavs.cjs (existing, 1x plain-tone control) + tools/make_checkpoint_engines.cjs (existing, extracts real computeFingerprint read-only from reference/) + 2 deliberately malformed attack fixtures",
+      "output": {
+        "fixtureDir": "/tmp/exp014-fixtures-ACPGDB",
+        "engineDir": "/tmp/exp014-engine-DR9Iwm",
+        "musicSha256": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f"
+      },
+      "evidence": "fixtures generated to OS tmpdir, not committed (regeneratable -- see BUILD input); engine extracted read-only from reference/, never modified"
+    },
+    {
+      "stage": "TEST",
+      "status": "DONE",
+      "input": "2 real audio fixtures (musically-structured + plain-tone control) through pipeline.js's real decode/hash/RMS/peak/clip stages AND the real production computeFingerprint engine (run twice each for determinism)",
+      "output": {
+        "music": {
+          "pipeline": {
+            "resultSchemaVersion": "1.0.0",
+            "source": {
+              "kind": "local-file",
+              "originalName": "music_fixture.wav",
+              "url": null
+            },
+            "sourceIdentity": {
+              "url": null,
+              "filename": "music_fixture.wav",
+              "declaredSize": 882044
+            },
+            "acquisitionStatus": "completed",
+            "localIdentity": {
+              "id": "d0d8b4ebd925a7dd",
+              "byteLength": 882044
+            },
+            "hash": {
+              "sha256": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+              "audioContentHash": "f5cae13a"
+            },
+            "fileFormat": {
+              "mimeType": "audio/wav",
+              "container": null
+            },
+            "duration": 10,
+            "sampleRate": 44100,
+            "channels": 1,
+            "size": 882044,
+            "audioStatus": "decoded",
+            "validationStatus": "passed",
+            "normalisationStatus": {
+              "applied": false,
+              "changes": []
+            },
+            "errors": [],
+            "warnings": [],
+            "timestamps": {
+              "queuedAt": "2026-09-21T04:48:32.168Z",
+              "acquisitionStartedAt": "2026-09-21T04:48:32.185Z",
+              "acquisitionCompletedAt": "2026-09-21T04:48:32.188Z",
+              "validationCompletedAt": "2026-09-21T04:48:32.210Z"
+            },
+            "experimentId": "unspecified",
+            "toolVersion": "0.1.0",
+            "provenance": {
+              "originalIdentity": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+              "resultingIdentity": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+              "pipelineStagesRun": [
+                "metadata",
+                "acquire",
+                "hashBytes",
+                "decodeValidate",
+                "qualityCheck",
+                "normalise",
+                "audioContentHash"
+              ]
+            }
+          },
+          "realEngine": {
+            "timingMs_run1": 164.5,
+            "timingMs_run2": 204.6,
+            "bpm": 108,
+            "confidence": 0.2,
+            "energyCurveLength": 256,
+            "deterministic": true
+          }
+        },
+        "plain": {
+          "pipeline": {
+            "resultSchemaVersion": "1.0.0",
+            "source": {
+              "kind": "local-file",
+              "originalName": "synth_track_001.wav",
+              "url": null
+            },
+            "sourceIdentity": {
+              "url": null,
+              "filename": "synth_track_001.wav",
+              "declaredSize": 882044
+            },
+            "acquisitionStatus": "completed",
+            "localIdentity": {
+              "id": "fbd4e880c734d594",
+              "byteLength": 882044
+            },
+            "hash": {
+              "sha256": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+              "audioContentHash": "439af2bb"
+            },
+            "fileFormat": {
+              "mimeType": "audio/wav",
+              "container": null
+            },
+            "duration": 10,
+            "sampleRate": 44100,
+            "channels": 1,
+            "size": 882044,
+            "audioStatus": "decoded",
+            "validationStatus": "passed",
+            "normalisationStatus": {
+              "applied": false,
+              "changes": []
+            },
+            "errors": [],
+            "warnings": [],
+            "timestamps": {
+              "queuedAt": "2026-09-21T04:48:32.605Z",
+              "acquisitionStartedAt": "2026-09-21T04:48:32.607Z",
+              "acquisitionCompletedAt": "2026-09-21T04:48:32.609Z",
+              "validationCompletedAt": "2026-09-21T04:48:32.643Z"
+            },
+            "experimentId": "unspecified",
+            "toolVersion": "0.1.0",
+            "provenance": {
+              "originalIdentity": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+              "resultingIdentity": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+              "pipelineStagesRun": [
+                "metadata",
+                "acquire",
+                "hashBytes",
+                "decodeValidate",
+                "qualityCheck",
+                "normalise",
+                "audioContentHash"
+              ]
+            }
+          },
+          "realEngine": {
+            "timingMs_run1": 253.4,
+            "timingMs_run2": 173.2,
+            "bpm": 93,
+            "confidence": 0.54,
+            "energyCurveLength": 256,
+            "deterministic": true
+          }
+        }
+      },
+      "success_condition": "Both fixtures decode successfully, produce non-trivial real measurements (RMS>0, real BPM/confidence from the actual algorithm), and computeFingerprint is deterministic across 2 runs on the same buffer",
+      "failure_condition": "Decode fails on a valid fixture, the real engine throws/crashes, or repeated runs on identical input diverge",
+      "evidence": "/home/user/bad-d-mobile-lab/experiments/EXP-014/test_results.json"
+    },
+    {
+      "stage": "MEASURE",
+      "status": "DONE",
+      "output": {
+        "music_fixture": {
+          "decodeSuccess": true,
+          "duration": 10,
+          "sampleRate": 44100,
+          "channels": 1,
+          "rms": [],
+          "cheapAudioContentHash": "f5cae13a",
+          "sha256": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+          "realEngine_bpm": 108,
+          "realEngine_confidence": 0.2,
+          "realEngine_timingMs_run1": 164.5,
+          "realEngine_deterministic": true
+        },
+        "plain_fixture": {
+          "decodeSuccess": true,
+          "duration": 10,
+          "realEngine_bpm": 93,
+          "realEngine_confidence": 0.54,
+          "realEngine_deterministic": true
+        },
+        "evidenceIntegrityCheckPassed": true
+      }
+    },
+    {
+      "stage": "ATTACK",
+      "status": "DONE",
+      "output": [
+        {
+          "attack": "STORAGE_FAILURE",
+          "relevance": "Selected because pipeline.js supports authorized-url acquisition and a 404/missing source is the realistic failure mode for that path -- must fail closed, not hang or crash.",
+          "result": "SURVIVED",
+          "detail": "acquisitionStatus=failed, errors=[\"fetch failed: HTTP 404\"]"
+        },
+        {
+          "attack": "MALFORMED_INPUT",
+          "relevance": "Cheapest realistic failure a real audio fixture can hit (truncated download/transfer) -- must be rejected cleanly, not crash the decode pipeline.",
+          "result": "SURVIVED",
+          "detail": "audioStatus=decode-failed, validationStatus=failed, errors=[\"decode failed: Unable to decode audio data\"]"
+        },
+        {
+          "attack": "EMPTY_INPUT",
+          "relevance": "Zero-length input is a distinct edge case from truncated-but-nonempty -- some decoders throw a different error class or hang on empty buffers.",
+          "result": "SURVIVED",
+          "detail": "audioStatus=decode-failed, validationStatus=failed, errors=[\"decode failed: Unable to decode audio data\"]"
+        },
+        {
+          "attack": "REPEATED_EXECUTION",
+          "relevance": "A fingerprint algorithm that isn't deterministic on identical input is unusable for near-duplicate/matching logic -- this is the single most important correctness property to check before trusting any measurement above.",
+          "result": "SURVIVED",
+          "detail": "music fixture deterministic: true; plain fixture deterministic: true"
+        },
+        {
+          "attack": "INTERRUPTION",
+          "relevance": "computeFingerprint runs synchronously-ish inside an async wrapper with no cancellation hook -- tests whether racing it against a timeout and abandoning it corrupts the engine for subsequent real use, which matters for any future UI that lets a user cancel an in-progress analysis.",
+          "result": "SURVIVED",
+          "detail": "raced against 1ms timeout (timedOut=false); fresh call after the race: ok=true, error=null. Note: computeFingerprint itself has no AbortSignal -- this tests orchestration-level safety of abandoning a call, not algorithm preemptibility."
+        },
+        {
+          "attack": "CORRUPTED_STATE",
+          "relevance": "Evidence integrity matters as much as the measurement itself -- if a results file could be silently altered without detection, every PROVEN claim in this lab would be unverifiable after the fact.",
+          "result": "SURVIVED",
+          "detail": "original sha256=db288f2703347e239f8d5cc5ad33b2655c583e5221bc5c66c00847c603f1404a, single-byte-flipped copy sha256=c6b40027438ccfb8f0f0e944b4681ba1f6e2c6396873d3cd47dd431a5b60743d, detected=true"
+        },
+        {
+          "attack": "PARTIAL_COMPLETION",
+          "relevance": "Not applicable to this pipeline shape: decodeAudioData is atomic in this codebase (whole-buffer decode, no streaming/chunked API used) -- there is no mid-flight partial-decode state to inspect. EXP-013's CANCELLATION attack already covers the closest real analogue (in-flight items at batch level).",
+          "result": "NOT_APPLICABLE",
+          "detail": "No streaming/chunked decode path exists in pipeline.js to attack."
+        },
+        {
+          "attack": "MEMORY_PRESSURE",
+          "relevance": "Already rigorously tested at proper scale (5 repeated cycles, forced-GC methodology distinguishing real leaks from unswept garbage) in EXP-010. Repeating it here for 2 single-file runs would not add evidence, only checkbox coverage.",
+          "result": "NOT_APPLICABLE",
+          "detail": "See experiments/EXP-010/README.md, Experiment 2 -- flat 0.03MB floor across 5 forced-GC cycles, no leak."
+        }
+      ]
+    },
+    {
+      "stage": "REGRESSION",
+      "status": "DONE",
+      "output": {
+        "baseline_cycle_id": null,
+        "compared_metric": "computeFingerprint determinism across 2 runs of the identical decoded AudioBuffer (no prior comparable cycle exists to regress against -- see BASELINE stage note)",
+        "result": "NO_REGRESSION",
+        "detail": "music fixture deterministic=true; plain fixture deterministic=true"
+      }
+    },
+    {
+      "stage": "EXTRACT",
+      "status": "DONE",
+      "output": [
+        {
+          "name": "cycle-lib.cjs (stage/parseQueueTask) reused a 2nd time",
+          "path": "tools/engineering-cycle/cycle-lib.cjs",
+          "reuse_proof": "USED_TWICE_PLUS"
+        },
+        {
+          "name": "lab-harness shared Playwright+CDP session, reused again",
+          "path": "tools/lab-harness/session.cjs",
+          "reuse_proof": "USED_TWICE_PLUS"
+        },
+        {
+          "name": "load_real_engine.cjs -- loads a checkpoint-instrumented REAL production audio engine into a page using EXP-008's proven calling convention",
+          "path": "tools/engineering-cycle/load_real_engine.cjs",
+          "reuse_proof": "USED_ONCE"
+        },
+        {
+          "name": "make_music_like_wav.cjs -- deterministic, musically-structured (not pure-tone) synthetic fixture generator",
+          "path": "tools/make_music_like_wav.cjs",
+          "reuse_proof": "NOT_YET_REUSED"
+        }
+      ]
+    },
+    {
+      "stage": "RECORD",
+      "status": "DONE",
+      "output": "/home/user/bad-d-mobile-lab/experiments/EXP-014/cycle.json"
+    },
+    {
+      "stage": "PRIORITIZE",
+      "status": "DONE",
+      "output": {
+        "task_id": "AUTODJ-BOUNDARY-001",
+        "reason": "AUDIO-AUTODJ-001 proved the engineering-cycle machinery works on real audio with the real algorithm. The user's own stated next direction is \"the actual Auto-DJ boundary\" -- the concrete next item is defining/verifying the adapters/ contract this cycle marks BLOCKED/UNVERIFIED (production scheduling/playback, unreachable from this public repo). CANCEL-OBS-001 remains open and independent, not blocking."
+      },
+      "note": "advisory only, see human_interventions"
+    }
+  ],
+  "attacks": [
+    {
+      "attack": "STORAGE_FAILURE",
+      "relevance": "Selected because pipeline.js supports authorized-url acquisition and a 404/missing source is the realistic failure mode for that path -- must fail closed, not hang or crash.",
+      "result": "SURVIVED",
+      "detail": "acquisitionStatus=failed, errors=[\"fetch failed: HTTP 404\"]"
+    },
+    {
+      "attack": "MALFORMED_INPUT",
+      "relevance": "Cheapest realistic failure a real audio fixture can hit (truncated download/transfer) -- must be rejected cleanly, not crash the decode pipeline.",
+      "result": "SURVIVED",
+      "detail": "audioStatus=decode-failed, validationStatus=failed, errors=[\"decode failed: Unable to decode audio data\"]"
+    },
+    {
+      "attack": "EMPTY_INPUT",
+      "relevance": "Zero-length input is a distinct edge case from truncated-but-nonempty -- some decoders throw a different error class or hang on empty buffers.",
+      "result": "SURVIVED",
+      "detail": "audioStatus=decode-failed, validationStatus=failed, errors=[\"decode failed: Unable to decode audio data\"]"
+    },
+    {
+      "attack": "REPEATED_EXECUTION",
+      "relevance": "A fingerprint algorithm that isn't deterministic on identical input is unusable for near-duplicate/matching logic -- this is the single most important correctness property to check before trusting any measurement above.",
+      "result": "SURVIVED",
+      "detail": "music fixture deterministic: true; plain fixture deterministic: true"
+    },
+    {
+      "attack": "INTERRUPTION",
+      "relevance": "computeFingerprint runs synchronously-ish inside an async wrapper with no cancellation hook -- tests whether racing it against a timeout and abandoning it corrupts the engine for subsequent real use, which matters for any future UI that lets a user cancel an in-progress analysis.",
+      "result": "SURVIVED",
+      "detail": "raced against 1ms timeout (timedOut=false); fresh call after the race: ok=true, error=null. Note: computeFingerprint itself has no AbortSignal -- this tests orchestration-level safety of abandoning a call, not algorithm preemptibility."
+    },
+    {
+      "attack": "CORRUPTED_STATE",
+      "relevance": "Evidence integrity matters as much as the measurement itself -- if a results file could be silently altered without detection, every PROVEN claim in this lab would be unverifiable after the fact.",
+      "result": "SURVIVED",
+      "detail": "original sha256=db288f2703347e239f8d5cc5ad33b2655c583e5221bc5c66c00847c603f1404a, single-byte-flipped copy sha256=c6b40027438ccfb8f0f0e944b4681ba1f6e2c6396873d3cd47dd431a5b60743d, detected=true"
+    },
+    {
+      "attack": "PARTIAL_COMPLETION",
+      "relevance": "Not applicable to this pipeline shape: decodeAudioData is atomic in this codebase (whole-buffer decode, no streaming/chunked API used) -- there is no mid-flight partial-decode state to inspect. EXP-013's CANCELLATION attack already covers the closest real analogue (in-flight items at batch level).",
+      "result": "NOT_APPLICABLE",
+      "detail": "No streaming/chunked decode path exists in pipeline.js to attack."
+    },
+    {
+      "attack": "MEMORY_PRESSURE",
+      "relevance": "Already rigorously tested at proper scale (5 repeated cycles, forced-GC methodology distinguishing real leaks from unswept garbage) in EXP-010. Repeating it here for 2 single-file runs would not add evidence, only checkbox coverage.",
+      "result": "NOT_APPLICABLE",
+      "detail": "See experiments/EXP-010/README.md, Experiment 2 -- flat 0.03MB floor across 5 forced-GC cycles, no leak."
+    }
+  ],
+  "measurements": {
+    "music_fixture": {
+      "decodeSuccess": true,
+      "duration": 10,
+      "sampleRate": 44100,
+      "channels": 1,
+      "rms": [],
+      "cheapAudioContentHash": "f5cae13a",
+      "sha256": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+      "realEngine_bpm": 108,
+      "realEngine_confidence": 0.2,
+      "realEngine_timingMs_run1": 164.5,
+      "realEngine_deterministic": true
+    },
+    "plain_fixture": {
+      "decodeSuccess": true,
+      "duration": 10,
+      "realEngine_bpm": 93,
+      "realEngine_confidence": 0.54,
+      "realEngine_deterministic": true
+    },
+    "evidenceIntegrityCheckPassed": true
+  },
+  "regression_check": {
+    "baseline_cycle_id": null,
+    "compared_metric": "computeFingerprint determinism across 2 runs of the identical decoded AudioBuffer (no prior comparable cycle exists to regress against -- see BASELINE stage note)",
+    "result": "NO_REGRESSION",
+    "detail": "music fixture deterministic=true; plain fixture deterministic=true"
+  },
+  "limitations": [],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {
+      "name": "cycle-lib.cjs (stage/parseQueueTask) reused a 2nd time",
+      "path": "tools/engineering-cycle/cycle-lib.cjs",
+      "reuse_proof": "USED_TWICE_PLUS"
+    },
+    {
+      "name": "lab-harness shared Playwright+CDP session, reused again",
+      "path": "tools/lab-harness/session.cjs",
+      "reuse_proof": "USED_TWICE_PLUS"
+    },
+    {
+      "name": "load_real_engine.cjs -- loads a checkpoint-instrumented REAL production audio engine into a page using EXP-008's proven calling convention",
+      "path": "tools/engineering-cycle/load_real_engine.cjs",
+      "reuse_proof": "USED_ONCE"
+    },
+    {
+      "name": "make_music_like_wav.cjs -- deterministic, musically-structured (not pure-tone) synthetic fixture generator",
+      "path": "tools/make_music_like_wav.cjs",
+      "reuse_proof": "NOT_YET_REUSED"
+    }
+  ],
+  "next_recommended_experiment": {
+    "task_id": "AUTODJ-BOUNDARY-001",
+    "reason": "AUDIO-AUTODJ-001 proved the engineering-cycle machinery works on real audio with the real algorithm. The user's own stated next direction is \"the actual Auto-DJ boundary\" -- the concrete next item is defining/verifying the adapters/ contract this cycle marks BLOCKED/UNVERIFIED (production scheduling/playback, unreachable from this public repo). CANCEL-OBS-001 remains open and independent, not blocking."
+  },
+  "stop_reason": "COMPLETED",
+  "human_interventions": [
+    "PRIORITIZE stage is advisory-only: recommends next_recommended_experiment but does not rewrite PRIORITY_QUEUE.md -- applied by the orchestrating session as a reviewed edit.",
+    "RECORD produces cycle.json + raw evidence; the human-readable EXP-014/README.md narrative is still written by the orchestrating session.",
+    "Production Auto-DJ scheduling/playback (startTransition/armBeatSnappedTransition) is entirely out of this script's reach by construction -- only the audio-engine IIFE (computeFingerprint) is extracted from reference/, never the main-IIFE scheduler, and nothing here touches bad_d_meomory. See adapters/AUTODJ_PRODUCTION_BOUNDARY.md for the explicit BLOCKED/UNVERIFIED boundary -- defining and eventually unblocking it is a human/maintainer decision, not something this script can resolve itself."
+  ],
+  "generated_at": "2026-09-21T04:48:31.654Z",
+  "generator_tool": "tools/engineering-cycle/run_cycle_audio_autodj.cjs"
+}

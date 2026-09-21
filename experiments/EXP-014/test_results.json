@@ -1,0 +1,140 @@
+{
+  "music_fixture.wav": {
+    "pipeline": {
+      "resultSchemaVersion": "1.0.0",
+      "source": {
+        "kind": "local-file",
+        "originalName": "music_fixture.wav",
+        "url": null
+      },
+      "sourceIdentity": {
+        "url": null,
+        "filename": "music_fixture.wav",
+        "declaredSize": 882044
+      },
+      "acquisitionStatus": "completed",
+      "localIdentity": {
+        "id": "d0d8b4ebd925a7dd",
+        "byteLength": 882044
+      },
+      "hash": {
+        "sha256": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+        "audioContentHash": "f5cae13a"
+      },
+      "fileFormat": {
+        "mimeType": "audio/wav",
+        "container": null
+      },
+      "duration": 10,
+      "sampleRate": 44100,
+      "channels": 1,
+      "size": 882044,
+      "audioStatus": "decoded",
+      "validationStatus": "passed",
+      "normalisationStatus": {
+        "applied": false,
+        "changes": []
+      },
+      "errors": [],
+      "warnings": [],
+      "timestamps": {
+        "queuedAt": "2026-09-21T04:48:32.168Z",
+        "acquisitionStartedAt": "2026-09-21T04:48:32.185Z",
+        "acquisitionCompletedAt": "2026-09-21T04:48:32.188Z",
+        "validationCompletedAt": "2026-09-21T04:48:32.210Z"
+      },
+      "experimentId": "unspecified",
+      "toolVersion": "0.1.0",
+      "provenance": {
+        "originalIdentity": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+        "resultingIdentity": "d0d8b4ebd925a7dd97ec32e46b139f9fd550c2b253346e9564d40b4910b1cd2f",
+        "pipelineStagesRun": [
+          "metadata",
+          "acquire",
+          "hashBytes",
+          "decodeValidate",
+          "qualityCheck",
+          "normalise",
+          "audioContentHash"
+        ]
+      }
+    },
+    "realEngine": {
+      "timingMs_run1": 164.5,
+      "timingMs_run2": 204.6,
+      "bpm": 108,
+      "confidence": 0.2,
+      "energyCurveLength": 256,
+      "deterministic": true
+    }
+  },
+  "synth_track_001.wav": {
+    "pipeline": {
+      "resultSchemaVersion": "1.0.0",
+      "source": {
+        "kind": "local-file",
+        "originalName": "synth_track_001.wav",
+        "url": null
+      },
+      "sourceIdentity": {
+        "url": null,
+        "filename": "synth_track_001.wav",
+        "declaredSize": 882044
+      },
+      "acquisitionStatus": "completed",
+      "localIdentity": {
+        "id": "fbd4e880c734d594",
+        "byteLength": 882044
+      },
+      "hash": {
+        "sha256": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+        "audioContentHash": "439af2bb"
+      },
+      "fileFormat": {
+        "mimeType": "audio/wav",
+        "container": null
+      },
+      "duration": 10,
+      "sampleRate": 44100,
+      "channels": 1,
+      "size": 882044,
+      "audioStatus": "decoded",
+      "validationStatus": "passed",
+      "normalisationStatus": {
+        "applied": false,
+        "changes": []
+      },
+      "errors": [],
+      "warnings": [],
+      "timestamps": {
+        "queuedAt": "2026-09-21T04:48:32.605Z",
+        "acquisitionStartedAt": "2026-09-21T04:48:32.607Z",
+        "acquisitionCompletedAt": "2026-09-21T04:48:32.609Z",
+        "validationCompletedAt": "2026-09-21T04:48:32.643Z"
+      },
+      "experimentId": "unspecified",
+      "toolVersion": "0.1.0",
+      "provenance": {
+        "originalIdentity": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+        "resultingIdentity": "fbd4e880c734d594241502046c7e06c8fbab9fdebccd89e910a654407b424c1d",
+        "pipelineStagesRun": [
+          "metadata",
+          "acquire",
+          "hashBytes",
+          "decodeValidate",
+          "qualityCheck",
+          "normalise",
+          "audioContentHash"
+        ]
+      }
+    },
+    "realEngine": {
+      "timingMs_run1": 253.4,
+      "timingMs_run2": 173.2,
+      "bpm": 93,
+      "confidence": 0.54,
+      "energyCurveLength": 256,
+      "deterministic": true
+    }
+  }
+}
