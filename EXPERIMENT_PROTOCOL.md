@@ -46,6 +46,24 @@ discriminates: run it against a deliberately bad fixture (confirm
 `tools/fixture-acceptance/make_near_duplicate_fixture.cjs` generates both
 kinds (`good`/`bad` modes) for exactly this purpose.
 
+### Critical audio fixture rule
+**Do not assume a bit-depth change preserves decoded audio identity.**
+Converting e.g. 24-bit PCM to 16-bit re-quantizes every sample — decoded
+output will differ from the original by real, non-zero amounts, not just
+container bytes. A fixture claiming "content-identical" must never rest on
+that assumption; it must independently prove decoded-sample equality
+(`CONTENT_VERIFICATION`, `maxAbsDiff` at or below the experiment's declared
+tolerance — `0` unless a tolerance is explicitly justified and stated).
+If a bit-depth (or any lossy) change turns out to produce non-zero
+`maxAbsDiff`, that fixture is `FIXTURE_REJECTED` for a same-content claim —
+don't loosen the tolerance to make it pass. Recreate it as a genuinely
+harmless representation difference instead (container/header/metadata that
+doesn't touch the `data` chunk's bytes — e.g. an inserted `LIST`/`INFO`
+chunk, differing chunk order, padding), the way `good_fixture_manifest.json`
+in `experiments/EXP-012` does. Reserve lossy/bit-depth comparisons for a
+fixture set that honestly declares itself a *tolerance-based* near-duplicate
+claim, not a same-content one.
+
 ### Secondary fixture rule
 If a fixture passes acceptance but the experiment's result is unexpected,
 do not modify the fixture to make the result look cleaner. Preserve it.

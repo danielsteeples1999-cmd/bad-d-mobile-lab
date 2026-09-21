@@ -10,6 +10,20 @@ lab before now. This record builds the general mechanism first, proves the
 mechanism itself works, then uses it to answer HASH-NEAR-001 — in that
 order, not the reverse.
 
+## CRITICAL AUDIO FIXTURE RULE — applied by construction, not retrofitted
+This experiment's fixture design deliberately avoided a bit-depth change
+(e.g. 24-bit→16-bit) for the "content-identical" claim: bit-depth
+conversion re-quantizes every sample, so decoded output would differ from
+the original by real, measurable amounts — proving the *opposite* of what
+a same-content fixture needs to claim. The `good` fixture instead uses a
+genuinely harmless representation difference (an inserted `LIST`/`INFO`
+container chunk that never touches the `data` chunk's bytes), and
+`CONTENT_VERIFICATION` independently proves the result: `maxAbsDiff: 0`
+across all 352,800 decoded samples, not assumed from the generation
+method's intent. This reasoning is now codified as a standing rule in
+`EXPERIMENT_PROTOCOL.md` rather than living only in this one experiment's
+head.
+
 ## PART 1 — REUSABLE INFRASTRUCTURE
 - `contracts/fixture-acceptance.schema.json` — the acceptance report contract.
 - `tools/fixture-acceptance/validator.js` — browser-loadable core
