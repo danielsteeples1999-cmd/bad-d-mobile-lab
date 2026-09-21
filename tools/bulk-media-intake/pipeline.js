@@ -214,6 +214,34 @@
     return result;
   }
 
+  // Synthesized result for an item that was submitted but never dequeued
+  // before cancellation -- same schema shape as processItem's real result
+  // (minus stages that never ran), with an explicit `neverStarted: true`
+  // marker so this is distinguishable from an item that started and was
+  // cancelled mid-flight (which already gets a normal result via
+  // processItem's own signal.aborted handling).
+  function makeNeverStartedResult(item, experimentId) {
+    const meta = stageMetadata(item);
+    return {
+      resultSchemaVersion: '1.0.0',
+      ...meta,
+      acquisitionStatus: 'cancelled',
+      localIdentity: { id: null, byteLength: null },
+      hash: { sha256: null, audioContentHash: null },
+      fileFormat: { mimeType: item.kind === 'local-file' ? (item.file.type || null) : null, container: null },
+      duration: null, sampleRate: null, channels: null, size: null,
+      audioStatus: 'not-attempted',
+      validationStatus: 'cancelled',
+      normalisationStatus: { applied: false, changes: [] },
+      errors: [], warnings: [],
+      timestamps: { queuedAt: item.queuedAt, acquisitionStartedAt: null, acquisitionCompletedAt: null, validationCompletedAt: null },
+      experimentId: experimentId || 'unspecified',
+      toolVersion: TOOL_VERSION,
+      provenance: { originalIdentity: null, resultingIdentity: null, pipelineStagesRun: [] },
+      neverStarted: true,
+    };
+  }
+
   // ---------- bounded-concurrency batch runner with real cancellation ----------
   function runBatch(items, { concurrency, experimentId, applyNormalise, onItemStart, onItemDone, onProgress }) {
     const controller = new AbortController();
@@ -253,6 +281,16 @@
       if (finished) return;
       if (completedCount >= items.length || (controller.signal.aborted && activeCount === 0)) {
         finished = true;
+        // Backfill a row for every item that was submitted but never
+        // dequeued (nextIndex never reached it) before cancellation --
+        // otherwise it's silently absent from `results` and never
+        // rendered, even though it was part of the submitted batch.
+        // CANCEL-OBS-001: see PRIORITY_QUEUE.md and EXP-009's
+        // cancel_test3.json for the original gap this closes.
+        for (let idx = nextIndex; idx < items.length; idx++) {
+          results[idx] = makeNeverStartedResult(items[idx], experimentId);
+          if (onItemDone) onItemDone(idx, results[idx]);
+        }
         if (audioCtx.state !== 'closed') { try { audioCtx.close(); } catch (_) {} }
         resolveAll(results);
       }

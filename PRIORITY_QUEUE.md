@@ -13,10 +13,12 @@ question yet. `FAILURE` = doesn't meet an established requirement.
 `PROMISING — INSUFFICIENT REPLICATION` = observed once, not reproduced.
 `REPRODUCED` = repeated evidence agrees.
 
-Last updated: EXP-014. Engineering-cycle orchestrators now exist for two
-real task shapes (`tools/engineering-cycle/run_cycle.cjs` for batch/scale,
+Last updated: EXP-015. Engineering-cycle orchestrators exist for two real
+task shapes (`tools/engineering-cycle/run_cycle.cjs` for batch/scale,
 `run_cycle_audio_autodj.cjs` for real-audio/real-algorithm), sharing
-`cycle-lib.cjs`. PRIORITIZE is advisory-only by design (recommends,
+`cycle-lib.cjs`; a direct bug-fix task (CANCEL-OBS-001) used existing
+tooling (`run_experiment.cjs`) plus one focused regression script instead
+of a new orchestrator. PRIORITIZE is advisory-only by design (recommends,
 doesn't edit this file); every queue edit below is still a reviewed human
 action, not an automated one.
 
@@ -53,23 +55,6 @@ P1 — HIGH VALUE
          contract, or provides another testable boundary.
 
 P2 — IMPORTANT
-[ ] CANCEL-OBS-001 — represent never-started cancelled items in results
-    STATUS: OPEN
-    WHY: KNOWN GAP, promoted from DEFERRED — EXP-013's engineering-cycle
-         orchestrator recommended this as the next item: SCALE-100-001
-         closing leaves this as the cheaper, more contained of the two
-         remaining known gaps, with no open design dependency (unlike
-         RESUME-001, which needs a real persistence design first).
-         Cancellation itself already works correctly (no orphaned work,
-         resources clean up) — items just don't get a results row if they
-         never started.
-    EVIDENCE: experiments/EXP-009/cancel_test3.json — 14/20 submitted items
-         absent from output after a mid-batch cancel.
-    NEXT ACTION: give never-started items an explicit row/status instead of
-         silent absence.
-    EXIT CONDITION: submitted count always equals displayed row count,
-         regardless of cancellation timing.
-
 [ ] RESUME-001 — bulk-media-intake has no resumability
     STATUS: DEFERRED
     WHY: KNOWN GAP — EXP-010 confirmed clean total loss on reload (no
@@ -192,4 +177,26 @@ DONE
          minimal adapter contract for testing the next layer.
     EVIDENCE: experiments/EXP-014/{cycle.json,test_results.json,README.md},
          adapters/AUTODJ_PRODUCTION_BOUNDARY.md.
+
+[x] CANCEL-OBS-001 — represent never-started cancelled items in results (EXP-015)
+    RESULT: SUPPORTED. Root cause: runBatch() only wrote results[idx] and
+         fired onItemDone from inside launchNext()'s .finally() -- an item
+         never dequeued before cancel() fired never got either, so
+         intake.html (which only renders rows from onItemDone) silently
+         never created its row. Fixed: maybeFinish() now backfills a
+         results[idx] entry (acquisitionStatus:'cancelled',
+         neverStarted:true) and fires onItemDone for every index from
+         nextIndex to items.length-1 on abort. Reproduced the original bug
+         against pre-fix pipeline.js first (matching EXP-009's exact
+         cancel_test3.json parameters: 20 files/50s each, concurrency=2,
+         cancelAfterMs=20) -- 14/20 absent, confirmed real -- then verified
+         the fix closes it (20/20 rows, correctly split
+         passed/cancelled/neverStarted). Re-ran EXP-013 and EXP-014 end to
+         end against the fix: both still COMPLETED/KEEP, zero regression;
+         EXP-013's own CANCELLATION attack evidence improved from an
+         undercount to the full 97/97 accounted for.
+    EVIDENCE: experiments/EXP-015/{README.md,pre_fix_repro_result.json,regression_result.json},
+         tools/bulk-media-intake/regression_cancel_obs.cjs (new, self-
+         validated reusable regression test — fails on old code, passes on
+         fixed code).
 ```

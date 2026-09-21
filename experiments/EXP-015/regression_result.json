@@ -1,0 +1,17 @@
+{
+  "fileCount": 20,
+  "concurrency": 2,
+  "cancelAfterMs": 20,
+  "durationMs": 404,
+  "summaryRowCount": 20,
+  "passedCount": 4,
+  "cancelledCount": 16,
+  "failedCount": 0,
+  "warningCount": 0,
+  "checks": {
+    "rowCountOk": true,
+    "accountingOk": true,
+    "cancellationActuallyHappened": true
+  },
+  "result": "PASS"
+}
