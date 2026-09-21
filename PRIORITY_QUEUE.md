@@ -13,9 +13,10 @@ question yet. `FAILURE` = doesn't meet an established requirement.
 `PROMISING — INSUFFICIENT REPLICATION` = observed once, not reproduced.
 `REPRODUCED` = repeated evidence agrees.
 
-Last updated: EXP-012. Fixture-acceptance gate now mandatory for any
-experiment whose fixtures make a *relationship* claim (content-identical,
-known-different, etc.) — see `EXPERIMENT_PROTOCOL.md`.
+Last updated: EXP-013. Engineering-cycle orchestrator (`tools/engineering-
+cycle/run_cycle.cjs`) now exists — PRIORITIZE stage is advisory-only by
+design (recommends, doesn't edit this file); every queue edit below is
+still a reviewed human action, not an automated one.
 
 ```
 PRIORITY QUEUE
@@ -25,27 +26,19 @@ P0 — BLOCKING / CRITICAL
 (none open)
 
 P1 — HIGH VALUE
-[ ] SCALE-100-001 — 100-item batch, untested past 50
-    STATUS: OPEN
-    WHY: UNKNOWN — only remaining open item once HASH-NEAR-001 closed.
-         Section 15's own P2 list names 100 items as its own test point;
-         EXP-009's queue-scale test stopped at 50.
-    EVIDENCE: experiments/EXP-009/README.md, queue scale table.
-    RISK: low-consequence relative to HASH-NEAR-001 (no sign of scale-
-         dependent failure at 50, memory/concurrency already confirmed
-         flat at larger heavy-workload batches in EXP-010/011) — promoted
-         to P1 only because it's the last OPEN unknown, not because it's
-         high-consequence. CANCEL-OBS-001/RESUME-001 remain DEFERRED
-         (known gaps, not unknowns) per the selection rule.
-    NEXT EXPERIMENT: 100-item batch, same measurements as the 50-item run.
-    EXIT CONDITION: passes cleanly, or reveals a scale-dependent failure.
+(none open — SCALE-100-001 closed in EXP-013, see DONE)
 
 P2 — IMPORTANT
 [ ] CANCEL-OBS-001 — represent never-started cancelled items in results
-    STATUS: DEFERRED
-    WHY: KNOWN GAP, not an unknown — cancellation itself works correctly
-         (no orphaned work, resources clean up), items just don't get a
-         results row if they never started.
+    STATUS: OPEN
+    WHY: KNOWN GAP, promoted from DEFERRED — EXP-013's engineering-cycle
+         orchestrator recommended this as the next item: SCALE-100-001
+         closing leaves this as the cheaper, more contained of the two
+         remaining known gaps, with no open design dependency (unlike
+         RESUME-001, which needs a real persistence design first).
+         Cancellation itself already works correctly (no orphaned work,
+         resources clean up) — items just don't get a results row if they
+         never started.
     EVIDENCE: experiments/EXP-009/cancel_test3.json — 14/20 submitted items
          absent from output after a mid-batch cancel.
     NEXT ACTION: give never-started items an explicit row/status instead of
@@ -138,4 +131,20 @@ DONE
          duplicates remain untested (no MP3/AAC tooling in this sandbox,
          same gap as EXP-002/005/008).
     EVIDENCE: experiments/EXP-012/hash_near_001_pipeline_result.json.
+
+[x] SCALE-100-001 — 100-item batch, untested past 50 (EXP-013)
+    RESULT: SUPPORTED, no scale-dependent failure. 97/97 valid files
+         passed, 3/3 malformed correctly rejected, msPerItem 23.37 vs.
+         50-item baseline 23.76 (no regression). MALFORMED_INPUT and
+         CANCELLATION attacks both SURVIVED at 100-item scale (0 page
+         errors on cancellation, no orphaned resources). Built and proved
+         the engineering-cycle orchestrator (tools/engineering-cycle/
+         run_cycle.cjs) as this answer's mechanism — see EXP-013 for the
+         full loop record, a real bug the orchestrator's own first draft
+         hit and fixed (a page.evaluate()/CDP argument-size ceiling around
+         ~100MB, initially misread as a scale-dependent app failure until
+         bisection + a fetch()-based control test discriminated the two),
+         and a deliberate-break test proving the orchestrator fails safely
+         on bad input.
+    EVIDENCE: experiments/EXP-013/{cycle.json,test_100item_results.json,README.md}.
 ```

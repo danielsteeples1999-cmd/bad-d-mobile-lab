@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "EXP-013",
+  "queue_task_id": "SCALE-100-001",
+  "objective": "Determine whether bulk-media-intake handles a 100-item batch cleanly, and whether it survives realistic adverse conditions (malformed input, mid-batch cancellation) at that scale.",
+  "current_unknown": "Does a 100-item batch (2x the previously-tested max of 50) complete cleanly, and does it survive malformed input and mid-batch cancellation at that scale?",
+  "hypothesis": "A 100-item batch completes with the same per-item cost profile as the 50-item baseline (no phase transition), and survives malformed input + mid-batch cancellation the same way EXP-009 proved at smaller scale.",
+  "competing_hypotheses": [
+    "H2: throughput degrades superlinearly past some item count (queue/array overhead, GC pressure) -- msPerItem rises measurably above baseline.",
+    "H3: a scale-dependent failure appears that did not manifest at 50 (crash, hang, silent item loss)."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {
+      "stage": "DISCOVER",
+      "status": "DONE",
+      "input": "PRIORITY_QUEUE.md",
+      "output": "[ ] SCALE-100-001 — 100-item batch, untested past 50\n    STATUS: OPEN\n    WHY: UNKNOWN — only remaining open item once HASH-NEAR-001 closed.\n         Section 15's own P2 list names 100 items as its own test point;\n         EXP-009's queue-scale test stopped at 50.\n    EVIDENCE: experiments/EXP-009/README.md, queue scale table.\n    RISK: low-consequence relative to HASH-NEAR-001 (no sign of scale-\n         dependent failure at 50, memory/concurrency already confirmed\n         flat at larger heavy-workload batches in EXP-010/011) — promoted\n         to P1 only because it's the last OPEN unknown, not because it's\n         high-consequence. CANCEL-OBS-001/RESUME-001 remain DEFERRED\n         (known gaps, not unknowns) per the selection rule.\n    NEXT EXPERIMENT: 100-item batch, same measurements as the 50-item run.\n    EXIT CONDITION: passes cleanly, or reveals a scale-dependent failure.",
+      "evidence": "PRIORITY_QUEUE.md#SCALE-100-001"
+    },
+    {
+      "stage": "BASELINE",
+      "status": "DONE",
+      "input": "experiments/EXP-009/queue_badd-q50.json",
+      "output": {
+        "fileCount": 50,
+        "durationMs": 1188,
+        "msPerItem": 23.8,
+        "passedCount": 50
+      },
+      "evidence": "experiments/EXP-009/queue_badd-q50.json"
+    },
+    {
+      "stage": "REPRODUCE",
+      "status": "SKIPPED",
+      "note": "SCALE-100-001 is an untested-scale question, not a reported bug -- there is nothing prior to reproduce. REPRODUCE applies to cycles investigating a specific reported failure (e.g. EXP-008's real-device fingerprint mismatch); this cycle starts fresh at BASELINE instead."
+    },
+    {
+      "stage": "HYPOTHESIZE",
+      "status": "DONE",
+      "output": "A 100-item batch completes with the same per-item cost profile as the 50-item baseline (no phase transition), and survives malformed input + mid-batch cancellation the same way EXP-009 proved at smaller scale."
+    },
+    {
+      "stage": "DISCRIMINATE",
+      "status": "DONE",
+      "output": "The 100-item run is the discriminating experiment: compare its msPerItem and pass/fail/heap profile against the 50-item baseline."
+    },
+    {
+      "stage": "FIXTURE_VALIDATION",
+      "status": "SKIPPED",
+      "note": "No fixture relationship claim in this experiment shape -- tools/fixture-acceptance/ gates relationship claims (e.g. HASH-NEAR-001), not independent batch items."
+    },
+    {
+      "stage": "BUILD",
+      "status": "DONE",
+      "input": "97x 12s synthetic WAV via tools/make_synth_wavs.cjs (reused, not rebuilt) + 3 deliberately malformed files (truncated/garbage/empty) = 100 total",
+      "output": {
+        "fixtureDir": "/tmp/exp013-fixtures-Brq8Mx",
+        "totalFiles": 100
+      },
+      "evidence": "fixtures generated to OS tmpdir, not committed (regeneratable, see BUILD input) -- filenames listed in test_100item_results.json"
+    },
+    {
+      "stage": "TEST",
+      "status": "DONE",
+      "input": "100 files (97 valid + 3 deliberately malformed), concurrency=4 (per EXP-011's evidence-based recommendation), delivered via run_experiment.cjs's proven setInputFiles() mechanism",
+      "output": {
+        "durationMs": 2270,
+        "passed": 97,
+        "failed": 3,
+        "totalResults": 100,
+        "maxHeapMB": 8.9
+      },
+      "success_condition": "All 97 valid files pass, exactly the 3 malformed files fail, no console/page errors",
+      "failure_condition": "Any valid file fails, any malformed file is silently accepted, or an unexpected file fails",
+      "evidence": "/home/user/bad-d-mobile-lab/experiments/EXP-013/test_100item_results.json"
+    },
+    {
+      "stage": "MEASURE",
+      "status": "DONE",
+      "output": {
+        "itemCount": 100,
+        "validItemCount": 97,
+        "durationMs": 2270,
+        "msPerItem": 23.4,
+        "baselineMsPerItem": 23.76,
+        "maxHeapMB": 8.9
+      }
+    },
+    {
+      "stage": "ATTACK",
+      "status": "DONE",
+      "output": [
+        {
+          "attack": "MALFORMED_INPUT",
+          "relevance": "Cheapest realistic failure mode a bulk upload sees; tests whether rejection still works correctly mixed into a 100-item batch, not just in isolation (EXP-009 tested isolation only).",
+          "result": "SURVIVED",
+          "detail": "expected failures [zz_attack_truncated.wav, zz_attack_garbage.wav, zz_attack_empty.wav] all rejected: true. No unexpected failures beyond those 3: true. Actual failed: [zz_attack_empty.wav, zz_attack_garbage.wav, zz_attack_truncated.wav]"
+        },
+        {
+          "attack": "CANCELLATION",
+          "relevance": "EXP-009 found and fixed a cancellation display bug at small scale; this checks the underlying mechanism (not just display) still cleans up correctly at 2x the previously-tested batch size, with no orphaned AudioContext/resources (0 page errors is the proof).",
+          "result": "SURVIVED",
+          "detail": "cancelled after 100ms in-flight; statusText=\"Done. 17/97 passed validation.\"; 20 items had a result at cancellation time; pageErrors: 0"
+        }
+      ]
+    },
+    {
+      "stage": "REGRESSION",
+      "status": "DONE",
+      "output": {
+        "baseline_cycle_id": "EXP-009",
+        "compared_metric": "msPerItem (100-item run vs 50-item baseline)",
+        "result": "NO_REGRESSION",
+        "detail": "100-item msPerItem=23.40 vs 50-item baseline msPerItem=23.76 (ratio 0.98x, threshold 1.5x)"
+      }
+    },
+    {
+      "stage": "EXTRACT",
+      "status": "DONE",
+      "output": [
+        {
+          "name": "run_cycle.cjs engineering-cycle orchestrator",
+          "path": "tools/engineering-cycle/run_cycle.cjs",
+          "reuse_proof": "USED_ONCE"
+        },
+        {
+          "name": "lab-harness shared Playwright+CDP session",
+          "path": "tools/lab-harness/session.cjs",
+          "reuse_proof": "USED_TWICE_PLUS"
+        },
+        {
+          "name": "run_experiment.cjs runOnce() reused a 3rd+ time as the standard file-delivery mechanism (setInputFiles, not base64/page.evaluate)",
+          "path": "tools/bulk-media-intake/run_experiment.cjs",
+          "reuse_proof": "USED_TWICE_PLUS"
+        },
+        {
+          "name": "Documented lesson: page.evaluate()/CDP argument payloads have a hard ceiling around ~100MB in this sandbox -- bisected between 68 items (~104MB, OK) and 71 items (~108MB, instant page-closed with no pageerror/console signal); use setInputFiles() or same-origin fetch() for any real-file-content delivery instead of embedding file bytes in evaluate() arguments",
+          "path": "EXPERIMENT_PROTOCOL.md",
+          "reuse_proof": "NOT_YET_REUSED"
+        }
+      ]
+    },
+    {
+      "stage": "RECORD",
+      "status": "DONE",
+      "output": "/home/user/bad-d-mobile-lab/experiments/EXP-013/cycle.json"
+    },
+    {
+      "stage": "PRIORITIZE",
+      "status": "DONE",
+      "output": {
+        "task_id": "CANCEL-OBS-001",
+        "reason": "SCALE-100-001 closes the last OPEN P1 unknown. CANCEL-OBS-001/RESUME-001 are known gaps (build items) rather than unknowns -- of those, CANCEL-OBS-001 is the cheaper, more contained fix and has no open dependency on a design decision the way RESUME-001 does."
+      },
+      "note": "advisory only, see human_interventions"
+    }
+  ],
+  "attacks": [
+    {
+      "attack": "MALFORMED_INPUT",
+      "relevance": "Cheapest realistic failure mode a bulk upload sees; tests whether rejection still works correctly mixed into a 100-item batch, not just in isolation (EXP-009 tested isolation only).",
+      "result": "SURVIVED",
+      "detail": "expected failures [zz_attack_truncated.wav, zz_attack_garbage.wav, zz_attack_empty.wav] all rejected: true. No unexpected failures beyond those 3: true. Actual failed: [zz_attack_empty.wav, zz_attack_garbage.wav, zz_attack_truncated.wav]"
+    },
+    {
+      "attack": "CANCELLATION",
+      "relevance": "EXP-009 found and fixed a cancellation display bug at small scale; this checks the underlying mechanism (not just display) still cleans up correctly at 2x the previously-tested batch size, with no orphaned AudioContext/resources (0 page errors is the proof).",
+      "result": "SURVIVED",
+      "detail": "cancelled after 100ms in-flight; statusText=\"Done. 17/97 passed validation.\"; 20 items had a result at cancellation time; pageErrors: 0"
+    }
+  ],
+  "measurements": {
+    "itemCount": 100,
+    "validItemCount": 97,
+    "durationMs": 2270,
+    "msPerItem": 23.4,
+    "baselineMsPerItem": 23.76,
+    "maxHeapMB": 8.9
+  },
+  "regression_check": {
+    "baseline_cycle_id": "EXP-009",
+    "compared_metric": "msPerItem (100-item run vs 50-item baseline)",
+    "result": "NO_REGRESSION",
+    "detail": "100-item msPerItem=23.40 vs 50-item baseline msPerItem=23.76 (ratio 0.98x, threshold 1.5x)"
+  },
+  "limitations": [],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {
+      "name": "run_cycle.cjs engineering-cycle orchestrator",
+      "path": "tools/engineering-cycle/run_cycle.cjs",
+      "reuse_proof": "USED_ONCE"
+    },
+    {
+      "name": "lab-harness shared Playwright+CDP session",
+      "path": "tools/lab-harness/session.cjs",
+      "reuse_proof": "USED_TWICE_PLUS"
+    },
+    {
+      "name": "run_experiment.cjs runOnce() reused a 3rd+ time as the standard file-delivery mechanism (setInputFiles, not base64/page.evaluate)",
+      "path": "tools/bulk-media-intake/run_experiment.cjs",
+      "reuse_proof": "USED_TWICE_PLUS"
+    },
+    {
+      "name": "Documented lesson: page.evaluate()/CDP argument payloads have a hard ceiling around ~100MB in this sandbox -- bisected between 68 items (~104MB, OK) and 71 items (~108MB, instant page-closed with no pageerror/console signal); use setInputFiles() or same-origin fetch() for any real-file-content delivery instead of embedding file bytes in evaluate() arguments",
+      "path": "EXPERIMENT_PROTOCOL.md",
+      "reuse_proof": "NOT_YET_REUSED"
+    }
+  ],
+  "next_recommended_experiment": {
+    "task_id": "CANCEL-OBS-001",
+    "reason": "SCALE-100-001 closes the last OPEN P1 unknown. CANCEL-OBS-001/RESUME-001 are known gaps (build items) rather than unknowns -- of those, CANCEL-OBS-001 is the cheaper, more contained fix and has no open dependency on a design decision the way RESUME-001 does."
+  },
+  "stop_reason": "COMPLETED",
+  "human_interventions": [
+    "PRIORITIZE stage is advisory-only: this script recommends next_recommended_experiment but does not rewrite PRIORITY_QUEUE.md itself -- applied by the orchestrating session as a reviewed edit.",
+    "RECORD stage produces cycle.json + raw evidence; the human-readable EXP-013/README.md narrative is still written by the orchestrating session, not generated from this script.",
+    "Production integration (bad_d_meomory) is entirely out of this script's scope by construction -- control_mode is always LAB_AUTONOMOUS here."
+  ],
+  "generated_at": "2026-09-21T04:23:52.132Z",
+  "generator_tool": "tools/engineering-cycle/run_cycle.cjs"
+}

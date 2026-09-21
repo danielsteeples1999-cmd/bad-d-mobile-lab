@@ -70,3 +70,26 @@ do not modify the fixture to make the result look cleaner. Preserve it.
 Investigate whether the hypothesis was wrong, the implementation behaves
 differently than expected, the fixture boundary was misunderstood, or an
 unintended variable exists.
+
+## Real-file delivery in Playwright tests
+Never embed real file content (base64 or otherwise) in a `page.evaluate()`
+argument in this lab. `page.evaluate()`/CDP argument payloads have a hard
+ceiling around 100MB in this sandbox — EXP-013 bisected it precisely:
+68 items (~104MB of base64) succeeded, 71 items (~108MB) failed instantly
+with `page.evaluate: Target page, context or browser has been closed` and
+zero `pageerror`/console signal. That failure shape (a tight few-MB
+boundary, instant failure, no error signal) looks exactly like a genuine
+app-level scale failure if you don't isolate it — EXP-013's first working
+hypothesis was wrong for exactly that reason, until bisection plus a
+`fetch()`-based control test (serve fixtures over local HTTP, have the
+page `fetch()` them itself after `page.goto()` to that server) proved the
+same batch completes cleanly once file content isn't forced through an
+evaluate() argument.
+
+Use one of these instead, in order of preference:
+- `page.locator(...).setInputFiles(paths)` against a real
+  `<input type=file>` — sends file paths over CDP, not content
+  (`tools/bulk-media-intake/run_experiment.cjs`'s `runOnce()` does this;
+  reuse it rather than rebuilding file delivery for a new tool).
+- Same-origin `fetch()` from inside the page, after navigating to a local
+  HTTP server that serves the fixture directory.

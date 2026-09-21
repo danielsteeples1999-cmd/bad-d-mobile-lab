@@ -19,10 +19,12 @@
 //
 // Usage: node run_cycle.cjs <repoRoot> <outDir>
 
-const { readFileSync, writeFileSync, mkdirSync, readdirSync } = require('node:fs');
+const { readFileSync, writeFileSync, mkdirSync, readdirSync, symlinkSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { openSession } = require('../lab-harness/session.cjs');
+const { mkdtempSync } = require('node:fs');
+const { tmpdir } = require('node:os');
+const { runOnce } = require('../bulk-media-intake/run_experiment.cjs');
 
 const SCHEMA_VERSION = '1.0.0';
 const GENERATOR_TOOL = 'tools/engineering-cycle/run_cycle.cjs';
@@ -47,22 +49,6 @@ function stage(name, status, extra = {}) {
 function makeTruncatedWav(sourcePath, destPath, keepBytes) {
   const full = readFileSync(sourcePath);
   writeFileSync(destPath, full.subarray(0, keepBytes));
-}
-
-async function runBatchInPage(page, pipelineJs, fileEntries, { concurrency, applyNormalise = false, experimentId }) {
-  await page.addScriptTag({ content: pipelineJs });
-  return page.evaluate(async ({ fileEntries, concurrency, applyNormalise, experimentId }) => {
-    function b64ToUint8(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
-    const items = fileEntries.map((f) => ({
-      kind: 'local-file',
-      file: new File([b64ToUint8(f.b64)], f.name, { type: 'audio/wav' }),
-      queuedAt: new Date().toISOString(),
-    }));
-    const t0 = performance.now();
-    const run = window.BADD_BULK_INTAKE.runBatch(items, { concurrency, applyNormalise, experimentId });
-    const results = await run.promise;
-    return { durationMs: performance.now() - t0, results, cancel: null };
-  }, { fileEntries, concurrency, applyNormalise, experimentId });
 }
 
 async function main() {
@@ -103,6 +89,12 @@ async function main() {
   if (!taskBlock) {
     cycle.stages.push(stage('DISCOVER', 'FAILED', { note: 'SCALE-100-001 not found in PRIORITY_QUEUE.md.' }));
     cycle.stop_reason = 'STOPPED_FAILURE';
+    // decision is a required, non-nullable enum field even on an early
+    // failure exit -- DEFER is the closest fit ("nothing to act on until
+    // the queue task exists again"), not a silent null that would fail
+    // this record's own schema validation.
+    cycle.decision = 'DEFER';
+    cycle.human_interventions.push('DISCOVER failed to locate the queue task -- a human needs to confirm whether PRIORITY_QUEUE.md was intentionally changed (task renamed/removed/completed elsewhere) before this cycle can be re-run.');
     writeFileSync(join(outDir, 'cycle.json'), JSON.stringify(cycle, null, 2));
     console.log('STOP:', cycle.stop_reason);
     process.exit(1);
@@ -119,6 +111,9 @@ async function main() {
     evidence: 'experiments/EXP-009/queue_badd-q50.json',
   }));
 
+  cycle.stages.push(stage('REPRODUCE', 'SKIPPED', {
+    note: 'SCALE-100-001 is an untested-scale question, not a reported bug -- there is nothing prior to reproduce. REPRODUCE applies to cycles investigating a specific reported failure (e.g. EXP-008\'s real-device fingerprint mismatch); this cycle starts fresh at BASELINE instead.',
+  }));
   cycle.stages.push(stage('HYPOTHESIZE', 'DONE', { output: cycle.hypothesis }));
   cycle.stages.push(stage('DISCRIMINATE', 'DONE', { output: 'The 100-item run is the discriminating experiment: compare its msPerItem and pass/fail/heap profile against the 50-item baseline.' }));
 
@@ -131,7 +126,11 @@ async function main() {
   }));
 
   // ---------- BUILD ----------
-  const fixtureDir = join(outDir, 'fixtures-100item');
+  // Fixtures are generated to a system tmpdir, NOT under outDir/the repo --
+  // 100x 12s WAVs is ~100MB of regeneratable synthetic audio (same reason
+  // EXP-009 never committed its generated WAVs either). Only JSON evidence
+  // and this README are meant to live under experiments/EXP-013/.
+  const fixtureDir = mkdtempSync(join(tmpdir(), 'exp013-fixtures-'));
   mkdirSync(fixtureDir, { recursive: true });
   execFileSync('node', [join(repoRoot, 'tools/make_synth_wavs.cjs'), fixtureDir, '97', '12'], { stdio: 'pipe' });
   const goodFiles = readdirSync(fixtureDir).filter((f) => f.endsWith('.wav')).sort();
@@ -144,36 +143,48 @@ async function main() {
   writeFileSync(join(fixtureDir, 'zz_attack_garbage.wav'), require('node:crypto').randomBytes(5000));
   writeFileSync(join(fixtureDir, 'zz_attack_empty.wav'), Buffer.alloc(0)); // ATTACK: EMPTY_INPUT
   const allFiles = readdirSync(fixtureDir).filter((f) => f.endsWith('.wav')).sort();
+
+  // Separate clean-only dir (symlinks, no copying) for the CANCELLATION
+  // attack, which tests the cancel mechanism itself, not its interaction
+  // with malformed-input handling.
+  const cleanDir = mkdtempSync(join(tmpdir(), 'exp013-clean-'));
+  for (const f of goodFiles) symlinkSync(join(fixtureDir, f), join(cleanDir, f));
+
   cycle.stages.push(stage('BUILD', 'DONE', {
     input: '97x 12s synthetic WAV via tools/make_synth_wavs.cjs (reused, not rebuilt) + 3 deliberately malformed files (truncated/garbage/empty) = 100 total',
     output: { fixtureDir, totalFiles: allFiles.length },
-    evidence: fixtureDir,
+    evidence: 'fixtures generated to OS tmpdir, not committed (regeneratable, see BUILD input) -- filenames listed in test_100item_results.json',
   }));
 
   // ---------- TEST (main 100-item run) ----------
-  const pipelineJs = readFileSync(join(repoRoot, 'tools/bulk-media-intake/pipeline.js'), 'utf8');
-  const fileEntries = allFiles.map((name) => ({ name, b64: readFileSync(join(fixtureDir, name)).toString('base64') }));
+  // Reuses tools/bulk-media-intake/run_experiment.cjs's runOnce() as-is --
+  // it drives the real intake.html via page.locator('#fileInput').setInputFiles(),
+  // the SAME mechanism EXP-009's queue-scale baseline used. A first version
+  // of this script reinvented file delivery as base64 embedded in a
+  // page.evaluate() argument instead of reusing this; that hit a hard
+  // ~100MB page.evaluate/CDP argument-payload ceiling around 70-100 items
+  // and was misread as a scale-dependent app failure until bisection
+  // (65 OK, 68 OK, 71+ instant page-closed) and a fetch()-based control
+  // test proved the SAME 97/100-item batch completes cleanly (0 page
+  // errors, ~1.9s) once files are delivered via setInputFiles/fetch
+  // instead of a giant evaluate() argument. Recorded as a lab-harness
+  // lesson below (see EXTRACT) rather than silently fixed and forgotten.
+  const testRunRaw = await runOnce(fixtureDir, 4, null);
 
-  const testSession = await openSession({ needsSecureContext: false });
-  const testRun = await runBatchInPage(testSession.page, pipelineJs, fileEntries, { concurrency: 4, experimentId: 'EXP-013-SCALE-100' });
-  const testHeap = await testSession.heapUsage();
-  await testSession.close();
-
-  const passed = testRun.results.filter((r) => r.validationStatus === 'passed').length;
-  const failed = testRun.results.filter((r) => r.acquisitionStatus === 'failed' || r.validationStatus === 'failed').length;
+  const passed = testRunRaw.passedCount;
   const expectedFailures = ['zz_attack_truncated.wav', 'zz_attack_garbage.wav', 'zz_attack_empty.wav'];
-  const failedNames = testRun.results.filter((r) => r.validationStatus === 'failed').map((r) => r.source?.originalName);
+  const failedNames = testRunRaw.summary.filter((r) => r.status === 'failed').map((r) => r.name);
   const allExpectedFailuresRejected = expectedFailures.every((n) => failedNames.includes(n));
   const noUnexpectedFailures = failedNames.every((n) => expectedFailures.includes(n));
 
   cycle.stages.push(stage('TEST', 'DONE', {
-    input: `${allFiles.length} files (97 valid + 3 deliberately malformed), concurrency=4 (per EXP-011's evidence-based recommendation)`,
-    output: { durationMs: +testRun.durationMs.toFixed(1), passed, failed, totalResults: testRun.results.length, heap: testHeap },
+    input: `${allFiles.length} files (97 valid + 3 deliberately malformed), concurrency=4 (per EXP-011's evidence-based recommendation), delivered via run_experiment.cjs's proven setInputFiles() mechanism`,
+    output: { durationMs: testRunRaw.durationMs, passed, failed: testRunRaw.failedCount, totalResults: testRunRaw.summary.length, maxHeapMB: testRunRaw.maxHeapMB },
     success_condition: 'All 97 valid files pass, exactly the 3 malformed files fail, no console/page errors',
     failure_condition: 'Any valid file fails, any malformed file is silently accepted, or an unexpected file fails',
     evidence: join(outDir, 'test_100item_results.json'),
   }));
-  writeFileSync(join(outDir, 'test_100item_results.json'), JSON.stringify({ durationMs: testRun.durationMs, results: testRun.results, heap: testHeap, pageErrors: testSession.pageErrors, consoleErrors: testSession.consoleErrors }, null, 2));
+  writeFileSync(join(outDir, 'test_100item_results.json'), JSON.stringify(testRunRaw, null, 2));
 
   cycle.attacks.push({
     attack: 'MALFORMED_INPUT',
@@ -183,37 +194,25 @@ async function main() {
   });
 
   // ---------- ATTACK: CANCELLATION at 100-item scale ----------
-  const cancelSession = await openSession({ needsSecureContext: false });
-  await cancelSession.page.addScriptTag({ content: pipelineJs });
-  const cancelResult = await cancelSession.page.evaluate(async ({ fileEntries }) => {
-    function b64ToUint8(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
-    const items = fileEntries.map((f) => ({ kind: 'local-file', file: new File([b64ToUint8(f.b64)], f.name, { type: 'audio/wav' }), queuedAt: new Date().toISOString() }));
-    const run = window.BADD_BULK_INTAKE.runBatch(items, { concurrency: 4, experimentId: 'EXP-013-CANCEL-100' });
-    await new Promise((r) => setTimeout(r, 100)); // cancel almost immediately -- want genuinely in-flight items, matching EXP-010's successful cancellation-timing pattern
-    run.cancel();
-    const results = await run.promise;
-    return { completed: results.filter((r) => r.validationStatus === 'passed' || r.validationStatus === 'failed').length, total: results.length };
-  }, { fileEntries: fileEntries.filter((f) => !f.name.startsWith('zz_attack')) }); // cancellation attack tests the mechanism, not malformed-input interaction -- clean 97-item set
-  const cancelPageErrors = cancelSession.pageErrors;
-  await cancelSession.close();
+  const cancelRunRaw = await runOnce(cleanDir, 4, 100); // cancel after 100ms in-flight, matching EXP-010's successful cancellation-timing pattern
+  const cancelPageErrors = cancelRunRaw.pageErrors;
 
   cycle.attacks.push({
     attack: 'CANCELLATION',
     relevance: 'EXP-009 found and fixed a cancellation display bug at small scale; this checks the underlying mechanism (not just display) still cleans up correctly at 2x the previously-tested batch size, with no orphaned AudioContext/resources (0 page errors is the proof).',
     result: cancelPageErrors.length === 0 ? 'SURVIVED' : 'FAILED',
-    detail: `cancelled after 100ms in-flight; ${cancelResult.completed}/${cancelResult.total} items had a result at cancellation time; pageErrors: ${cancelPageErrors.length}`,
+    detail: `cancelled after 100ms in-flight; statusText="${cancelRunRaw.statusText}"; ${cancelRunRaw.summary.length} items had a result at cancellation time; pageErrors: ${cancelPageErrors.length}`,
   });
 
   // ---------- MEASURE ----------
-  const measuredMsPerItem = testRun.durationMs / 97; // valid-file cost, exclude the 3 malformed (near-instant rejections would skew it down)
+  const measuredMsPerItem = testRunRaw.durationMs / 97; // valid-file cost, exclude the 3 malformed (near-instant rejections would skew it down)
   cycle.measurements = {
     itemCount: allFiles.length,
     validItemCount: 97,
-    durationMs: +testRun.durationMs.toFixed(1),
+    durationMs: testRunRaw.durationMs,
     msPerItem: +measuredMsPerItem.toFixed(2),
     baselineMsPerItem: +baselineMsPerItem.toFixed(2),
-    heapUsedMB: testHeap.usedMB,
-    heapBackingMB: testHeap.backingMB,
+    maxHeapMB: testRunRaw.maxHeapMB,
   };
 
   // ---------- REGRESSION ----------
@@ -226,7 +225,7 @@ async function main() {
     detail: `100-item msPerItem=${measuredMsPerItem.toFixed(2)} vs 50-item baseline msPerItem=${baselineMsPerItem.toFixed(2)} (ratio ${perItemRatio.toFixed(2)}x, threshold ${regressionThreshold}x)`,
   };
   cycle.stages.push(stage('MEASURE', 'DONE', { output: cycle.measurements }));
-  cycle.stages.push(stage('ATTACK', testRun.results.length > 0 ? 'DONE' : 'FAILED', { output: cycle.attacks }));
+  cycle.stages.push(stage('ATTACK', testRunRaw.summary.length > 0 ? 'DONE' : 'FAILED', { output: cycle.attacks }));
   cycle.stages.push(stage('REGRESSION', 'DONE', { output: cycle.regression_check }));
 
   // ---------- DECISION / STOP REASON ----------
@@ -244,7 +243,8 @@ async function main() {
   cycle.reusable_capability_produced = [
     { name: 'run_cycle.cjs engineering-cycle orchestrator', path: 'tools/engineering-cycle/run_cycle.cjs', reuse_proof: 'USED_ONCE' },
     { name: 'lab-harness shared Playwright+CDP session', path: 'tools/lab-harness/session.cjs', reuse_proof: 'USED_TWICE_PLUS' },
-    { name: '100-item mixed-malformed attack batch composition (97 valid + truncated + garbage + empty)', path: 'experiments/EXP-013/fixtures-100item/', reuse_proof: 'NOT_YET_REUSED' },
+    { name: 'run_experiment.cjs runOnce() reused a 3rd+ time as the standard file-delivery mechanism (setInputFiles, not base64/page.evaluate)', path: 'tools/bulk-media-intake/run_experiment.cjs', reuse_proof: 'USED_TWICE_PLUS' },
+    { name: 'Documented lesson: page.evaluate()/CDP argument payloads have a hard ceiling around ~100MB in this sandbox -- bisected between 68 items (~104MB, OK) and 71 items (~108MB, instant page-closed with no pageerror/console signal); use setInputFiles() or same-origin fetch() for any real-file-content delivery instead of embedding file bytes in evaluate() arguments', path: 'EXPERIMENT_PROTOCOL.md', reuse_proof: 'NOT_YET_REUSED' },
   ];
 
   // ---------- PRIORITIZE (advisory) ----------
