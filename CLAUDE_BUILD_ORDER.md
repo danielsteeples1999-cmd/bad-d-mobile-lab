@@ -1,457 +1,120 @@
-# CLAUDE BUILD ORDER — COMPOUNDING AI ENGINEERING LAB
+# CLAUDE BUILD ORDER — DEEP REFERENCE
 
-## Purpose
+> Do not read this file at startup. Read CLAUDE_NOW.md first.
 
-This lab is not merely a place to reproduce BAD-D mobile bugs.
+## 1. Enter cheaply
 
-It is a **compounding engineering system for AI-built software**.
+Read only:
 
-Every useful experiment should leave behind something reusable: a probe, benchmark, fixture, diagnostic, failure injector, contract, adapter boundary, regression test, search index, evidence schema, or reasoning shortcut.
+1. CLAUDE_NOW.md
+2. EXPERIMENT_PRIORITY_QUEUE.md
+3. README.md
+4. exact files needed for the active experiment
 
-The target is:
+Search before reading. Prefer current code/tests/evidence over history.
 
-**problem → measurement → tool → evidence → reusable capability → better next build**
+## 2. Work in this order
 
-Optimize for:
+**LOCATE → REPRODUCE → BASELINE → HYPOTHESIZE → DISCRIMINATE → BUILD → MEASURE → ATTACK → REGRESS → EXTRACT → RECORD → ADVANCE**
 
-**useful engineering per token + evidence per test minute + reusable capability per experiment + reduced future rediscovery**
+The goal is not merely to fix the current problem. Leave behind a reusable capability when the work reveals repeated machinery.
 
----
+## 3. Choose leverage
 
-# 1. START SMALL — READ ONLY WHAT MATTERS
-
-At session start read:
-
-1. `README.md`
-2. `CLAUDE_BUILD_ORDER.md`
-3. `EXPERIMENT_PRIORITY_QUEUE.md`
-4. `GOAL_CROSSWALK.md`
-5. `CLAUDE_EXECUTIVE_BRAIN.md` only as targeted context
-6. the exact code/test artifact needed for the current experiment
-
-Do not read the whole repository by default.
-
-Search first. Read only relevant sections.
-
-History and research are secondary to current code, tests, failures and measurements.
-
----
-
-# 2. THE COMPOUNDING RULE
-
-Before building any tool ask:
-
-**What survives after this experiment?**
-
-Prefer:
-
-**one-off experiment**
-→ reusable probe  
-→ reusable fixture  
-→ benchmark  
-→ regression test  
-→ AI diagnostic capability
-
-over:
-
-**one-off experiment → throwaway result**
-
-A tool is high-value when a future AI can reuse it without rebuilding the same machinery.
-
----
-
-# 3. BUILD THE AI ENGINEERING TOOLBOX
-
-Prioritize reusable infrastructure such as:
-
-- codebase scout
-- dependency/impact mapper
-- experiment generator
-- benchmark runner
-- regression comparator
-- memory/RAM probe
-- startup timeline probe
-- long-task/UI responsiveness probe
-- audio continuity probe
-- queue/scheduler probe
-- storage-health probe
-- checkpoint/recovery tester
-- browser capability matrix
-- failure-injection engine
-- device/workload profiles
-- evidence validator
-- experiment report generator
-- experiment search/index
-- old-code archaeology tool
-- adapter/contract validator
-
-Do not create empty folders or speculative frameworks just to look complete.
-
-Build each capability when a real experiment needs it.
-
----
-
-# 4. AI CODEBASE SCOUT
-
-When practical, create tooling that lets an AI answer cheaply:
-
-- where is this behavior implemented?
-- what calls it?
-- what depends on it?
-- what tests cover it?
-- what measurements exist?
-- what previous experiments touched it?
-- what is dangerous to change?
-- what remains unknown?
-
-Output compact machine-readable investigation data.
-
-The goal is to prevent future agents from reading thousands of irrelevant lines.
-
----
-
-# 5. CHANGE IMPACT BEFORE PATCHING
-
-Before meaningful changes, identify:
-
-**change → affected code → affected systems → affected tests → performance effects → audio risks → evidence/promotion risks**
-
-Use this to choose the smallest safe change.
-
-Do not claim an impact map is complete when it is inferred rather than measured.
-
----
-
-# 6. UNIVERSAL EXPERIMENT LOOP
-
-For every substantive experiment:
-
-### LOCATE
-Find the smallest controlling surface.
-
-### REPRODUCE
-Make the failure or behavior deterministic if possible.
-
-### BASELINE
-Measure before changing anything.
-
-### HYPOTHESIZE
-Create 2–4 plausible mechanisms.
-
-### DISCRIMINATE
-Run the cheapest test that separates them.
-
-### BUILD
-Implement the smallest useful experiment.
-
-### MEASURE
-Capture comparable before/after data.
-
-### ATTACK
-Try to break the result.
-
-### REGRESS
-Check adjacent behavior.
-
-### EXTRACT
-Turn reusable instrumentation into a reusable capability.
-
-### RECORD
-Store compact evidence.
-
-### ADVANCE
-Choose the next highest-information experiment.
-
-Do not stop at “looks better.”
-
----
-
-# 7. THE TOOL SHOULD IMPROVE THE NEXT TOOL
-
-For every new utility ask:
-
-1. Can another experiment call it?
-2. Can another AI session understand its output automatically?
-3. Can it produce machine-readable evidence?
-4. Can it detect regressions?
-5. Can it reduce future token usage?
-6. Can it be adapted into BAD-D later?
-7. What is the smallest reusable interface?
-
-If the answer is mostly no, keep the implementation smaller.
-
----
-
-# 8. UNIVERSAL BENCHMARK LANGUAGE
-
-Avoid every experiment inventing its own measurements.
-
-Where appropriate standardize:
-
-- timestamp
-- duration
-- workload
-- input size
-- concurrency
-- memory observations
-- long-task observations
-- throughput
-- latency
-- errors
-- interruptions
-- recovery
-- audio continuity
-- environment/capability data
-- baseline
-- candidate
-- delta
-- evidence level
-
-One benchmark harness should support many experiments.
-
----
-
-# 9. FAILURE INJECTION IS A FIRST-CLASS TOOL
-
-The lab should deliberately test:
-
-- storage failure
-- quota pressure
-- interrupted imports
-- corrupted checkpoints
-- missing browser capabilities
-- memory pressure
-- slow workloads
-- worker failure
-- timeout
-- background suspension
-- visibility changes
-- audio interruption
-- malformed input
-- partial input
-- unexpected exceptions
-
-The question is not only:
-
-**Can it work?**
-
-Also:
-
-**How does it fail? Does it recover safely? Does it preserve evidence?**
-
----
-
-# 10. DEVICE REALITY
-
-Separate:
-
-**synthetic correctness → workload realism → physical device verification**
-
-Create repeatable workload profiles where useful:
-
-- fast desktop
-- modern phone
-- mid-range phone
-- low-memory phone
-- long-running
-- storage pressured
-- backgrounded
-- thermally constrained
-
-Do not pretend simulation equals physical-device evidence.
-
----
-
-# 11. AI SELF-VALIDATION
-
-After an implementation, prefer an automated chain:
-
-**change → static check → functional test → benchmark → failure injection → regression → evidence**
-
-The AI should be able to attack its own implementation before asking Daniel to test it.
-
-Human testing is reserved for things the environment cannot establish.
-
----
-
-# 12. EVIDENCE IS MACHINE-READABLE
-
-Every meaningful experiment should leave structured evidence containing, where applicable:
-
-- hypothesis
-- baseline
-- variables
-- environment
-- procedure
-- result
-- failures
-- regressions
-- confidence/evidence level
-- limitations
-- reusable artifacts
-- next question
-
-Never turn “file created” into “verified.”
-
----
-
-# 13. EXPERIMENT MEMORY
-
-Do not make future AI rediscover old work.
-
-Store experiments so an agent can search:
-
-- what was tested?
-- what failed?
-- under what conditions?
-- what was ruled out?
-- what mechanism was implicated?
-- what tool was created?
-- what remains unresolved?
-- what should be tested next?
-
-Failed work is knowledge.
-
----
-
-# 14. OLD CODE ARCHAEOLOGY
-
-When historical code is relevant:
-
-1. identify the original problem
-2. identify its constraints
-3. isolate the mechanism
-4. remove obsolete coupling
-5. reproduce it independently
-6. compare it with the current mechanism
-7. retain only evidence-backed value
-
-Do not copy old architecture wholesale.
-
----
-
-# 15. CROSS-GOAL LEVERAGE
-
-For every major experiment answer:
-
-1. What immediate problem does this address?
-2. What other goals benefit?
-3. What reusable capability does it create?
-4. What future BAD-D integration could use it?
-5. What could it damage?
-6. What evidence would justify integration?
-
-Prefer mechanisms with broad leverage.
+Prefer mechanisms that affect several goals.
 
 Examples:
+- scheduler → import + UI + audio + RAM + long runs
+- memory instrumentation → RAM + scope + audio + crash diagnosis
+- checkpoint/recovery → import + Testing Deck + lifecycle
+- benchmark/evidence → almost every future experiment
+- failure injection → almost every subsystem
 
-**scheduler**
-→ import + UI + audio + RAM + battery + Testing Deck
+## 4. Build tools only when earned
 
-**memory lifetime instrumentation**
-→ RAM + scope + audio + long-run stability + crash diagnosis
+A reusable tool should have:
 
-**checkpoint engine**
-→ import + Testing Deck + recovery + background lifecycle
+- clear purpose
+- stable input/output
+- structured result
+- bounded resource use
+- failure states
+- evidence
+- tests
+- reuse target
+- version/schema
 
-**benchmark/evidence engine**
-→ every future experiment
+Preferred progression:
 
-**failure injection**
-→ every future subsystem
+**experiment → probe → fixture → benchmark → attack → regression → evidence → searchable memory**
 
----
+Do not build speculative frameworks or duplicate mature tooling.
 
-# 16. TOKEN ECONOMY
+## 5. Validate aggressively
 
-Do not spend model context on:
+Before asking Daniel to test:
 
-- giant summaries
-- duplicated documentation
+**static/syntax → focused test → benchmark → edge/failure attack → regression → evidence**
+
+If the environment cannot prove a claim, mark it unverified and ask for the smallest human/device action required.
+
+## 6. Context economy
+
+Do not spend context on:
+
+- duplicated summaries
+- giant historical plans
 - irrelevant research
-- speculative abstractions
 - cosmetic refactors
-- explaining what the agent could test itself
+- speculative abstractions
+- repeated manual explanations
 
-Spend tokens on:
+Use direct search and focused reads for simple questions.
 
-**locating → reasoning → coding → testing → breaking → measuring → extracting reusable capability**
+Use subagents only for genuinely parallel, isolated or independently verifiable work.
 
-If a repeated manual action can become a tool, consider automating it.
+Use external tools/MCP/browser automation only when they materially improve the current task.
 
-If a research question can be answered by a five-minute local experiment, run the experiment.
+## 7. Tool quality
 
----
+Prefer one core engine with separate AI and human interfaces where the same capability is useful to both.
 
-# 17. SESSION BUDGET
+AI-facing output should be compact, structured and machine-readable.
 
-A normal session should roughly follow:
+Human-facing output should be obvious, safe and actionable.
 
-- locate/baseline
-- implement smallest experiment
-- test
-- attack
-- extract reusable value
-- record
-- advance
+## 8. Failure is data
 
-If blocked, build the smallest reproducible substitute.
+A failed experiment is useful when it narrows the hypothesis space.
 
-Do not spend the whole session explaining why the ideal environment is unavailable.
+Record:
+- what failed
+- exact conditions
+- what was ruled out
+- remaining uncertainty
+- next discriminating experiment
 
----
+Do not repeat a failed test without a changed hypothesis or new evidence.
 
-# 18. HUMAN INTERACTION BUDGET
+## 9. Production boundary
 
-Ask Daniel only when:
-
-- physical-device evidence is required
-- credentials/permissions are required
-- an irreversible decision is required
-- creative intent is genuinely ambiguous
-- production integration is being considered
-
-When asking for a test, give **one exact action**.
-
-Otherwise continue autonomously.
-
----
-
-# 19. PRODUCTION BOUNDARY
-
-This public lab is isolated.
+This lab is isolated.
 
 Never:
-
-- modify production BAD-D from this workflow
-- expose secrets
-- copy private user data
-- auto-promote experiments
+- modify production
+- expose secrets/private data
+- auto-promote results
 - weaken evidence gates
-- silently alter production version identity
 - treat lab success as production verification
 
-Future integration happens through explicit adapters/contracts.
+Future integration requires an explicit adapter/contract.
 
-**Standalone now. Integratable later.**
+## 10. Completion
 
----
+Use CLAUDE_COMPLETION_STATUS_PROTOCOL.md when a formal session report is needed.
 
-# 20. DEFINITION OF HIGH-VALUE PROGRESS
+Normal cycle output should remain compact:
 
-High-value progress means:
+**BUILT / TESTED / EVIDENCE / LIMITATIONS / REUSABLE CAPABILITY / QUEUE CHANGE / NEXT ACTION / HUMAN TEST**
 
-**less uncertainty  
-+ better measured behavior  
-+ reusable tooling  
-+ stronger self-validation  
-+ lower future token cost  
-+ clearer integration boundaries**
-
-A large diff is not progress.
-
-A large document is not progress.
-
-A feature count is not progress.
-
-**A capability that makes the next AI build faster, safer, more measurable and more intelligent is progress.**
+The current queue and evidence outrank this document.
