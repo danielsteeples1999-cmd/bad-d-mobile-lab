@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BAD-D Listener Ear Tuning Lab 001</title>
+<style>
+body{font:16px system-ui;margin:0;padding:18px;max-width:760px;margin:auto;background:#111;color:#eee}
+section{border:1px solid #444;border-radius:14px;padding:16px;margin:12px 0}button{padding:12px;margin:5px;border-radius:10px;border:1px solid #666;background:#222;color:#fff}input,select{padding:10px;width:100%;box-sizing:border-box;margin:6px 0;background:#181818;color:#fff;border:1px solid #555;border-radius:8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.status{font-weight:700}.small{opacity:.75;font-size:.9em}
+</style></head><body>
+<h1>BAD-D Listener Ear Tuning Lab</h1>
+<p class="small">ISOLATED EXPERIMENT · LOCAL ONLY · DOES NOT MODIFY BAD-D PRODUCTION</p>
+<section><h2>1. Listening context</h2>
+<label>What are you using?</label><select id="device"><option>Headphones</option><option>Earbuds</option><option>Studio monitors</option><option>Phone speaker</option><option>Car</option><option>Other</option></select>
+<label>Connection</label><select id="connection"><option>Wired</option><option>Bluetooth</option><option>USB</option><option>Unknown</option></select>
+<label>Volume / reference note</label><input id="reference" placeholder="e.g. normal listening level, EQ flat"></section>
+<section><h2>2. A/B ear calibration</h2>
+<p>Play the same material through A and B. Change one variable at a time. BAD-D must not pretend it can know your preference without your response.</p>
+<div class="grid"><button onclick="vote('A')">A sounds better</button><button onclick="vote('B')">B sounds better</button><button onclick="vote('same')">Cannot tell / same</button><button onclick="vote('both')">Both useful</button></div>
+<p id="result" class="status">No comparison recorded.</p>
+</section>
+<section><h2>3. What changed?</h2>
+<div class="grid"><button onclick="tag('bass')">Bass</button><button onclick="tag('mid')">Mid</button><button onclick="tag('treble')">Treble</button><button onclick="tag('vocal')">Vocal</button><button onclick="tag('space')">Space</button><button onclick="tag('timing')">Timing</button><button onclick="tag('dynamics')">Dynamics</button><button onclick="tag('distortion')">Distortion</button></div>
+<p id="tags" class="small">No tags yet.</p></section>
+<section><h2>4. Personal model</h2>
+<p id="profile" class="status"></p><button onclick="finish()">Save session locally</button><button onclick="clearSession()">Clear temporary session</button>
+<p class="small">Stored only in this browser origin using localStorage. No network upload is performed by this page.</p></section>
+<script>
+const KEY='badd_listener_ear_tuning_lab_001';
+let s=JSON.parse(localStorage.getItem(KEY)||'{"comparisons":[],"tags":[],"sessions":0}');
+const $=id=>document.getElementById(id);
+function vote(v){s.comparisons.push({v,device:$('device').value,connection:$('connection').value,reference:$('reference').value,t:Date.now()});$('result').textContent=v==='same'?'CANNOT TELL YET — keep the test controlled.':'Recorded: '+v;render();}
+function tag(v){s.tags.push(v);$('tags').textContent=[...new Set(s.tags)].join(' · ');render();}
+function finish(){s.sessions++;localStorage.setItem(KEY,JSON.stringify(s));$('profile').textContent='Saved locally. Sessions: '+s.sessions+' · comparisons: '+s.comparisons.length;}
+function clearSession(){$('result').textContent='Temporary UI state cleared. Your saved local profile remains.';$('tags').textContent='No new tags shown.';}
+function render(){let c=s.comparisons;let a=c.filter(x=>x.v==='A').length,b=c.filter(x=>x.v==='B').length,n=c.filter(x=>x.v==='same').length;$('profile').textContent='Local profile: '+c.length+' comparisons · A '+a+' · B '+b+' · cannot tell '+n+' · sessions '+s.sessions;}
+render();
+</script></body></html>
