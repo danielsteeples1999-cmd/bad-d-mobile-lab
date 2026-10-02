@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-001",
+  "queue_task_id": "GRID-METER-001",
+  "objective": "Measure whether open beat/downbeat trackers silently mis-phase bar labels after a single odd-length bar, and whether any confidence signal flags it.",
+  "current_unknown": "Whether 4/4 bias in published trackers causes long, silent downbeat-phase errors on DJ-style material.",
+  "hypothesis": "Current tools silently mis-phase after one odd bar: phase error >= 1 beat for >= 4 bars with no confidence dip.",
+  "competing_hypotheses": [
+    "Trackers re-anchor within 1-2 bars after an odd bar (no long error).",
+    "Trackers mis-phase but their confidence/activation reliably flags the error.",
+    "Errors are tempo-octave errors rather than phase errors."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "DISCOVER", "status": "DONE", "output": "Pass 02 literature review identified DBN meter priors and global-meter task framing.", "evidence": "RESEARCH/INTELLIGENCE_GRID/02_METER_CHANGE_4_4_BIAS_REPORT.md"},
+    {"stage": "BASELINE", "status": "DONE", "output": "control_44 fixtures: all systems downbeat F 0.97-0.99, zero missed-downbeat runs.", "evidence": "experiments/GRID-METER-001/results.json"},
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Pre-registered decision rule in Pass 02 section E; amended to a direction-neutral metric after the smoke run, before the full run.", "note": "Amendment recorded in README."},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "success_condition": "Deterministic render, matched-filter kicks at every truth beat within 12 ms, no spurious kicks, no clipping.", "output": "24/24 FIXTURE_ACCEPTED after 3 detector redesigns (no threshold loosened).", "evidence": "tools/grid-meter/fixtures.py; results.json rows[].fixture_gate"},
+    {"stage": "BUILD", "status": "DONE", "output": "tools/grid-meter: fixtures, gate, tracker adapters, scorer, runner, summariser, self-tests."},
+    {"stage": "TEST", "status": "DONE", "output": "7/7 self-tests pass.", "evidence": "tools/grid-meter/test_grid_meter.py"},
+    {"stage": "ATTACK", "status": "DONE", "output": "Gate rejects inserted-kick audio and 30 ms-moved truth beat."},
+    {"stage": "MEASURE", "status": "DONE", "output": "24 fixtures x 4 systems in 490 s.", "evidence": "experiments/GRID-METER-001/results.json"},
+    {"stage": "REGRESSION", "status": "SKIPPED", "note": "First run; results.json becomes the baseline."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-001/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "Finding: offline DBN mislabels 15-16 consecutive bars by 2 beats after one odd bar at every tested tempo with beat F ~0.997; RNN activation separates correct vs wrong downbeats (AUC 0.89-1.00) but DBN output discards it."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "Next: GRID-METER-002 per-bar disagreement detector."}
+  ],
+  "attacks": [
+    {"attack": "CORRUPTED_STATE", "relevance": "A fixture whose audio no longer matches its truth must never be scored.", "result": "SURVIVED", "detail": "Extra kick inserted mid-beat -> FIXTURE_REJECTED (determinism + spurious-kick checks fail).", "evidence": "tools/grid-meter/test_grid_meter.py::test_gate_rejects_audio_with_extra_kick"},
+    {"attack": "MALFORMED_INPUT", "relevance": "A truth file with a mislabelled beat must be caught by the signal check, not trusted.", "result": "SURVIVED", "detail": "One truth beat moved by 30 ms -> FIXTURE_REJECTED.", "evidence": "tools/grid-meter/test_grid_meter.py::test_gate_rejects_truth_with_moved_beat"},
+    {"attack": "TIMING_BOUNDARY", "relevance": "Odd-length bars are timing boundaries the trackers' priors exclude.", "result": "FAILED", "detail": "madmom DBN: 15-16 bar mis-phase on ce1/ce2 at all tempos; all systems fail on repeating odd bars.", "evidence": "experiments/GRID-METER-001/summary.md"}
+  ],
+  "measurements": {
+    "fixtures_accepted": "24/24",
+    "madmom_dbn_ce1_ce2_downbeat_f_range": [0.48, 0.52],
+    "madmom_dbn_ce1_ce2_beat_f_range": [0.996, 0.997],
+    "madmom_dbn_ce1_ce2_longest_missed_run_bars": [15, 16],
+    "madmom_rnn_activation_auc_correct_vs_wrong": [0.89, 1.0],
+    "beat_this_minimal_ce1_ce2_mean_downbeat_f": [0.945, 0.939],
+    "beat_this_minimal_wrong_downbeat_median_activation": [0.96, 0.99],
+    "heyya_pattern_downbeat_f_range_all_systems": [0.47, 0.71],
+    "waltz_34_downbeat_f": {"madmom_dbn_bpb234": 0.988, "madmom_dbn_bpb4": 0.285, "beat_this_dbn": 0.454, "beat_this_minimal": 0.589},
+    "tempo_ratio_range": [0.98, 1.003],
+    "wall_seconds": 490,
+    "persisted_kb": 95
+  },
+  "regression_check": {"baseline_cycle_id": null, "compared_metric": null, "result": "NOT_APPLICABLE", "detail": "First run of this mechanism."},
+  "limitations": [
+    "Synthetic, clean, EDM-styled fixtures; real tracks have weaker downbeat cues.",
+    "Single pre-trained checkpoint per system; no fine-tuning.",
+    "Activations are not calibrated probabilities; AUC measures ranking only.",
+    "Half-time switch (CE-3) and polymeter (CE-4) fixtures not built."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "grid-meter fixtures + acceptance gate + scorer", "path": "tools/grid-meter/", "reuse_proof": "USED_ONCE"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-002", "reason": "The error is detectable in principle (activation AUC 0.89-1.00); test a per-bar disagreement detector so craft automation can fail closed."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": [
+    "None required for this synthetic measurement. Real-track validation needs human-confirmed bar-level annotations (Pass 02 section C.2)."
+  ],
+  "generated_at": "2026-10-02T15:00:00Z",
+  "generator_tool": "tools/grid-meter/run.py + manual cycle record"
+}

@@ -112,7 +112,8 @@ These are **not active unless the P0 engine can run them**:
 - Testing Deck evidence/admission gates
 - benchmark/soak/stress harness
 
-- **GRID-METER-001** — does an open beat/downbeat tracker silently mis-phase after one odd-length bar? Deterministic synthetic fixtures, exact ground truth, CPU-only. Specified in [RESEARCH/INTELLIGENCE_GRID/02_METER_CHANGE_4_4_BIAS_REPORT.md §E](RESEARCH/INTELLIGENCE_GRID/02_METER_CHANGE_4_4_BIAS_REPORT.md). Strong candidate for the first real experiment run through ENGINE-CYCLE-001 and the first known-good/known-bad fixture pair for ENGINE-REGRESS-001.
+- **GRID-METER-001 — DONE (MEASURED, 2026-10-02).** One odd-length bar makes madmom's offline DBN mislabel 15–16 consecutive bars by 2 beats at every tested tempo (beat F ≈ 0.997, no output warning); Beat This! (no DBN) handles a single odd bar; all systems fail on a repeating odd bar. Record: [experiments/GRID-METER-001](experiments/GRID-METER-001/README.md). Tooling: [tools/grid-meter](tools/grid-meter/README.md).
+- **GRID-METER-002 — NEXT.** Can a per-bar disagreement signal (DBN vs activation peaks, or two-decoder disagreement) flag mis-phased bars with high recall and few false alarms on controls? Needed before any phrase-aligned craft automation is trusted (Pass 04 fail-closed craft). Reuses tools/grid-meter; add CE-3 half-time and CE-4 polymeter fixtures.
 
 When one is selected, give it a fresh experiment ID and record the actual evidence. Do not resurrect a stale task description unchanged.
 
