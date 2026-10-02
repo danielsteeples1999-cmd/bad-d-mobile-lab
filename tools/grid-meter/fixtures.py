@@ -35,6 +35,22 @@ PLANS = {
 }
 DEFAULT_BEATS = {"waltz_34": 3}
 
+# Variant fixtures (GRID-METER-002): constant 4/4 meter, so any meter-error flag
+# raised on them is a FALSE ALARM. name: (plan, variant, description)
+VARIANTS = {
+    "sync_anticip": ([4] * 33, "anticipate",
+                     "33x4/4; every 2nd bar's chord arrives an 8th note EARLY (syncopation, not meter change)"),
+    "halftime_switch": ([4] * 33, "halftime",
+                        "33x4/4; bars 9-24 switch drums to half-time (kick on 1, clap on 3 only)"),
+}
+
+
+def render_named(name, bpm, seed=1):
+    if name in PLANS:
+        return render(PLANS[name][0], bpm, seed)
+    plan, variant, _ = VARIANTS[name]
+    return render(plan, bpm, seed, variant=variant)
+
 
 def midi_hz(m):
     return 440.0 * 2 ** ((m - 69) / 12.0)
@@ -97,8 +113,10 @@ def chord_freqs(root):
     return out
 
 
-def render(plan, bpm, seed=1):
-    """Return (audio float32 mono, truth dict). Deterministic for (plan, bpm, seed)."""
+def render(plan, bpm, seed=1, variant=None):
+    """Return (audio float32 mono, truth dict). Deterministic for (plan, bpm, seed, variant).
+
+    variant=None reproduces the GRID-METER-001 fixtures bit-identically."""
     rng = np.random.default_rng(seed)
     beat_s = 60.0 / bpm
     lead_in = 1.0  # seconds of silence before first event
@@ -109,6 +127,7 @@ def render(plan, bpm, seed=1):
 
     default_len = max(set(plan), key=plan.count)
     beats, positions, downbeats, bars = [], [], [], []
+    kick_times = []
     b = 0
     prev_len = None
     for bar_idx, length in enumerate(plan):
@@ -121,7 +140,13 @@ def render(plan, bpm, seed=1):
             downbeats.append(t_bar)
             root = CHORD_ROOTS[(len(downbeats) - 1) % 4]
             bar_n = int(length * beat_s * SR)
-            _add(buf, int(t_bar * SR), tone(chord_freqs(root), bar_n, length * beat_s, 0.05))
+            if variant == "anticipate" and len(downbeats) % 2 == 0 and len(downbeats) > 1:
+                # chord pushed an 8th note before the (unchanged) downbeat
+                early = beat_s / 2
+                _add(buf, int((t_bar - early) * SR),
+                     tone(chord_freqs(root), int((length * beat_s + early) * SR), length * beat_s, 0.05))
+            else:
+                _add(buf, int(t_bar * SR), tone(chord_freqs(root), bar_n, length * beat_s, 0.05))
             phrase_start = (len(downbeats) - 1) % 8 == 0
             after_deviation = prev_len is not None and prev_len != default_len
             if phrase_start or after_deviation:
@@ -132,12 +157,15 @@ def render(plan, bpm, seed=1):
             # pickup beats are labelled by their position counted back from the next downbeat
             positions.append(default_len - length + k + 1 if is_pickup else k + 1)
             i = int(round(t * SR))
-            if not is_pickup:
+            half = variant == "halftime" and 8 <= len(downbeats) - 1 <= 23
+            if not is_pickup and (not half or k == 0):
                 _add(buf, i, K)
+                kick_times.append(t)
+            if not is_pickup:
                 root = CHORD_ROOTS[(len(downbeats) - 1) % 4]
                 _add(buf, i, tone([midi_hz(root - 24), midi_hz(root - 12)],
                                   int(beat_s * 0.9 * SR), beat_s * 0.35, 0.35))
-            if (k + 1) % 2 == 0 or is_pickup:
+            if (half and k == 2) or (not half and ((k + 1) % 2 == 0 or is_pickup)):
                 _add(buf, i, clap(rng))
             _add(buf, int(round((t + beat_s / 2) * SR)), H)
         prev_len = length
@@ -159,6 +187,9 @@ def render(plan, bpm, seed=1):
         "audio_sha256": hashlib.sha256(audio.tobytes()).hexdigest(),
         "duration_s": round(n / SR, 3),
     }
+    if variant is not None:
+        truth["variant"] = variant
+        truth["kick_times"] = [round(x, 6) for x in kick_times]
     return audio, truth
 
 
@@ -173,7 +204,7 @@ def accept(audio, truth):
       4. no clipping
     """
     plan, bpm, seed = truth["plan"], truth["bpm"], truth["seed"]
-    a2, _ = render(plan, bpm, seed)
+    a2, _ = render(plan, bpm, seed, variant=truth.get("variant"))
     checks = {"deterministic": bool(np.array_equal(a2, audio))}
 
     # Kick detector = matched filter: cross-correlate the 150 Hz low-passed mix
@@ -205,7 +236,8 @@ def accept(audio, truth):
             i += 1
     onset_t = np.array(onsets) * hop / SR
     pickup_beats = sum(1 for bar in truth["bars"] if bar["kind"] == "pickup") and truth["bars"][0]["beats"]
-    kick_truth = np.array(truth["beats"][pickup_beats or 0:])
+    kick_truth = np.array(truth["kick_times"] if "kick_times" in truth
+                          else truth["beats"][pickup_beats or 0:])
     d = np.abs(onset_t[:, None] - kick_truth[None, :])
     checks["all_beats_have_kick_onset"] = bool((d.min(axis=0) <= 0.012).all())
     checks["no_spurious_kick_onsets"] = bool((d.min(axis=1) <= 0.012).all())
@@ -224,5 +256,5 @@ def write_wav(path, audio):
 if __name__ == "__main__":
     import sys
     name, bpm = sys.argv[1], float(sys.argv[2])
-    audio, truth = render(PLANS[name][0], bpm)
+    audio, truth = render_named(name, bpm)
     print(json.dumps(accept(audio, truth), indent=2))
