@@ -113,7 +113,8 @@ These are **not active unless the P0 engine can run them**:
 - benchmark/soak/stress harness
 
 - **GRID-METER-001 — DONE (MEASURED, 2026-10-02).** One odd-length bar makes madmom's offline DBN mislabel 15–16 consecutive bars by 2 beats at every tested tempo (beat F ≈ 0.997, no output warning); Beat This! (no DBN) handles a single odd bar; all systems fail on a repeating odd bar. Record: [experiments/GRID-METER-001](experiments/GRID-METER-001/README.md). Tooling: [tools/grid-meter](tools/grid-meter/README.md).
-- **GRID-METER-002 — NEXT.** Can a per-bar disagreement signal (DBN vs activation peaks, or two-decoder disagreement) flag mis-phased bars with high recall and few false alarms on controls? Needed before any phrase-aligned craft automation is trusted (Pass 04 fail-closed craft). Reuses tools/grid-meter; add CE-3 half-time and CE-4 polymeter fixtures.
+- **GRID-METER-002 — DONE (MEASURED, 2026-10-02).** Pre-registered detector D3 (in-bar activation contrast OR disagreement with a no-DBN tracker) flags madmom DBN mis-phase with recall 0.920 (126/137) at a 0.038 false-alarm rate on steady 4/4 incl. syncopation and half-time traps — passes on point estimates; 95 % intervals straddle both thresholds. Record: [experiments/GRID-METER-002](experiments/GRID-METER-002/README.md).
+- **GRID-METER-003 — NEXT (needs one human input).** Validate D3 on real tracks and measure odd-bar prevalence. Needs human-confirmed bar annotations (10–20 of Daniel's tracks marked by ear) or a public downbeat-annotated set (Harmonix). Odd-bar prevalence decides whether the grid's meter work matters in practice.
 
 When one is selected, give it a fresh experiment ID and record the actual evidence. Do not resurrect a stale task description unchanged.
 

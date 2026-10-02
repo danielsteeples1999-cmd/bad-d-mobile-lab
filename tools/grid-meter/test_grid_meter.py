@@ -72,6 +72,36 @@ def test_scorer_detects_global_phase_shift():
     assert r["beat_f"] == 1.0  # beats right, bars wrong: the exact failure class under test
 
 
+def _fake(downbeats, act_peaks):
+    import detect  # noqa: F401
+    act = np.zeros(1000)
+    for t in act_peaks:
+        act[int(t * 100)] = 1.0
+    return {"beats": [i * 0.5 for i in range(10)], "downbeats": downbeats,
+            "act_fps": 100, "downbeat_activation": act}
+
+
+def test_detectors_quiet_on_correct_output():
+    import detect
+    good = _fake([0, 2, 4], [0, 2, 4])
+    r = detect.run_all(good, good, {"downbeats": [0.0, 2.0, 4.0]})
+    assert r["wrong"] == [False] * 3 and not any(r["D3"])
+
+
+def test_detectors_flag_phase_shift():
+    import detect
+    good = _fake([0, 2, 4], [0, 2, 4])
+    bad = _fake([1, 3], [0, 2, 4])
+    r = detect.run_all(bad, good, {"downbeats": [0.0, 2.0, 4.0]})
+    assert r["wrong"] == [True, True] and all(r["D1"]) and all(r["D2"])
+
+
+def test_variants_keep_constant_meter_truth():
+    for name in fixtures.VARIANTS:
+        a, t = fixtures.render_named(name, 140)
+        assert t["plan"] == [4] * 33 and fixtures.accept(a, t)["verdict"] == "FIXTURE_ACCEPTED"
+
+
 if __name__ == "__main__":
     import sys
     fails = 0

@@ -1,0 +1,72 @@
+{
+ "criteria": {
+  "min_recall": 0.9,
+  "max_false_alarm": 0.05,
+  "recall_fixtures": [
+   "ce1_stumble2",
+   "ce2_extend6"
+  ],
+  "fa_fixtures": [
+   "ce5_pickup1",
+   "control_44",
+   "halftime_switch",
+   "sync_anticip"
+  ]
+ },
+ "verdicts": {
+  "beat_this_dbn/D1": {
+   "recall": 0.21875,
+   "hits": 7,
+   "wrong": 32,
+   "false_alarm_rate": 0.0,
+   "false_alarms": 0,
+   "correct": 524,
+   "verdict": "FAIL"
+  },
+  "beat_this_dbn/D2": {
+   "recall": 0.59375,
+   "hits": 19,
+   "wrong": 32,
+   "false_alarm_rate": 0.0,
+   "false_alarms": 0,
+   "correct": 524,
+   "verdict": "FAIL"
+  },
+  "beat_this_dbn/D3": {
+   "recall": 0.59375,
+   "hits": 19,
+   "wrong": 32,
+   "false_alarm_rate": 0.0,
+   "false_alarms": 0,
+   "correct": 524,
+   "verdict": "FAIL"
+  },
+  "madmom_dbn_bpb4/D1": {
+   "recall": 0.5912408759124088,
+   "hits": 81,
+   "wrong": 137,
+   "false_alarm_rate": 0.03816793893129771,
+   "false_alarms": 20,
+   "correct": 524,
+   "verdict": "FAIL"
+  },
+  "madmom_dbn_bpb4/D2": {
+   "recall": 0.8686131386861314,
+   "hits": 119,
+   "wrong": 137,
+   "false_alarm_rate": 0.0,
+   "false_alarms": 0,
+   "correct": 524,
+   "verdict": "FAIL"
+  },
+  "madmom_dbn_bpb4/D3": {
+   "recall": 0.9197080291970803,
+   "hits": 126,
+   "wrong": 137,
+   "false_alarm_rate": 0.03816793893129771,
+   "false_alarms": 20,
+   "correct": 524,
+   "verdict": "PASS"
+  }
+ }
+}
