@@ -112,6 +112,8 @@ These are **not active unless the P0 engine can run them**:
 - Testing Deck evidence/admission gates
 - benchmark/soak/stress harness
 
+- **GRID-METER-001** — does an open beat/downbeat tracker silently mis-phase after one odd-length bar? Deterministic synthetic fixtures, exact ground truth, CPU-only. Specified in [RESEARCH/INTELLIGENCE_GRID/02_METER_CHANGE_4_4_BIAS_REPORT.md §E](RESEARCH/INTELLIGENCE_GRID/02_METER_CHANGE_4_4_BIAS_REPORT.md). Strong candidate for the first real experiment run through ENGINE-CYCLE-001 and the first known-good/known-bad fixture pair for ENGINE-REGRESS-001.
+
 When one is selected, give it a fresh experiment ID and record the actual evidence. Do not resurrect a stale task description unchanged.
 
 ## P2 — DEFERRED RESEARCH
