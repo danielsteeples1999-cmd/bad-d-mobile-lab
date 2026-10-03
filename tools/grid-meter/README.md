@@ -10,11 +10,12 @@ Reusable harness built for **GRID-METER-001**. It answers: *does a beat / downbe
 | `run.py` | Bounded matrix runner (≤ 24 fixtures × 4 systems). WAVs are never written to disk; results go to JSON (`grid-meter-results/1.0.0`). |
 | `summarize.py` | Compact markdown tables from a results JSON. |
 | `detect.py` · `run_detect.py` · `score_detect.py` | GRID-METER-002 per-bar meter-error detectors (D1 in-bar activation contrast, D2 cross-decoder disagreement, D3 = either), runner, and scorer applying the pre-registered criteria. |
-| `run_real.py` | GRID-METER-003 real-track runner: per-bar grid and warning flags, C6 by default (C5 + final bar line `unknown`; `--config C5` or `--config C1` for earlier candidates), per-track `grids/<alias>.grid.json`, a listen list, and (with `--verify`) recall / false-alarm scoring against listener verifications. Stores hashes and timings only; track names go to a git-ignored `private_names.json`. |
+| `run_real.py` | GRID-METER-003 real-track runner: per-bar grid and warning flags, C7 by default (C6 + whole track `ambiguous` at ≥ 3 flagged clusters; `--config C6`, `C5` or `C1` for earlier candidates), per-track `grids/<alias>.grid.json`, a listen list, and (with `--verify`) recall / false-alarm scoring against listener verifications. Stores hashes and timings only; track names go to a git-ignored `private_names.json`. |
 | `check.template.html` → `check.html` (`build_check.py`) | Listener page: plays a track with clicks on the decoded bar lines; the listener toggles "click is off the 1" / "can't tell" and marks odd bars; the result is copied as `grid-meter-verify/1.0.0` JSON. Records which spans were heard so unheard bars are excluded. Published at https://claude.ai/artifact/6gry5DKb99xqTB4PqQ4mLv |
 | `run_configs.py` · `score_configs.py` | GRID-METER-004: compares fail-closed downbeat configurations on silent errors, false alarms, trustworthy coverage and single-thread CPU cost per stage. |
 | `run_regularity.py` | GRID-METER-005: model-free bar-length regularity check R (`regularity_flags`) and the C5 configuration (Beat This! minimal + D1 or R). Superseded by C6, which then failed the held-out test (GRID-METER-007). |
 | `run_heldout.py` | GRID-METER-007: scores C1 and C6 on the 16 held-out fixtures (`fixtures.HELDOUT`, weak-cue variant, new tempos). C6 failed there; treat it as best available, not passing. |
+| `run_heldout2.py` | GRID-METER-008: track-level rule T (`flagged_clusters`, `track_rule`) and C1/C6/C7 scoring on held-out set 2 (`fixtures.HELDOUT2`). C7 passed; it is the current lab candidate. |
 | `test_grid_meter.py` | Self-tests, including **attacks on the gate**: an extra kick inserted into the audio, and a beat label moved by 30 ms in the truth. Both must be rejected. |
 
 ## Run

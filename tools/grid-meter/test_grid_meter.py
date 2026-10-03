@@ -124,6 +124,13 @@ def test_regularity_rule_R():
     assert R(beats, [0, 2, 4, 5, 7, 9, 11]) == [False, False, True, True, False, False, False]
 
 
+def test_track_rule_T():
+    from run_heldout2 import flagged_clusters, track_rule
+    assert flagged_clusters([False, True, True, False, True, False, True]) == 2  # final rule-E flag excluded
+    assert track_rule([True, False, True, False, True, False, False]) == [True] * 7
+    assert track_rule([True, False, True, False, False]) == [True, False, True, False, False]
+
+
 if __name__ == "__main__":
     import sys
     fails = 0

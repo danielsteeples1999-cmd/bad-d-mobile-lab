@@ -43,6 +43,8 @@ GRID-METER-005 found that **C5** (Beat This! minimal downbeats, flagged by D1 or
 
 **Second amendment (2026-10-03, still before any real track):** GRID-METER-006 adopted C6 = C5 + rule E (the final bar line is always `unknown`). `run_real.py` now defaults to `--config C6`. End-to-end on the same stand-ins, wrong / hits / false alarms: 1/1/0 · 2/2/1 · 1/1/0 · 6/6/4.
 
+**Third amendment (2026-10-03, still before any real track):** GRID-METER-008 adopted C7 = C6 + rule T (whole track `ambiguous` at ≥ 3 flagged clusters). It is the first configuration to pass a pre-registered held-out test. `run_real.py` now defaults to `--config C7`. On the same stand-ins it gives the same counts as C6, since none of them has 3 clusters.
+
 ## Pipeline validation (MACHINE, synthetic stand-ins, 2026-10-03)
 Four fixtures were written to disk as real audio files: WAV, WAV, FLAC and **MP3**. They were run through `run_real.py`, with a simulated perfect listener derived from exact ground truth:
 

@@ -1,7 +1,7 @@
 """GRID-METER-003 runner: real tracks -> per-bar grid + warning flags + listen list.
 
-Default configuration is C6: Beat This! minimal + (D1 or bar-regularity R or final-downbeat E);
-see GRID-METER-005/006.
+Default configuration is C7: Beat This! minimal + (D1 or bar-regularity R or final-downbeat E),
+then the whole track is ambiguous at >= 3 flagged clusters (rule T); see GRID-METER-005/006/008.
 Use --config C1 for madmom DBN + D3 (GRID-METER-002).
 
 Usage:
@@ -31,6 +31,7 @@ import numpy as np
 import detect
 import run_detect
 from run_regularity import regularity_flags
+from run_heldout2 import flagged_clusters, track_rule
 
 EXTS = (".wav", ".mp3", ".flac", ".ogg", ".aiff", ".aif")
 SR = 44100
@@ -89,9 +90,9 @@ def main():
     ap.add_argument("audio_dir")
     ap.add_argument("out_dir")
     ap.add_argument("--verify", help="directory of <alias>.verify.json files from check.html")
-    ap.add_argument("--config", choices=("C6", "C5", "C1"), default="C6",
-                    help="C6 (default, GRID-METER-006: C5 + final downbeat unknown), C5 (GRID-METER-005) "
-                         "or C1 (madmom DBN + D3, GRID-METER-002)")
+    ap.add_argument("--config", choices=("C7", "C6", "C5", "C1"), default="C7",
+                    help="C7 (default, GRID-METER-008: C6 + whole track ambiguous at >= 3 flagged clusters), "
+                         "C6 (GRID-METER-006), C5 (GRID-METER-005) or C1 (madmom DBN + D3, GRID-METER-002)")
     ap.add_argument("--max-tracks", type=int, default=40, help="budget guard")
     a = ap.parse_args()
 
@@ -120,15 +121,19 @@ def main():
             tracks.append(rec)
             print(alias, rec["status"], file=sys.stderr)
             continue
-        if a.config in ("C5", "C6"):  # one network + model-free checks (GRID-METER-005/006)
+        if a.config in ("C5", "C6", "C7"):  # one network + model-free checks (GRID-METER-005/006/008)
             prim = o["beat_this_minimal"]
             f1 = detect.d1_inbar_contrast(prim)
             fr = regularity_flags(prim["beats"], prim["downbeats"])
             flags = [x or y for x, y in zip(f1, fr)]
             parts = {"flags_D1": f1, "flags_R": fr}
-            if a.config == "C6" and flags:  # rule E: the final bar's length is unmeasurable -> unknown
+            if a.config in ("C6", "C7") and flags:  # rule E: the final bar's length is unmeasurable -> unknown
                 flags[-1] = True
                 parts["flags_E"] = [False] * (len(flags) - 1) + [True]
+            if a.config == "C7" and flags:  # rule T: >= 3 flagged clusters -> whole track ambiguous
+                parts["flagged_clusters"] = flagged_clusters(flags)
+                parts["track_ambiguous"] = parts["flagged_clusters"] >= 3
+                flags = track_rule(flags)
         else:  # C1: GRID-METER-002 candidate, madmom DBN + D3
             prim, ref = o["madmom_dbn_bpb4"], o["beat_this_minimal"]
             f1 = detect.d1_inbar_contrast(prim)
