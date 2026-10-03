@@ -41,6 +41,8 @@ GRID-METER-005 found that **C5** (Beat This! minimal downbeats, flagged by D1 or
 | C5 | 1/0/0 | 2/1/1 | 1/0/0 | 6/6/4 | GRID-METER-005 rows exactly |
 | C1 | 1/0/1 | 16/15/1 | 0/0/1 | 17/17/2 | Earlier C1 validation exactly |
 
+**Second amendment (2026-10-03, still before any real track):** GRID-METER-006 adopted C6 = C5 + rule E (the final bar line is always `unknown`). `run_real.py` now defaults to `--config C6`. End-to-end on the same stand-ins, wrong / hits / false alarms: 1/1/0 · 2/2/1 · 1/1/0 · 6/6/4.
+
 ## Pipeline validation (MACHINE, synthetic stand-ins, 2026-10-03)
 Four fixtures were written to disk as real audio files: WAV, WAV, FLAC and **MP3**. They were run through `run_real.py`, with a simulated perfect listener derived from exact ground truth:
 
