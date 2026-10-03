@@ -27,6 +27,20 @@ Neither can be measured honestly from public datasets alone. The public sets wit
 
 **Known bias, stated in advance:** the listener sees the detector's flags while listening. Flagged spans may get more attention. Recall is still measured only over heard bars, and listening to the whole track is requested. This bias must be reported with the result.
 
+## Method amendment (2026-10-03, before any real track was analysed)
+GRID-METER-005 found that **C5** (Beat This! minimal downbeats, flagged by D1 or the bar-regularity rule R) matches C1's silent-error rate on synthetic fixtures. It does so at about a third of the cost, with 97 % vs 79 % usable coverage. C5 is now the lab candidate.
+
+- `run_real.py` therefore defaults to `--config C5`. The listener hears clicks on **C5's** bar lines, and C5's flags are scored.
+- `--config C1` reproduces the original D3 plan.
+- The success criteria are unchanged.
+
+**End-to-end re-validation on the same four stand-in files** (MACHINE, wrong / hits / false alarms):
+
+| Config | sync_anticip @140 | ce1_stumble2 @128 | control_44 @128 | ce2_extend6 @174 (MP3) | Matches |
+|---|---|---|---|---|---|
+| C5 | 1/0/0 | 2/1/1 | 1/0/0 | 6/6/4 | GRID-METER-005 rows exactly |
+| C1 | 1/0/1 | 16/15/1 | 0/0/1 | 17/17/2 | Earlier C1 validation exactly |
+
 ## Pipeline validation (MACHINE, synthetic stand-ins, 2026-10-03)
 Four fixtures were written to disk as real audio files: WAV, WAV, FLAC and **MP3**. They were run through `run_real.py`, with a simulated perfect listener derived from exact ground truth:
 

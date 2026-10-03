@@ -199,6 +199,7 @@ $("audioIn").addEventListener("change", async e => {
     resetMarks(); describe(); draw(); updateResult();
   } catch (err) { $("srcStatus").className = "status err"; $("srcStatus").textContent = "This file could not be decoded by the browser. Try an MP3 or WAV copy. (" + err.message + ")"; }
 });
+function flagsOf(g) { return g ? (g.flags || g.flags_D3 || null) : null; }
 function isDemoGrid() { return grid === DEMO; }
 function setGrid(g) {
   if (!g || !Array.isArray(g.downbeats) || !Array.isArray(g.beats)) throw new Error("This is not a grid file: it needs downbeats and beats.");
@@ -222,7 +223,7 @@ $("usePaste").addEventListener("click", () => {
 $("loadDemo").addEventListener("click", loadDemo);
 
 function describe() {
-  const d = buffer ? buffer.duration : 0, n = grid ? grid.downbeats.length : 0, fl = grid && grid.flags_D3 ? grid.flags_D3.filter(Boolean).length : 0;
+  const d = buffer ? buffer.duration : 0, n = grid ? grid.downbeats.length : 0, fl = grid && flagsOf(grid) ? flagsOf(grid).filter(Boolean).length : 0;
   $("trackMeta").innerHTML = "<b>" + alias + "</b> · " + fmt(d) + " · " + n + " bars · <b>" + fl + "</b> flagged" +
     (fileHash && fileHash !== "demo" ? " · sha256 " + fileHash.slice(0, 12) + "…" : "");
 }
@@ -265,8 +266,8 @@ $("play").addEventListener("click", () => playing ? stop() : play(pos));
 function barAt(t) { const d = grid.downbeats; let i = 0; while (i + 1 < d.length && d[i + 1] <= t) i++; return i; }
 $("back").addEventListener("click", () => { if (!grid) return; const i = Math.max(0, barAt(now()) - 2); pos = grid.downbeats[i] - 0.3; if (playing) play(pos); else { draw(); $("clock").textContent = fmt(Math.max(0, pos)); } });
 $("nextFlag").addEventListener("click", () => {
-  if (!grid || !grid.flags_D3) return; const cur = barAt(now() + 0.5);
-  let i = grid.flags_D3.findIndex((f, j) => f && j > cur); if (i < 0) i = grid.flags_D3.findIndex(Boolean); if (i < 0) return;
+  if (!grid || !flagsOf(grid)) return; const cur = barAt(now() + 0.5);
+  let i = flagsOf(grid).findIndex((f, j) => f && j > cur); if (i < 0) i = flagsOf(grid).findIndex(Boolean); if (i < 0) return;
   play(Math.max(0, grid.downbeats[Math.max(0, i - 1)] - 0.2));
 });
 
@@ -296,7 +297,7 @@ function draw() {
   g.fillStyle = col("--line"); g.fillRect(0, 84, W, 1);
   grid.downbeats.forEach((d, i) => {
     const e = i + 1 < grid.downbeats.length ? grid.downbeats[i + 1] : Math.min(D, d + 2);
-    if (grid.flags_D3 && grid.flags_D3[i]) { g.fillStyle = col("--flag"); g.fillRect(x(d), 6, Math.max(1, x(e) - x(d) - 1), 22); }
+    if (flagsOf(grid) && flagsOf(grid)[i]) { g.fillStyle = col("--flag"); g.fillRect(x(d), 6, Math.max(1, x(e) - x(d) - 1), 22); }
     g.fillStyle = col("--muted"); g.fillRect(x(d), 78, 1, 12);
   });
   const span = (arr, name, y, h) => { g.fillStyle = col(name); for (const [a, b] of arr) g.fillRect(x(a), y, Math.max(2, x(b) - x(a)), h); };

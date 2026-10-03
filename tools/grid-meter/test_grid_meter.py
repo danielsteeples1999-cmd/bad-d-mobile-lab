@@ -116,6 +116,14 @@ def test_real_spans_merge():
     assert R.spans([0, 2, 4, 6], [True, True, False, True], 8) == [[0, 4], [6, 8]]
 
 
+def test_regularity_rule_R():
+    from run_regularity import regularity_flags as R
+    beats = [i * 0.5 for i in range(40)]
+    assert R(beats, [0, 2, 4, 6, 8]) == [False] * 5
+    # a 2-beat bar (4 -> 5) flags the downbeat that starts it and the one after it
+    assert R(beats, [0, 2, 4, 5, 7, 9, 11]) == [False, False, True, True, False, False, False]
+
+
 if __name__ == "__main__":
     import sys
     fails = 0
