@@ -102,6 +102,20 @@ def test_variants_keep_constant_meter_truth():
         assert t["plan"] == [4] * 33 and fixtures.accept(a, t)["verdict"] == "FIXTURE_ACCEPTED"
 
 
+def test_real_verification_labelling():
+    import run_real as R
+    db = [1, 3, 5, 7]
+    assert R.verified_wrong(db, {"wrong_spans": [[2.5, 3.5]]}) == [False, True, False, False]
+    assert R.verified_wrong(db, {"wrong_spans": [[2.5, 3.5]], "unsure_spans": [[4.5, 5.5]]}) == [False, True, None, False]
+    # bars the listener never heard are excluded, never counted as correct
+    assert R.verified_wrong(db, {"wrong_spans": [], "listened_spans": [[0, 4]]}) == [False, False, None, None]
+
+
+def test_real_spans_merge():
+    import run_real as R
+    assert R.spans([0, 2, 4, 6], [True, True, False, True], 8) == [[0, 4], [6, 8]]
+
+
 if __name__ == "__main__":
     import sys
     fails = 0

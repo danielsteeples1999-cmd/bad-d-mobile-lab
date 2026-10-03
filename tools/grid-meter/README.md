@@ -10,6 +10,8 @@ Reusable harness built for **GRID-METER-001**. It answers: *does a beat / downbe
 | `run.py` | Bounded matrix runner (≤ 24 fixtures × 4 systems). WAVs are never written to disk; results go to JSON (`grid-meter-results/1.0.0`). |
 | `summarize.py` | Compact markdown tables from a results JSON. |
 | `detect.py` · `run_detect.py` · `score_detect.py` | GRID-METER-002 per-bar meter-error detectors (D1 in-bar activation contrast, D2 cross-decoder disagreement, D3 = either), runner, and scorer applying the pre-registered criteria. |
+| `run_real.py` | GRID-METER-003 real-track runner: madmom DBN + D3 flags per bar, per-track `grids/<alias>.grid.json`, a listen list, and (with `--verify`) recall / false-alarm scoring against listener verifications. Stores hashes and timings only; track names go to a git-ignored `private_names.json`. |
+| `check.template.html` → `check.html` (`build_check.py`) | Listener page: plays a track with clicks on the decoded bar lines; the listener toggles "click is off the 1" / "can't tell" and marks odd bars; the result is copied as `grid-meter-verify/1.0.0` JSON. Records which spans were heard so unheard bars are excluded. Published at https://claude.ai/artifact/6gry5DKb99xqTB4PqQ4mLv |
 | `test_grid_meter.py` | Self-tests, including **attacks on the gate**: an extra kick inserted into the audio, and a beat label moved by 30 ms in the truth. Both must be rejected. |
 
 ## Run

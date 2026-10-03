@@ -1,0 +1,342 @@
+<title>Downbeat Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column tool — deck header, bar strip (the grid under test), transport + marking pads, result. */
+:root {
+  --bg: #f3f5f6; --panel: #ffffff; --fg: #15202a; --muted: #5b6875; --line: #d5dce1;
+  --accent: #0b7285; --accent-fg: #ffffff;
+  --wrong: #c92a2a; --unsure: #b7791f; --flag: #6741d9; --heard: #9fb8c4; --now: #15202a;
+  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1418; --panel: #162026; --fg: #e3eaee; --muted: #93a3ae; --line: #2a3943;
+  --accent: #3bc9db; --accent-fg: #0e1418;
+  --wrong: #ff6b6b; --unsure: #f2b04a; --flag: #9775fa; --heard: #3d5664; --now: #e3eaee; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1418; --panel: #162026; --fg: #e3eaee; --muted: #93a3ae; --line: #2a3943;
+  --accent: #3bc9db; --accent-fg: #0e1418;
+  --wrong: #ff6b6b; --unsure: #f2b04a; --flag: #9775fa; --heard: #3d5664; --now: #e3eaee; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 18px; }
+h1 { font: 700 1.7rem/1.15 var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.label { font: 500 0.72rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.meta { font: 0.85rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.meta b { color: var(--fg); font-weight: 500; }
+button, .file { font: 600 0.95rem var(--body); border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  border-radius: 8px; padding: 10px 14px; cursor: pointer; min-height: 44px; }
+button:focus-visible, .file:focus-within, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.file { position: relative; display: inline-flex; align-items: center; }
+.pads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pad { min-height: 76px; display: grid; place-items: center; text-align: center; padding: 10px; line-height: 1.25; }
+.pad small { display: block; font: 400 0.75rem var(--body); color: var(--muted); margin-top: 4px; }
+.pad[aria-pressed="true"].wrong { background: var(--wrong); border-color: var(--wrong); color: var(--accent-fg); }
+.pad[aria-pressed="true"].unsure { background: var(--unsure); border-color: var(--unsure); color: var(--accent-fg); }
+.pad[aria-pressed="true"] small { color: inherit; }
+@media (max-width: 520px) { .pads { grid-template-columns: 1fr 1fr; } .pad.odd { grid-column: span 2; min-height: 56px; } }
+.strip-wrap { overflow-x: auto; }
+canvas { display: block; width: 100%; height: 132px; border-radius: 6px; cursor: pointer; touch-action: manipulation; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--muted); }
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.time { font: 500 1.6rem var(--mono); font-variant-numeric: tabular-nums; }
+textarea { width: 100%; box-sizing: border-box; min-height: 120px; font: 0.8rem/1.4 var(--mono); color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; resize: vertical; }
+.status { font-size: 0.9rem; min-height: 1.4em; }
+.status.err { color: var(--wrong); }
+.demo-tag { font: 500 0.72rem var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--flag);
+  border: 1px solid var(--flag); border-radius: 999px; padding: 3px 8px; }
+ol.how { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Downbeat Check</h1>
+    <p class="lede">Play a track with a click on every bar line the analyser found. When the click stops landing on the “1”, switch the red pad on, and off again when it’s back. Your audio stays on this device; only timings leave it, when you copy the result.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="src-h">
+    <div class="row" style="justify-content:space-between">
+      <span class="label" id="src-h">Track and grid</span>
+      <span class="demo-tag" id="demoTag">Demo loaded</span>
+    </div>
+    <div class="meta" id="trackMeta"></div>
+    <div class="row">
+      <label class="file" for="audioIn">Choose audio file<input id="audioIn" type="file" accept="audio/*"></label>
+      <label class="file" for="gridIn">Choose grid file<input id="gridIn" type="file" accept=".json,application/json"></label>
+      <button id="loadDemo" type="button">Reload demo</button>
+    </div>
+    <details>
+      <summary class="meta">Or paste grid JSON</summary>
+      <textarea id="gridPaste" aria-label="Paste grid JSON" placeholder='{"schema":"grid-meter-grid/1.0.0", ...}'></textarea>
+      <button id="usePaste" type="button">Use pasted grid</button>
+    </details>
+    <div class="status" id="srcStatus" role="status"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="bars-h">
+    <div class="row" style="justify-content:space-between">
+      <span class="label" id="bars-h">Bars · tap to jump</span>
+      <span class="time" id="clock">0:00.0</span>
+    </div>
+    <div class="strip-wrap"><canvas id="strip" aria-label="Bar strip. Tap a bar to start playback just before it."></canvas></div>
+    <div class="legend">
+      <span class="key"><span class="sw" style="background:var(--flag)"></span>Flagged by detector</span>
+      <span class="key"><span class="sw" style="background:var(--wrong)"></span>You marked off the 1</span>
+      <span class="key"><span class="sw" style="background:var(--unsure)"></span>You marked unsure</span>
+      <span class="key"><span class="sw" style="background:var(--heard)"></span>Heard</span>
+    </div>
+    <div class="row">
+      <button class="primary" id="play" type="button">Play</button>
+      <button id="back" type="button">Back 2 bars</button>
+      <button id="nextFlag" type="button">Next flagged bar</button>
+      <label class="meta" for="ticks"><input id="ticks" type="checkbox"> soft tick on every beat</label>
+    </div>
+    <div class="pads">
+      <button class="pad wrong" id="padWrong" type="button" aria-pressed="false">Click is off the 1<small>tap on, tap off when it’s right again</small></button>
+      <button class="pad unsure" id="padUnsure" type="button" aria-pressed="false">Can’t tell<small>excluded from scoring</small></button>
+      <button class="pad odd" id="padOdd" type="button">Odd bar here<small>a bar felt short or long</small></button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="res-h">
+    <span class="label" id="res-h">Result</span>
+    <div class="meta" id="resMeta"></div>
+    <textarea id="result" readonly aria-label="Result JSON"></textarea>
+    <div class="row">
+      <button class="primary" id="copy" type="button">Copy result</button>
+      <button id="clearMarks" type="button">Clear marks</button>
+      <span class="status" id="copyStatus" role="status"></span>
+    </div>
+    <ol class="how meta">
+      <li>Load your audio file and the matching <b>.grid.json</b> (or paste it).</li>
+      <li>Press Play. Start with “Next flagged bar”, then listen through the rest if you can.</li>
+      <li>Copy the result and paste it into the chat. Unheard bars are left out of the score automatically.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+const DEMO = __DEMO__;
+const REACT = 0.6; // seconds subtracted from a tap: human reaction time before noticing
+const $ = id => document.getElementById(id);
+let ctx = null, buffer = null, grid = null, fileHash = null, alias = "DEMO", isDemo = true;
+let src = null, clickNodes = [], startCtx = 0, startPos = 0, playing = false, pos = 0;
+let marks = { wrong: [], unsure: [], odd: [] }, open = { wrong: null, unsure: null }, heard = [], heardStart = null;
+
+function fmt(t) { const m = Math.floor(t / 60), s = t - m * 60; return m + ":" + s.toFixed(1).padStart(4, "0"); }
+function now() { return playing ? startPos + (ctx.currentTime - startCtx) : pos; }
+function ensureCtx() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
+
+// Demo audio: the GRID-METER synthetic fixture ce1_stumble2 at 128 BPM (16 bars of 4/4, one 2-beat bar, 16 bars).
+async function renderDemo() {
+  const bpm = 128, b = 60 / bpm, lead = 1.0, plan = [...Array(16).fill(4), 2, ...Array(16).fill(4)];
+  const total = lead + plan.reduce((a, x) => a + x, 0) * b + 2, sr = 22050;
+  const oc = new OfflineAudioContext(1, Math.ceil(total * sr), sr);
+  const roots = [57, 53, 48, 55], hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  const noise = oc.createBuffer(1, sr * 0.2, sr), nd = noise.getChannelData(0);
+  let seed = 7; for (let i = 0; i < nd.length; i++) { seed = (seed * 16807) % 2147483647; nd[i] = seed / 1073741823.5 - 1; }
+  let t = lead, bar = 0;
+  for (const len of plan) {
+    const root = roots[bar % 4];
+    for (const m of [root, root + (root === 57 ? 3 : 4), root + 7]) {
+      const o = oc.createOscillator(), g = oc.createGain(); o.type = "triangle"; o.frequency.value = hz(m);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.06, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + len * b);
+      o.connect(g).connect(oc.destination); o.start(t); o.stop(t + len * b);
+    }
+    for (let k = 0; k < len; k++) {
+      const tb = t + k * b;
+      const o = oc.createOscillator(), g = oc.createGain();
+      o.frequency.setValueAtTime(140, tb); o.frequency.exponentialRampToValueAtTime(50, tb + 0.12);
+      g.gain.setValueAtTime(0.9, tb); g.gain.exponentialRampToValueAtTime(0.0001, tb + 0.25);
+      o.connect(g).connect(oc.destination); o.start(tb); o.stop(tb + 0.26);
+      const bo = oc.createOscillator(), bg = oc.createGain(); bo.frequency.value = hz(root - 24);
+      bg.gain.setValueAtTime(0.25, tb); bg.gain.exponentialRampToValueAtTime(0.0001, tb + b * 0.8);
+      bo.connect(bg).connect(oc.destination); bo.start(tb); bo.stop(tb + b * 0.85);
+      if ((k + 1) % 2 === 0) {
+        const n = oc.createBufferSource(), ng = oc.createGain(), hp = oc.createBiquadFilter();
+        n.buffer = noise; hp.type = "highpass"; hp.frequency.value = 900;
+        ng.gain.setValueAtTime(0.35, tb); ng.gain.exponentialRampToValueAtTime(0.0001, tb + 0.15);
+        n.connect(hp).connect(ng).connect(oc.destination); n.start(tb);
+      }
+    }
+    t += len * b; bar++;
+  }
+  return oc.startRendering();
+}
+
+async function loadDemo() {
+  stop(); isDemo = true; alias = "DEMO"; fileHash = "demo"; grid = DEMO; resetMarks();
+  $("demoTag").hidden = false;
+  $("srcStatus").textContent = "Rendering demo…"; $("srcStatus").className = "status";
+  buffer = await renderDemo();
+  $("srcStatus").textContent = "Demo ready. The first 16 bars’ clicks land on beat 3. Press Play and mark them.";
+  describe(); draw(); updateResult();
+}
+
+async function sha256(buf) {
+  const d = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(d)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+
+$("audioIn").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  stop(); $("srcStatus").className = "status"; $("srcStatus").textContent = "Reading " + f.name + "…";
+  try {
+    const ab = await f.arrayBuffer();
+    fileHash = await sha256(ab);
+    buffer = await ensureCtx().decodeAudioData(ab.slice(0));
+    isDemo = false; $("demoTag").hidden = true;
+    if (grid && !isDemoGrid()) checkMatch(); else { grid = null; $("srcStatus").textContent = "Audio loaded. Now choose its grid file."; }
+    resetMarks(); describe(); draw(); updateResult();
+  } catch (err) { $("srcStatus").className = "status err"; $("srcStatus").textContent = "This file could not be decoded by the browser. Try an MP3 or WAV copy. (" + err.message + ")"; }
+});
+function isDemoGrid() { return grid === DEMO; }
+function setGrid(g) {
+  if (!g || !Array.isArray(g.downbeats) || !Array.isArray(g.beats)) throw new Error("This is not a grid file: it needs downbeats and beats.");
+  grid = g; alias = g.alias || "T??"; resetMarks();
+  if (buffer && !isDemo) checkMatch(); else $("srcStatus").textContent = "Grid " + alias + " loaded. Now choose its audio file.";
+  describe(); draw(); updateResult();
+}
+function checkMatch() {
+  if (grid.file_sha256 && grid.file_sha256 !== fileHash) {
+    $("srcStatus").className = "status err";
+    $("srcStatus").textContent = "This grid belongs to a different file (" + alias + "). Load the matching audio, or the result will be rejected.";
+  } else { $("srcStatus").className = "status"; $("srcStatus").textContent = "Audio and grid " + alias + " match. Ready."; }
+}
+$("gridIn").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { setGrid(JSON.parse(await f.text())); } catch (err) { $("srcStatus").className = "status err"; $("srcStatus").textContent = err.message; }
+});
+$("usePaste").addEventListener("click", () => {
+  try { setGrid(JSON.parse($("gridPaste").value)); } catch (err) { $("srcStatus").className = "status err"; $("srcStatus").textContent = "Pasted text is not valid grid JSON. " + err.message; }
+});
+$("loadDemo").addEventListener("click", loadDemo);
+
+function describe() {
+  const d = buffer ? buffer.duration : 0, n = grid ? grid.downbeats.length : 0, fl = grid && grid.flags_D3 ? grid.flags_D3.filter(Boolean).length : 0;
+  $("trackMeta").innerHTML = "<b>" + alias + "</b> · " + fmt(d) + " · " + n + " bars · <b>" + fl + "</b> flagged" +
+    (fileHash && fileHash !== "demo" ? " · sha256 " + fileHash.slice(0, 12) + "…" : "");
+}
+
+// --- playback with clicks on the grid's bar lines ---
+function play(from) {
+  if (!buffer || !grid) return;
+  stop(); ensureCtx(); if (ctx.state === "suspended") ctx.resume();
+  startPos = Math.max(0, Math.min(from, buffer.duration - 0.05));
+  src = ctx.createBufferSource(); src.buffer = buffer; src.connect(ctx.destination);
+  startCtx = ctx.currentTime + 0.05; src.start(startCtx, startPos);
+  const sched = (t, f, gain, dur) => {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; o.type = "square";
+    const at = startCtx + (t - startPos); g.gain.setValueAtTime(gain, at); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g).connect(ctx.destination); o.start(at); o.stop(at + dur + 0.01); clickNodes.push(o);
+  };
+  for (const t of grid.downbeats) if (t >= startPos) sched(t, 1760, 0.22, 0.06);
+  if ($("ticks").checked) for (const t of grid.beats) if (t >= startPos && !grid.downbeats.some(d => Math.abs(d - t) < 0.03)) sched(t, 880, 0.05, 0.03);
+  src.onended = () => { if (playing && now() >= buffer.duration - 0.1) stop(); };
+  playing = true; heardStart = startPos; $("play").textContent = "Pause"; tick();
+}
+function stop() {
+  if (playing) {
+    pos = now(); closeOpen(pos);
+    if (heardStart !== null && pos > heardStart) heard.push([+heardStart.toFixed(2), +pos.toFixed(2)]);
+  }
+  heardStart = null; playing = false;
+  try { src && src.stop(); } catch (e) {}
+  clickNodes.forEach(o => { try { o.stop(); } catch (e) {} }); clickNodes = []; src = null;
+  $("play").textContent = "Play"; updateResult(); draw();
+}
+function closeOpen(t) {
+  for (const k of ["wrong", "unsure"]) if (open[k] !== null) {
+    if (t > open[k]) marks[k].push([+open[k].toFixed(2), +t.toFixed(2)]);
+    open[k] = null; $(k === "wrong" ? "padWrong" : "padUnsure").setAttribute("aria-pressed", "false");
+  }
+}
+function tick() { if (!playing) return; $("clock").textContent = fmt(now()); draw(); requestAnimationFrame(tick); }
+$("play").addEventListener("click", () => playing ? stop() : play(pos));
+function barAt(t) { const d = grid.downbeats; let i = 0; while (i + 1 < d.length && d[i + 1] <= t) i++; return i; }
+$("back").addEventListener("click", () => { if (!grid) return; const i = Math.max(0, barAt(now()) - 2); pos = grid.downbeats[i] - 0.3; if (playing) play(pos); else { draw(); $("clock").textContent = fmt(Math.max(0, pos)); } });
+$("nextFlag").addEventListener("click", () => {
+  if (!grid || !grid.flags_D3) return; const cur = barAt(now() + 0.5);
+  let i = grid.flags_D3.findIndex((f, j) => f && j > cur); if (i < 0) i = grid.flags_D3.findIndex(Boolean); if (i < 0) return;
+  play(Math.max(0, grid.downbeats[Math.max(0, i - 1)] - 0.2));
+});
+
+function toggle(kind, btn) {
+  if (!playing) { $("copyStatus").textContent = "Start playback first, then mark while you listen."; return; }
+  const t = now();
+  if (open[kind] === null) { open[kind] = Math.max(0, t - REACT); btn.setAttribute("aria-pressed", "true"); }
+  else { marks[kind].push([+open[kind].toFixed(2), +t.toFixed(2)]); open[kind] = null; btn.setAttribute("aria-pressed", "false"); }
+  updateResult(); draw();
+}
+$("padWrong").addEventListener("click", e => toggle("wrong", e.currentTarget));
+$("padUnsure").addEventListener("click", e => toggle("unsure", e.currentTarget));
+$("padOdd").addEventListener("click", () => { if (!playing) return; marks.odd.push(+Math.max(0, now() - REACT).toFixed(2)); updateResult(); draw(); });
+
+function resetMarks() { marks = { wrong: [], unsure: [], odd: [] }; open = { wrong: null, unsure: null }; heard = []; pos = 0; $("clock").textContent = fmt(0); }
+$("clearMarks").addEventListener("click", () => { stop(); resetMarks(); updateResult(); draw(); });
+
+// --- bar strip ---
+function draw() {
+  const c = $("strip"), css = getComputedStyle(document.documentElement), dpr = window.devicePixelRatio || 1;
+  const W = c.clientWidth, H = c.clientHeight; c.width = W * dpr; c.height = H * dpr;
+  const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const col = n => css.getPropertyValue(n).trim();
+  if (!grid || !buffer) { g.fillStyle = col("--muted"); g.font = "13px " + col("--body"); g.fillText("Load a track and its grid to see its bars.", 8, H / 2); return; }
+  const D = buffer.duration, x = t => (t / D) * W;
+  const rows = [["--flag", 6, 22], ["--wrong", 34, 22], ["--unsure", 34, 22], ["--heard", 62, 10]];
+  g.fillStyle = col("--line"); g.fillRect(0, 84, W, 1);
+  grid.downbeats.forEach((d, i) => {
+    const e = i + 1 < grid.downbeats.length ? grid.downbeats[i + 1] : Math.min(D, d + 2);
+    if (grid.flags_D3 && grid.flags_D3[i]) { g.fillStyle = col("--flag"); g.fillRect(x(d), 6, Math.max(1, x(e) - x(d) - 1), 22); }
+    g.fillStyle = col("--muted"); g.fillRect(x(d), 78, 1, 12);
+  });
+  const span = (arr, name, y, h) => { g.fillStyle = col(name); for (const [a, b] of arr) g.fillRect(x(a), y, Math.max(2, x(b) - x(a)), h); };
+  span(marks.wrong, "--wrong", 34, 22); span(marks.unsure, "--unsure", 34, 22);
+  const t = now();
+  if (open.wrong !== null) span([[open.wrong, t]], "--wrong", 34, 22);
+  if (open.unsure !== null) span([[open.unsure, t]], "--unsure", 34, 22);
+  span(heard, "--heard", 62, 10); if (playing && heardStart !== null) span([[heardStart, t]], "--heard", 62, 10);
+  g.fillStyle = col("--fg"); for (const o of marks.odd) { g.beginPath(); g.moveTo(x(o), 96); g.lineTo(x(o) - 5, 106); g.lineTo(x(o) + 5, 106); g.closePath(); g.fill(); }
+  g.fillStyle = col("--muted"); g.font = "11px " + col("--mono");
+  for (let s = 0; s < D; s += 30) { const lab = fmt(s).replace(".0", ""); if (x(s) + 2 + g.measureText(lab).width <= W) g.fillText(lab, x(s) + 2, 124); }
+  g.fillStyle = col("--now"); g.fillRect(x(t), 0, 2, 112);
+}
+$("strip").addEventListener("click", e => {
+  if (!grid || !buffer) return; const r = e.currentTarget.getBoundingClientRect();
+  const t = ((e.clientX - r.left) / r.width) * buffer.duration; const i = barAt(t);
+  play(Math.max(0, grid.downbeats[Math.max(0, i - 1)] - 0.2));
+});
+window.addEventListener("resize", draw);
+
+// --- result ---
+function merged(a) {
+  const s = [...a].sort((p, q) => p[0] - q[0]), out = [];
+  for (const [x0, x1] of s) { if (out.length && x0 <= out[out.length - 1][1]) out[out.length - 1][1] = Math.max(out[out.length - 1][1], x1); else out.push([x0, x1]); }
+  return out;
+}
+function updateResult() {
+  const h = merged(heard), heardSec = h.reduce((a, [p, q]) => a + q - p, 0), D = buffer ? buffer.duration : 0;
+  const r = { schema: "grid-meter-verify/1.0.0", alias, file_sha256: fileHash, demo: isDemo || undefined,
+    wrong_spans: merged(marks.wrong), unsure_spans: merged(marks.unsure), odd_bars: marks.odd,
+    listened_spans: h, reaction_offset_s: REACT, created: new Date().toISOString() };
+  $("result").value = JSON.stringify(r);
+  $("resMeta").innerHTML = "Heard <b>" + (D ? Math.round(100 * heardSec / D) : 0) + "%</b> of the track · <b>" +
+    r.wrong_spans.length + "</b> off-the-1 spans · <b>" + r.unsure_spans.length + "</b> unsure · <b>" + r.odd_bars.length + "</b> odd bars";
+}
+$("copy").addEventListener("click", async () => {
+  stop(); const t = $("result");
+  try { await navigator.clipboard.writeText(t.value); $("copyStatus").textContent = "Copied. Paste it into the chat."; }
+  catch (e) { t.focus(); t.select(); $("copyStatus").textContent = "Copy was blocked here. The text is selected: copy it manually."; }
+});
+
+loadDemo();
+</script>
