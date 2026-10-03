@@ -38,3 +38,15 @@ Each research pass must leave a written artifact in this folder and link sources
 
 ## Human command
 When Daniel says "go", the AI should first read this control file and the next uncompleted research pass, then work from GitHub.
+
+## Progress
+| Pass | Instructions | Report | Status |
+|---|---|---|---|
+| 01 | [01_GRID_MODEL_RESEARCH.md](01_GRID_MODEL_RESEARCH.md) | [01_GRID_MODEL_REPORT.md](01_GRID_MODEL_REPORT.md) | complete 2026-10-02 |
+| 02 | [02_METER_CHANGE_4_4_BIAS.md](02_METER_CHANGE_4_4_BIAS.md) | [02_METER_CHANGE_4_4_BIAS_REPORT.md](02_METER_CHANGE_4_4_BIAS_REPORT.md) | complete 2026-10-02 |
+| 03 | [03_HUMAN_RESPONSE_RESEARCH.md](03_HUMAN_RESPONSE_RESEARCH.md) | [03_HUMAN_RESPONSE_REPORT.md](03_HUMAN_RESPONSE_REPORT.md) | complete 2026-10-02 |
+| 04 | [04_DJ_DECISION_INTELLIGENCE.md](04_DJ_DECISION_INTELLIGENCE.md) | [04_DJ_DECISION_INTELLIGENCE_REPORT.md](04_DJ_DECISION_INTELLIGENCE_REPORT.md) | complete 2026-10-02 |
+| 05 | [05_ADVERSARIAL_REALITY_CHECK.md](05_ADVERSARIAL_REALITY_CHECK.md) | [05_ADVERSARIAL_REALITY_CHECK_REPORT.md](05_ADVERSARIAL_REALITY_CHECK_REPORT.md) | complete 2026-10-02 |
+| 06 | [06_BAD_D_ARCHITECTURE_MAPPING.md](06_BAD_D_ARCHITECTURE_MAPPING.md) | — | **next** |
+
+Update this table when a pass is completed. A pass is complete only when its report file exists here.

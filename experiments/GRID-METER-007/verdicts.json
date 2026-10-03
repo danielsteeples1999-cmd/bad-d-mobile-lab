@@ -1,0 +1,25 @@
+{
+ "results": {
+  "C1": {
+   "decoded": 551,
+   "silent_errors": 38,
+   "silent_error_rate": 0.06896551724137931,
+   "false_alarms": 28,
+   "correct": 371,
+   "false_alarm_rate": 0.07547169811320754,
+   "trustworthy_coverage": 0.6447368421052632,
+   "cpu_s_per_audio_min": 16.436516025296104
+  },
+  "C6": {
+   "decoded": 595,
+   "silent_errors": 28,
+   "silent_error_rate": 0.047058823529411764,
+   "false_alarms": 58,
+   "correct": 520,
+   "false_alarm_rate": 0.11153846153846154,
+   "trustworthy_coverage": 0.868421052631579,
+   "cpu_s_per_audio_min": 5.457020048237312
+  }
+ },
+ "c6_keeps_candidacy": false
+}
