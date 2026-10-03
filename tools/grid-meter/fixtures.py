@@ -45,9 +45,22 @@ VARIANTS = {
 }
 
 
+# Held-out fixtures (GRID-METER-007): never seen while C5/C6 were designed.
+HELDOUT = {
+    "ho_weak_control": ([4] * 33, "weakcue", "33x4/4, harmony every 2 bars, single crash (weak downbeat cue)"),
+    "ho_weak_odd3": ([4] * 12 + [3] + [4] * 20, "weakcue", "weak cue; one 3-beat bar after 12 bars"),
+    "ho_odd5": ([4] * 20 + [5] + [4] * 12, None, "one 5-beat bar after 20 bars"),
+    "ho_two_odd": ([4] * 8 + [2] + [4] * 12 + [6] + [4] * 12, None, "a 2-beat bar after 8 bars and a 6-beat bar 12 bars later"),
+}
+HELDOUT_TEMPOS = [124, 132, 150, 170]
+
+
 def render_named(name, bpm, seed=1):
     if name in PLANS:
         return render(PLANS[name][0], bpm, seed)
+    if name in HELDOUT:
+        plan, variant, _ = HELDOUT[name]
+        return render(plan, bpm, seed, variant=variant)
     plan, variant, _ = VARIANTS[name]
     return render(plan, bpm, seed, variant=variant)
 
@@ -138,9 +151,14 @@ def render(plan, bpm, seed=1, variant=None):
                              ("deviation" if length != default_len else "regular")})
         if not is_pickup:
             downbeats.append(t_bar)
-            root = CHORD_ROOTS[(len(downbeats) - 1) % 4]
+            weak = variant == "weakcue"  # harmony changes every 2 bars; crash only on the first bar
+            root = CHORD_ROOTS[((len(downbeats) - 1) // 2 if weak else len(downbeats) - 1) % 4]
             bar_n = int(length * beat_s * SR)
-            if variant == "anticipate" and len(downbeats) % 2 == 0 and len(downbeats) > 1:
+            if weak:
+                if (len(downbeats) - 1) % 2 == 0:
+                    span = (length + default_len) * beat_s
+                    _add(buf, int(t_bar * SR), tone(chord_freqs(root), int(span * SR), span, 0.05))
+            elif variant == "anticipate" and len(downbeats) % 2 == 0 and len(downbeats) > 1:
                 # chord pushed an 8th note before the (unchanged) downbeat
                 early = beat_s / 2
                 _add(buf, int((t_bar - early) * SR),
@@ -149,7 +167,7 @@ def render(plan, bpm, seed=1, variant=None):
                 _add(buf, int(t_bar * SR), tone(chord_freqs(root), bar_n, length * beat_s, 0.05))
             phrase_start = (len(downbeats) - 1) % 8 == 0
             after_deviation = prev_len is not None and prev_len != default_len
-            if phrase_start or after_deviation:
+            if (len(downbeats) == 1) if weak else (phrase_start or after_deviation):
                 _add(buf, int(t_bar * SR), C)
         for k in range(length):
             t = t_bar + k * beat_s
@@ -162,7 +180,7 @@ def render(plan, bpm, seed=1, variant=None):
                 _add(buf, i, K)
                 kick_times.append(t)
             if not is_pickup:
-                root = CHORD_ROOTS[(len(downbeats) - 1) % 4]
+                root = CHORD_ROOTS[((len(downbeats) - 1) // 2 if variant == "weakcue" else len(downbeats) - 1) % 4]
                 _add(buf, i, tone([midi_hz(root - 24), midi_hz(root - 12)],
                                   int(beat_s * 0.9 * SR), beat_s * 0.35, 0.35))
             if (half and k == 2) or (not half and ((k + 1) % 2 == 0 or is_pickup)):
