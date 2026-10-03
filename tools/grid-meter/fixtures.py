@@ -54,12 +54,27 @@ HELDOUT = {
 }
 HELDOUT_TEMPOS = [124, 132, 150, 170]
 
+# Second held-out set (GRID-METER-008): never seen while the track-level rule was chosen.
+# "simple" = steady meter or a single odd bar; "complex" = several or repeating odd bars.
+HELDOUT2 = {
+    "h2_weak_steady": ([4] * 33, "weakcue", "simple", "33x4/4, weak downbeat cue"),
+    "h2_weak_odd2": ([4] * 16 + [2] + [4] * 16, "weakcue", "simple", "weak cue; one 2-beat bar"),
+    "h2_odd7": ([4] * 10 + [7] + [4] * 20, None, "simple", "one 7-beat bar after 10 bars"),
+    "h2_three_odd": ([4] * 6 + [2] + [4] * 8 + [3] + [4] * 8 + [6] + [4] * 6, None, "complex",
+                     "2-, 3- and 6-beat bars in one track"),
+    "h2_repeat_odd3": ([4, 4, 4, 3] * 8, None, "complex", "repeating 4,4,4,3 phrase"),
+}
+HELDOUT2_TEMPOS = [118, 136, 156, 176]
+
 
 def render_named(name, bpm, seed=1):
     if name in PLANS:
         return render(PLANS[name][0], bpm, seed)
     if name in HELDOUT:
         plan, variant, _ = HELDOUT[name]
+        return render(plan, bpm, seed, variant=variant)
+    if name in HELDOUT2:
+        plan, variant, _, _ = HELDOUT2[name]
         return render(plan, bpm, seed, variant=variant)
     plan, variant, _ = VARIANTS[name]
     return render(plan, bpm, seed, variant=variant)
