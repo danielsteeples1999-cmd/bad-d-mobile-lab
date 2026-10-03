@@ -2,6 +2,9 @@
 
 **Status:** MEASURED (machine evidence, synthetic fixtures, CPU-time proxy for mobile) · 2026-10-03
 
+> **Held-out update (GRID-METER-007, 2026-10-03):** on 16 unseen fixtures, C6 had a 4.7 % silent error rate and 11.2 % false alarms. It failed both limits, so this result is a **synthetic-only pass**. See [GRID-METER-007](../GRID-METER-007/README.md).
+
+
 **Files:**
 - Pre-registration: [PREREGISTRATION.md](PREREGISTRATION.md). Committed in `355eb3b` before the check ran.
 - Raw: [regularity_results.json](regularity_results.json).
