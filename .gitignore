@@ -6,3 +6,13 @@ dist/
 build/
 coverage/
 *.log
+
+# Python local environments, bytecode, and test/tool caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
