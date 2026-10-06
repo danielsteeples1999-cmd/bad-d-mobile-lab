@@ -1,0 +1,59 @@
+name: BAD-D Repository Automation Health
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: badd-repo-health-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Audit workflow safety and maintainability
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          api="https://api.github.com/repos/${REPO}"
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "${api}/contents/.github/workflows?ref=${REF}" > audit/workflows.json
+          count=$(jq 'length' audit/workflows.json)
+          echo "# BAD-D Repository Automation Health" >> "$GITHUB_STEP_SUMMARY"
+          echo "Repository: ${REPO}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: ${REF}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Workflow files: ${count}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Policy checks" >> "$GITHUB_STEP_SUMMARY"
+          issues=0
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            encoded=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "${api}/contents/${path}?ref=${REF}" | jq -r '.content' | tr -d '\n' | base64 -d)
+            name=$(basename "$path")
+            echo "### ${name}" >> "$GITHUB_STEP_SUMMARY"
+            if printf '%s\n' "$encoded" | grep -Eq '^permissions:'; then echo 'PASS: explicit top-level permissions' >> "$GITHUB_STEP_SUMMARY"; else echo 'WARN: no top-level permissions declaration' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); fi
+            if printf '%s\n' "$encoded" | grep -Eq '^concurrency:'; then echo 'PASS: concurrency declared' >> "$GITHUB_STEP_SUMMARY"; else echo 'WARN: no concurrency declaration' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); fi
+            if printf '%s\n' "$encoded" | grep -q 'pull_request_target:'; then echo 'FAIL: pull_request_target present; review security boundary' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); else echo 'PASS: no pull_request_target' >> "$GITHUB_STEP_SUMMARY"; fi
+            if printf '%s\n' "$encoded" | grep -Eq 'uses:[[:space:]]+[^./][^[:space:]]+@v?[0-9]'; then echo 'WARN: tag-based third-party action reference detected; prefer immutable SHA' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); else echo 'PASS: no obvious tag-based action reference' >> "$GITHUB_STEP_SUMMARY"; fi
+            if printf '%s\n' "$encoded" | grep -Eq 'permissions:[[:space:]]+(write-all|read-all)'; then echo 'FAIL: broad permissions declaration detected' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); else echo 'PASS: no broad permissions declaration' >> "$GITHUB_STEP_SUMMARY"; fi
+            if printf '%s\n' "$encoded" | grep -Eq 'timeout-minutes:'; then echo 'PASS: explicit timeout found' >> "$GITHUB_STEP_SUMMARY"; else echo 'WARN: no explicit timeout found' >> "$GITHUB_STEP_SUMMARY"; issues=$((issues+1)); fi
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          done < <(jq -r '.[].path' audit/workflows.json)
+          echo "## Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "Potential policy findings: ${issues}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo 'UNKNOWN remains UNKNOWN: this audit reports policy gaps; it does not claim the repository is insecure or broken.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No merge, deploy, publish, permission change, or production mutation is performed by this workflow.' >> "$GITHUB_STEP_SUMMARY"
