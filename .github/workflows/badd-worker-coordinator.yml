@@ -1,0 +1,131 @@
+name: BAD-D Worker Coordinator
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+  schedule:
+    - cron: "11,41 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: badd-worker-coordinator-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  coordinate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Coordinate worker state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api() {
+            gh api --header 'Accept: application/vnd.github+json' \
+              --header 'X-GitHub-Api-Version: 2022-11-28' "$@"
+          }
+
+          ensure_label() {
+            local name="$1"
+            local color="$2"
+            local encoded
+            encoded="$(python -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$name")"
+            if ! api "/repos/${REPO}/labels/${encoded}" >/dev/null 2>&1; then
+              api --method POST "/repos/${REPO}/labels" -f name="$name" -f color="$color" >/dev/null 2>&1 || true
+            fi
+          }
+
+          for spec in \
+            "worker-status:taken|1d76db" \
+            "worker-status:complete|2da44e" \
+            "worker-status:failed|cf222e" \
+            "worker-status:pending|fbca04" \
+            "worker-status:available|8250df" \
+            "worker-status:stale|bf8700" \
+            "worker-status:duplicate|d1242f" \
+            "worker-status:retryable|5319e7"; do
+            name="${spec%%|*}"
+            color="${spec##*|}"
+            ensure_label "$name" "$color"
+          done
+
+          issues="$(api "/repos/${REPO}/issues?state=open&per_page=100")"
+          export ISSUES_JSON="$issues"
+
+          python - <<'PY' > /tmp/jobs.tsv
+          import json, os, re
+          data=json.loads(os.environ["ISSUES_JSON"])
+          status_re=re.compile(r'(?im)^\s*(?:STATUS|WORKER_STATUS)\s*:\s*(TAKEN|COMPLETE|FAILED|PENDING|AVAILABLE)\s*$')
+          job_re=re.compile(r'(?im)^\s*JOB_ID\s*:\s*([A-Za-z0-9._:-]+)\s*$')
+          next_re=re.compile(r'(?im)^\s*NEXT_JOB\s*:\s*(#?\d+|NONE)\s*$')
+          retry_re=re.compile(r'(?im)^\s*RETRYABLE\s*:\s*(YES|NO)\s*$')
+          for x in data:
+              body=x.get("body") or ""
+              sm=status_re.search(body); status=sm.group(1).lower() if sm else "available"
+              jm=job_re.search(body); job=jm.group(1) if jm else ""
+              nm=next_re.search(body); nxt=nm.group(1) if nm else ""
+              rm=retry_re.search(body); retry=bool(rm and rm.group(1)=="YES")
+              print(f'{x["number"]}\t{status}\t{job}\t{nxt}\t{int(retry)}\t{x["updated_at"]}')
+          PY
+
+          declare -A seen
+          counts_taken=0; counts_complete=0; counts_failed=0; counts_pending=0; counts_available=0
+
+          while IFS=$'\t' read -r number status job next retry updated; do
+            case "$status" in
+              taken) ((counts_taken+=1)) ;;
+              complete) ((counts_complete+=1)) ;;
+              failed) ((counts_failed+=1)) ;;
+              pending) ((counts_pending+=1)) ;;
+              available) ((counts_available+=1)) ;;
+            esac
+
+            label="worker-status:${status}"
+            api --method POST "/repos/${REPO}/issues/${number}/labels" -f "labels[]=${label}" >/dev/null 2>&1 || true
+
+            if [[ "$retry" == "1" ]]; then
+              api --method POST "/repos/${REPO}/issues/${number}/labels" -f "labels[]=worker-status:retryable" >/dev/null 2>&1 || true
+            fi
+
+            if [[ -n "$job" ]]; then
+              if [[ -n "${seen[$job]:-}" ]]; then
+                prior="${seen[$job]}"
+                api --method POST "/repos/${REPO}/issues/${number}/labels" -f "labels[]=worker-status:duplicate" >/dev/null 2>&1 || true
+                api --method POST "/repos/${REPO}/issues/${number}/comments" \
+                  -f body="AUTOMATED WORKER COORDINATOR: duplicate JOB_ID detected. JOB_ID=${job} is already claimed by #${prior}. Do not start a second implementation. Resolve by continuing the existing claim or explicitly marking one job FAILED/PENDING." >/dev/null
+              else
+                seen[$job]="$number"
+              fi
+            fi
+
+            if [[ "$status" == "complete" && "$next" =~ ^#?([0-9]+)$ ]]; then
+              n="${BASH_REMATCH[1]}"
+              api --method POST "/repos/${REPO}/issues/${n}/comments" \
+                -f body="AUTOMATED WORKER COORDINATOR: predecessor #${number} reports COMPLETE and routes to #${n}. Verify predecessor evidence/provenance before claiming the next job. This is a routing signal, not proof of completion." >/dev/null 2>&1 || true
+            fi
+          done < /tmp/jobs.tsv
+
+          {
+            echo "## BAD-D Worker Coordinator"
+            echo
+            echo "| State | Open jobs |"
+            echo "|---|---:|"
+            echo "| TAKEN | ${counts_taken} |"
+            echo "| COMPLETE | ${counts_complete} |"
+            echo "| FAILED | ${counts_failed} |"
+            echo "| PENDING | ${counts_pending} |"
+            echo "| AVAILABLE/UNMARKED | ${counts_available} |"
+            echo
+            echo "**Rules:** duplicate JOB_ID claims are flagged; COMPLETE only routes work and never proves evidence; UNKNOWN remains UNKNOWN; no merge/deploy/publish is performed by this coordinator."
+          } >> "$GITHUB_STEP_SUMMARY"
