@@ -1,154 +1,55 @@
 # EXPERIMENT PRIORITY QUEUE — LIVE ONLY
 
-> This file contains **current executable work only**.
-> Keep it short. Historical tasks belong in git history or deep-reference documents.
-> Claude should not read a long backlog at session start.
+> Current executable work only. Evidence outranks age and old plans.
 
-## Queue rule
+## P0 — MOBILE-UPDATE-001 — Start the next BAD-D mobile version
 
-Pick the first item that is **runnable and high-information**.
+Canonical task: https://github.com/danielsteeples1999-cmd/bad-d-mobile-lab/issues/6  
+Work packet: [MOBILE_NEXT/README.md](MOBILE_NEXT/README.md)  
+Branch: `claude/mobile-update-001-start`
 
-Priority is based on:
+**Goal:** deliver one real, user-visible mobile improvement with regression evidence. This is now the active priority because the user explicitly requested a mobile update.
 
-**cross-goal leverage × information gain × prevalence × reversibility ÷ cost**
+### Gate 1 — baseline (must precede implementation)
+- In the authorized private workspace, record exact production commit and mobile file SHA-256.
+- Run cold startup five times and record browser/device/OS.
+- Run one representative import; record size, duration, errors and cancel/retry behavior.
+- Do not copy private production source/history into this public lab.
+- If private workspace access is unavailable, mark BLOCKED; do not invent a baseline.
 
-Evidence can reorder the queue.
+### Gate 2 — choose one reproducible defect
+Prioritize startup/import reliability, RAM/large-file stability, touch/viewport fit, and interruption recovery. Select based on measured impact, not guesswork.
 
-Never keep an item active merely because it is old.
+### Gate 3 — isolated implementation
+- Implement one bounded fix in the authorized isolated workspace.
+- Add a deterministic regression test and attack cancellation/retry/lifecycle edges.
+- Record exact commit, app hash, test outputs, known unknowns and evidence provenance.
+- Physical phone verification remains UNKNOWN until a real device is tested.
 
-## P0 — BUILD THE COMPOUNDING ENGINE
+### Exit condition
+A user-visible improvement is implemented and demonstrated on an isolated candidate; regression evidence is tied to its exact identity; existing version remains recoverable. No merge, deployment, release or production promotion without explicit human approval.
 
-### 1. ENGINE-CYCLE-001 — Engineering Cycle Runner
-Question: Can the lab execute one experiment through a repeatable machine-readable lifecycle?
+## P1 — Reusable experiment engine (defer unless directly needed by MOBILE-UPDATE-001)
 
-Minimum lifecycle:
+- ENGINE-CYCLE-001 — repeatable machine-readable experiment lifecycle.
+- ENGINE-ATTACK-001 — invalid input, missing prerequisite, interruption, timeout, resource pressure and corrupted evidence attacks.
+- ENGINE-REGRESS-001 — baseline/candidate comparator with pass/fail/changed/unknown.
+- ENGINE-MEMORY-001 — compact searchable experiment records.
+- ENGINE-PRIORITY-001 — evidence-driven queue ordering.
 
-**load → preflight → validate fixture/prerequisites → run → collect evidence → validate result → record cycle → explicit decision**
+Only build the minimum reusable mechanism required to run the mobile baseline and regression test reliably. Do not let framework-building delay the requested mobile update.
 
-Required:
-- bounded execution budget
-- deterministic result schema
-- clear failure/blocked states
-- compact output
-- evidence record
-- no production access
-- reusable by the next experiment
+## P2 — parked
 
-Exit condition:
-One real existing experiment can run through the cycle and leave a trustworthy result.
+- SCALE-100-001, broad concurrency/scale work.
+- General scheduler/governor work not needed for the first mobile defect.
+- Broad UI redesign, music intelligence, transition research and architecture archaeology.
 
-### 2. ENGINE-ATTACK-001 — Attack Harness
-Question: Can the lab deliberately break an experiment instead of only proving the happy path?
+Revisit when the first mobile candidate is tested or new evidence shows a parked item blocks it.
 
-Start with the cheapest useful attack classes:
-- invalid input
-- missing prerequisite
-- interruption
-- timeout
-- resource pressure
-- corrupted result/evidence
-
-Exit condition:
-At least one experiment is automatically attacked and the failure is recorded without corrupting the evidence store.
-
-### 3. ENGINE-REGRESS-001 — Regression Comparator
-Question: Can a new result automatically detect whether an existing behavior got worse?
-
-Need:
-- baseline vs candidate
-- stable comparison schema
-- pass/fail/changed/unknown states
-- preserved evidence
-- no tolerance cheating
-
-Exit condition:
-A known-good fixture and an intentional regression are both classified correctly.
-
-### 4. ENGINE-MEMORY-001 — Experiment Memory
-Question: Can a future Claude find what was already tested without rereading the repository?
-
-Need compact searchable records for:
-- question
-- hypothesis
-- baseline
-- result
-- evidence
-- failure
-- decision
-- reusable artifact
-- next question
-
-Exit condition:
-A new session can answer “what has already been tried here?” from structured records rather than broad document reading.
-
-### 5. ENGINE-PRIORITY-001 — Evidence-Driven Queue
-Question: Can the queue choose the next useful experiment from evidence rather than stale planning?
-
-Need:
-- one active P0/P1 item at a time unless two cheap tests are truly parallel
-- explicit dependencies
-- information gain
-- cost/budget
-- known unknowns
-- stop conditions
-- automatic demotion of answered questions
-
-Exit condition:
-The queue can explain why its top item is next and can change order when new evidence changes the economics.
-
-## P1 — PULL FORWARD WHEN THE ENGINE IS READY
-
-These are **not active unless the P0 engine can run them**:
-
-- SCALE-100-001 — concurrency/scale reproduction and plateau measurement
-- mobile startup reproduction
-- RAM/object-lifetime probe
-- cooperative scheduler/yield benchmark
-- adaptive workload governor
-- checkpoint/recovery interruption matrix
-- audio continuity under load
-- mobile capability matrix
-- device-local diagnostics
-- Testing Deck evidence/admission gates
-- benchmark/soak/stress harness
-
-When one is selected, give it a fresh experiment ID and record the actual evidence. Do not resurrect a stale task description unchanged.
-
-## P2 — DEFERRED RESEARCH
-
-Keep these out of the active brain until the current mechanism is measurable:
-
-- music intelligence
-- transition/journey experiments
-- controlled genre bleeding
-- perceptual-vs-numerical disagreement
-- personal preference calibration
-- future adapter contracts
-- old-code archaeology
-- broad architecture research
-- tutorial/documentation expansion
-
-## Queue maintenance
-
-After every substantive experiment:
-
-1. mark the item with evidence-backed status;
-2. record the commit/artifact;
-3. record the remaining unknown;
-4. promote a lower item only when its expected information gain is higher;
-5. remove answered/stale items from the live queue;
-6. update this file if ordering changed.
-
-## Never do this
-
-- Do not maintain a 30–50 item active backlog.
-- Do not repeat a completed experiment because its old task still exists.
-- Do not read historical planning documents just because they exist.
-- Do not create a new framework when an existing probe/tool can answer the question.
-- Do not spend a cycle polishing documentation while executable work is available.
-- Do not call simulation physical-device evidence.
-- Do not claim verified without the required evidence.
-
-**Live queue = what Claude should act on now.**
-**Git history = what happened before.**
-**Deep-reference docs = only what is needed to reason about the current task.**
+## Queue rules
+- One active P0 at a time unless two cheap experiments are genuinely independent.
+- Record exact commit/hash, status, confidence, impact, unknowns, cheapest falsifiable experiment and next action.
+- Runtime, performance, mobile, audio and recovery claims require their corresponding evidence.
+- Never claim physical-device verification from simulation.
+- No production access or promotion from this public lab.
