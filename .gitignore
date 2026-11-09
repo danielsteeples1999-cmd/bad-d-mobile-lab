@@ -6,3 +6,8 @@ dist/
 build/
 coverage/
 *.log
+__pycache__/
+*.pyc
+# GRID-METER-003: real-track outputs may carry private track names
+**/private_names.json
+real_out/

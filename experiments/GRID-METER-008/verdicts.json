@@ -1,0 +1,71 @@
+{
+ "results": {
+  "C1": {
+   "all": {
+    "decoded": 650,
+    "silent_errors": 28,
+    "silent_error_rate": 0.043076923076923075,
+    "false_alarms": 26,
+    "correct": 361,
+    "false_alarm_rate": 0.07202216066481995,
+    "trustworthy_coverage": 0.5234375,
+    "cpu_s_per_audio_min": 14.721805075837212
+   },
+   "simple": {
+    "decoded": 403,
+    "silent_errors": 19,
+    "silent_error_rate": 0.04714640198511166,
+    "false_alarms": 16,
+    "correct": 290,
+    "false_alarm_rate": 0.05517241379310345,
+    "trustworthy_coverage": 0.7061855670103093,
+    "cpu_s_per_audio_min": 15.112078668842216
+   }
+  },
+  "C6": {
+   "all": {
+    "decoded": 816,
+    "silent_errors": 26,
+    "silent_error_rate": 0.031862745098039214,
+    "false_alarms": 155,
+    "correct": 618,
+    "false_alarm_rate": 0.25080906148867316,
+    "trustworthy_coverage": 0.7234375,
+    "cpu_s_per_audio_min": 5.322120438504279
+   },
+   "simple": {
+    "decoded": 411,
+    "silent_errors": 13,
+    "silent_error_rate": 0.031630170316301706,
+    "false_alarms": 11,
+    "correct": 376,
+    "false_alarm_rate": 0.02925531914893617,
+    "trustworthy_coverage": 0.9407216494845361,
+    "cpu_s_per_audio_min": 5.370614360379383
+   }
+  },
+  "C7": {
+   "all": {
+    "decoded": 816,
+    "silent_errors": 13,
+    "silent_error_rate": 0.015931372549019607,
+    "false_alarms": 253,
+    "correct": 618,
+    "false_alarm_rate": 0.40938511326860844,
+    "trustworthy_coverage": 0.5703125,
+    "cpu_s_per_audio_min": 5.322120438504279
+   },
+   "simple": {
+    "decoded": 411,
+    "silent_errors": 13,
+    "silent_error_rate": 0.031630170316301706,
+    "false_alarms": 11,
+    "correct": 376,
+    "false_alarm_rate": 0.02925531914893617,
+    "trustworthy_coverage": 0.9407216494845361,
+    "cpu_s_per_audio_min": 5.370614360379383
+   }
+  }
+ },
+ "c7_passes": true
+}

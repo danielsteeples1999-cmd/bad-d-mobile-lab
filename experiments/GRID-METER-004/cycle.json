@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-004",
+  "queue_task_id": "GRID-METER-004",
+  "objective": "Test whether a single-network configuration gives fail-closed downbeats as safely as madmom DBN + D3 at materially lower CPU cost.",
+  "current_unknown": "Whether the two-network D3 candidate can be replaced by a cheaper configuration for mobile.",
+  "hypothesis": "A single-network configuration meets: silent error rate <= C1 + 0.005, false-alarm rate <= 0.05, cost <= 0.6 x C1.",
+  "competing_hypotheses": [
+    "Beat This! minimal is accurate enough that its own activation contrast suffices (C2).",
+    "madmom's own activations suffice without a second network (C3).",
+    "Only cross-network disagreement catches silent errors (C1 stays)."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Configurations, metrics and decision rule pre-registered in commit f3fa43d.", "evidence": "experiments/GRID-METER-004/PREREGISTRATION.md"},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "output": "32/32 FIXTURE_ACCEPTED (same fixtures as GRID-METER-002).", "evidence": "experiments/GRID-METER-004/configs_results.json rows[].fixture_gate"},
+    {"stage": "BUILD", "status": "DONE", "output": "tools/grid-meter/run_configs.py and score_configs.py."},
+    {"stage": "MEASURE", "status": "DONE", "output": "4 configurations x 32 fixtures, per-stage process CPU time at 1 torch thread, 527 s wall.", "evidence": "experiments/GRID-METER-004/summary.md"},
+    {"stage": "ATTACK", "status": "SKIPPED", "note": "No new mechanism built; the false-alarm traps from GRID-METER-002 (sync_anticip, halftime_switch) are inside the decision set."},
+    {"stage": "REGRESSION", "status": "SKIPPED", "note": "Same fixture generator as GRID-METER-002; audio hashes recorded per row for future comparison."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-004/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "No single-network configuration recommended; C1 silent error 0.029 vs C2 0.049, C2 cost 34% of C1 with 0.991 trustworthy coverage."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "GRID-METER-003 (real tracks) stays first; GRID-METER-005 cheap second opinion for C2 queued as candidate."}
+  ],
+  "measurements": {
+    "C1": {"silent_error_rate": 0.0286, "silent_wilson95": [0.0191, 0.0426], "false_alarm_rate": 0.0474, "trustworthy_coverage": 0.7906, "cpu_s_per_audio_min": 16.38},
+    "C2": {"silent_error_rate": 0.0485, "silent_wilson95": [0.0358, 0.0654], "false_alarm_rate": 0.0, "trustworthy_coverage": 0.9911, "cpu_s_per_audio_min": 5.49},
+    "C3": {"silent_error_rate": 0.0858, "false_alarm_rate": 0.0459, "trustworthy_coverage": 0.7919, "cpu_s_per_audio_min": 10.89},
+    "C4": {"silent_error_rate": 0.0648, "false_alarm_rate": 0.0026, "trustworthy_coverage": 0.9772, "cpu_s_per_audio_min": 5.92},
+    "stage_cpu_s_per_audio_min": {"madmom_rnn": 8.78, "madmom_dbn": 2.0, "beat_this_net": 5.35, "beat_this_dbn_post": 0.44},
+    "audio_minutes": 31.2, "wall_seconds": 527.2
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-002", "compared_metric": null, "result": "NOT_CHECKED", "detail": "Different metric family (silent error / coverage); no direct regression comparison made."},
+  "limitations": [
+    "Synthetic fixtures only.",
+    "CPU time on an x86 container core is a proxy; no device, memory or WASM/ONNX measurement.",
+    "Small silent-error counts; Wilson intervals of C1 and C2 overlap slightly."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "configuration safety/cost harness", "path": "tools/grid-meter/run_configs.py", "reuse_proof": "USED_ONCE"},
+    {"name": "grid-meter fixtures + detectors", "path": "tools/grid-meter/", "reuse_proof": "USED_TWICE_PLUS"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Real-track error rates may change which configuration matters; still blocked on one human input."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": ["None for this cycle. Device-level cost needs a real phone run."],
+  "generated_at": "2026-10-03T07:00:00Z",
+  "generator_tool": "tools/grid-meter/run_configs.py + score_configs.py + manual cycle record"
+}

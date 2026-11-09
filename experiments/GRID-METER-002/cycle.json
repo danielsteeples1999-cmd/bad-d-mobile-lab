@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-002",
+  "queue_task_id": "GRID-METER-002",
+  "objective": "Find a pre-registered, parameter-free per-bar detector that flags silently mis-phased downbeats with recall >= 0.90 and false-alarm rate <= 0.05.",
+  "current_unknown": "Whether the downbeat-phase errors found in GRID-METER-001 can be detected per bar so craft automation can fail closed.",
+  "hypothesis": "D1 (in-bar activation contrast), D2 (cross-decoder disagreement) or D3 (D1 or D2) meets both criteria for at least one primary decoder.",
+  "competing_hypotheses": [
+    "Activation contrast alone suffices (D1).",
+    "Decoder disagreement alone suffices (D2).",
+    "No cheap signal separates mis-phased from correct downbeats without unacceptable false alarms."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Detectors and criteria pre-registered in commit 671d9eb before any detector ran.", "evidence": "experiments/GRID-METER-002/PREREGISTRATION.md"},
+    {"stage": "BASELINE", "status": "DONE", "output": "GRID-METER-001 error set reused as ground-truth failure population.", "evidence": "experiments/GRID-METER-001/results.json"},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "output": "32/32 FIXTURE_ACCEPTED; 24/24 GRID-METER-001 fixtures bit-identical after generator change.", "evidence": "experiments/GRID-METER-002/detect_results.json rows[].fixture_gate, audio_sha256"},
+    {"stage": "BUILD", "status": "DONE", "output": "tools/grid-meter/detect.py, run_detect.py, score_detect.py; constant-meter variant fixtures."},
+    {"stage": "TEST", "status": "DONE", "output": "10/10 self-tests pass, incl. detector quiet-on-correct and flags-phase-shift.", "evidence": "tools/grid-meter/test_grid_meter.py"},
+    {"stage": "ATTACK", "status": "DONE", "output": "False-alarm traps: syncopated chord anticipation and half-time drum switch (meter unchanged). D2 produced 0 false alarms on both; D1 produced 5 each."},
+    {"stage": "MEASURE", "status": "DONE", "output": "32 fixtures, 2 primary decoders, 3 detectors in 358 s.", "evidence": "experiments/GRID-METER-002/summary.md"},
+    {"stage": "REGRESSION", "status": "DONE", "output": "Fixture generator: 0/24 audio hashes changed."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-002/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "D3 passes for madmom DBN on point estimates (recall 0.920, FA 0.038); D2 is precise (0/524 FA) but recall 0.869; detectors fail for Beat This!+DBN where reference shares its network."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "Next: GRID-METER-003 real-track validation (needs human-confirmed bar annotations)."}
+  ],
+  "attacks": [
+    {"attack": "UNEXPECTED_ORDERING", "relevance": "Syncopation (early chord arrival) can masquerade as a downbeat shift (Pass 05 F3).", "result": "SURVIVED", "detail": "madmom D3 false alarms 5/132 on sync_anticip, all from D1; D2 0/132.", "evidence": "experiments/GRID-METER-002/summary.md"},
+    {"attack": "TIMING_BOUNDARY", "relevance": "Half-time drum switch changes felt pulse without meter change (Pass 05 F4).", "result": "SURVIVED", "detail": "madmom D3 false alarms 5/132 on halftime_switch, all from D1; D2 0/132.", "evidence": "experiments/GRID-METER-002/summary.md"}
+  ],
+  "measurements": {
+    "madmom_D3_recall": 0.920, "madmom_D3_recall_wilson95": [0.862, 0.955],
+    "madmom_D3_false_alarm": 0.038, "madmom_D3_false_alarm_wilson95": [0.025, 0.058],
+    "madmom_D2_recall": 0.869, "madmom_D2_false_alarm": 0.0,
+    "madmom_D1_recall": 0.591, "madmom_D1_false_alarm": 0.038,
+    "beat_this_dbn_best_recall": 0.594,
+    "fixtures": 32, "wall_seconds": 358.5
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-001", "compared_metric": "fixture audio_sha256", "result": "NO_REGRESSION", "detail": "24/24 fixtures bit-identical after adding variant support."},
+  "limitations": [
+    "Synthetic fixtures only; real-track recall and false-alarm rate unknown.",
+    "Confidence intervals straddle both thresholds; pass is on point estimates only.",
+    "D3 needs two networks per track; mobile cost unknown.",
+    "D1 false alarms are structured (track end; crash bars at 174 BPM)."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "per-bar meter-error detectors", "path": "tools/grid-meter/detect.py", "reuse_proof": "USED_ONCE"},
+    {"name": "grid-meter fixtures + acceptance gate", "path": "tools/grid-meter/fixtures.py", "reuse_proof": "USED_TWICE_PLUS"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Synthetic pass is necessary but not sufficient; odd-bar prevalence and real-track detector performance are the deciding unknowns."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": [
+    "GRID-METER-003 requires human-confirmed bar-level annotations of real tracks (Daniel's library, by ear) or use of a public downbeat-annotated dataset."
+  ],
+  "generated_at": "2026-10-02T16:00:00Z",
+  "generator_tool": "tools/grid-meter/run_detect.py + score_detect.py + manual cycle record"
+}
