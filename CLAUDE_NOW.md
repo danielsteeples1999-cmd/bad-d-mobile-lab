@@ -1,8 +1,11 @@
 # CLAUDE NOW — CURRENT CONTROL PLANE
 
 > READ THIS FIRST. This is the highest-priority operating instruction for the lab.
-> Last refreshed: 2026-09-21 UTC.
+> Last refreshed: 2026-11-13 UTC.
 > If repository evidence or the latest experiment record contradicts this file, trust the evidence and update this file before continuing.
+
+## Current status (2026-11-13)
+Main branch remains documentation/research-heavy. Executable P0 engine items (cycle runner, attack harness, regression comparator, experiment memory) are not started. Open safe micro-PRs (#3, #4) and older issues (#5, #6) have been stalled since early/mid October. GRID-METER experiments exist in open PR #2 with useful synthetic results. Bottleneck is conversion of knowledge into minimal reusable instrumentation. See GAPS_AND_STATUS.md for the living list of missing items and the idle-behavior rule.
 
 ## 1. Mission
 
@@ -30,7 +33,8 @@ Do not optimize for document count, feature count, or large diffs.
 1. CLAUDE_NOW.md — current operating truth.
 2. EXPERIMENT_PRIORITY_QUEUE.md — current work only.
 3. README.md — purpose and boundary.
-4. Exact files/tests/code needed for the current queue item.
+4. GAPS_AND_STATUS.md — missing/incomplete tracker and idle rule.
+5. Exact files/tests/code needed for the current queue item.
 
 ### Read on demand, not by default
 - CLAUDE_EXECUTIVE_BRAIN.md — deep architecture/reasoning context.
@@ -55,6 +59,8 @@ Before coding:
 6. state competing hypotheses briefly.
 
 Then work.
+
+**Idle rule**: If the human has done nothing new, confirm status only and do nothing speculative. Copy the idle behavior.
 
 ## 5. 20-minute execution budget
 - 20 min active work maximum
