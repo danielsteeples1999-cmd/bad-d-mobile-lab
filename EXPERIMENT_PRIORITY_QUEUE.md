@@ -19,6 +19,7 @@ Never keep an item active merely because it is old.
 ## P0 — BUILD THE COMPOUNDING ENGINE
 
 ### 1. ENGINE-CYCLE-001 — Engineering Cycle Runner
+**Status: SKELETON PRESENT** (commit 16a54eb — engine/cycle_runner.py)
 Question: Can the lab execute one experiment through a repeatable machine-readable lifecycle?
 
 Minimum lifecycle:
@@ -36,6 +37,8 @@ Required:
 
 Exit condition:
 One real existing experiment can run through the cycle and leave a trustworthy result.
+
+**Remaining:** Supply a real fixture; replace placeholder; prove one full cycle with evidence.
 
 ### 2. ENGINE-ATTACK-001 — Attack Harness
 Question: Can the lab deliberately break an experiment instead of only proving the happy path?
