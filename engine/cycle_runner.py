@@ -12,12 +12,13 @@ Evidence: this file + schema. Runtime verification requires a real fixture.
 """
 
 import json
+import os
 import time
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.1-minimal"
+SCHEMA_VERSION = "1.0.2-probe"
 
 @dataclass
 class CycleResult:
@@ -71,22 +72,38 @@ def run_cycle(
             decision = f"Fixture missing keys: {missing}"
             evidence["missing_keys"] = missing
         else:
-            # Simple real measurement: count items and time a loop
-            items = fixture.get("items", [])
-            count = 0
-            for _ in items:
-                count += 1
-                if time.time() - start > max_seconds:
-                    status = "timeout"
-                    decision = "Exceeded budget during measurement."
-                    break
+            probe_type = fixture.get("probe", "count")
+            if probe_type == "file_presence":
+                # Non-trivial real probe: check file existence (lab-safe)
+                path = fixture.get("path", "README.md")
+                exists = os.path.exists(path)
+                evidence["file_exists"] = exists
+                evidence["checked_path"] = path
+                if exists:
+                    status = "success"
+                    decision = f"File presence probe passed for {path}."
+                    next_action = "Add attack case (missing file) or expand to hash check."
+                    limitations = ["simple os.path check — not timing or memory yet"]
+                else:
+                    status = "failure"
+                    decision = f"File {path} missing."
             else:
-                status = "success"
-                decision = f"Cycle completed with {count} items measured."
-                next_action = "Add attack or regression check on this result."
-                evidence["measured_count"] = count
-                evidence["note"] = "real trivial measurement performed"
-                limitations = ["trivial fixture — proves lifecycle only"]
+                # Original trivial count
+                items = fixture.get("items", [])
+                count = 0
+                for _ in items:
+                    count += 1
+                    if time.time() - start > max_seconds:
+                        status = "timeout"
+                        decision = "Exceeded budget during measurement."
+                        break
+                else:
+                    status = "success"
+                    decision = f"Cycle completed with {count} items measured."
+                    next_action = "Add attack or regression check on this result."
+                    evidence["measured_count"] = count
+                    evidence["note"] = "real trivial measurement performed"
+                    limitations = ["trivial fixture — proves lifecycle only"]
 
     elapsed = time.time() - start
     budget["elapsed"] = round(elapsed, 3)
@@ -109,22 +126,40 @@ def run_cycle(
     )
 
 def main():
-    # Trivial real fixture that succeeds
-    trivial_fixture = {
-        "required_keys": ["items"],
-        "items": [1, 2, 3, 4, 5],
-        "description": "deterministic count fixture"
+    # File-presence probe (non-trivial real measurement)
+    file_fixture = {
+        "required_keys": ["probe", "path"],
+        "probe": "file_presence",
+        "path": "README.md",
+        "description": "check lab entrypoint exists"
     }
     result = run_cycle(
-        "ENGINE-CYCLE-001-TRIVIAL",
-        "Can the cycle complete a real trivial measurement with evidence?",
-        fixture=trivial_fixture
+        "ENGINE-CYCLE-001-FILEPROBE",
+        "Can the cycle complete a real file-presence probe with evidence?",
+        fixture=file_fixture
     )
     print(json.dumps(asdict(result), indent=2))
     # Write evidence
     with open("engine/last_cycle.json", "w") as f:
         json.dump(asdict(result), f, indent=2)
     print("\nEvidence written to engine/last_cycle.json")
+
+    # Basic attack stub example (missing file)
+    attack_fixture = {
+        "required_keys": ["probe", "path"],
+        "probe": "file_presence",
+        "path": "nonexistent-file.txt",
+        "description": "attack: missing file should fail cleanly"
+    }
+    attack_result = run_cycle(
+        "ENGINE-CYCLE-001-ATTACK-MISSING",
+        "Does the cycle record clean failure on missing prerequisite?",
+        fixture=attack_fixture
+    )
+    print("\nAttack result:")
+    print(json.dumps(asdict(attack_result), indent=2))
+    with open("engine/last_attack.json", "w") as f:
+        json.dump(asdict(attack_result), f, indent=2)
 
 if __name__ == "__main__":
     main()
