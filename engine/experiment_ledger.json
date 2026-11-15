@@ -1,0 +1,22 @@
+[
+  {
+    "experiment_id": "ENGINE-CYCLE-001-TRIVIAL",
+    "date": "2026-11-15",
+    "question": "Can the cycle complete a real trivial measurement with evidence?",
+    "status": "success",
+    "evidence": "engine/last_cycle.json (prior)",
+    "decision": "Lifecycle proven with count fixture",
+    "reusable": "cycle_runner.py",
+    "next": "non-trivial probe"
+  },
+  {
+    "experiment_id": "ENGINE-CYCLE-001-FILEPROBE",
+    "date": "2026-11-16",
+    "question": "Can the cycle complete a real file-presence probe with evidence?",
+    "status": "success",
+    "evidence": "engine/last_cycle.json",
+    "decision": "File probe works; expands beyond trivial",
+    "reusable": "cycle_runner.py probe support",
+    "next": "hash or timing probe + full attack harness"
+  }
+]
