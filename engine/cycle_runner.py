@@ -17,7 +17,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.0-minimal"
+SCHEMA_VERSION = "1.0.1-minimal"
 
 @dataclass
 class CycleResult:
@@ -62,16 +62,35 @@ def run_cycle(
         status = "blocked"
         evidence["reason"] = "no fixture"
     else:
-        # Placeholder for real run — replace with actual probe
-        status = "success"
-        decision = "Skeleton cycle completed; replace placeholder with real measurement."
-        next_action = "Implement the actual experiment body."
-        evidence["note"] = "placeholder success"
-        limitations = ["placeholder implementation"]
+        # Real minimal fixture: measure something deterministic
+        # Example: validate that fixture has required keys and record a timing
+        required = fixture.get("required_keys", [])
+        missing = [k for k in required if k not in fixture]
+        if missing:
+            status = "failure"
+            decision = f"Fixture missing keys: {missing}"
+            evidence["missing_keys"] = missing
+        else:
+            # Simple real measurement: count items and time a loop
+            items = fixture.get("items", [])
+            count = 0
+            for _ in items:
+                count += 1
+                if time.time() - start > max_seconds:
+                    status = "timeout"
+                    decision = "Exceeded budget during measurement."
+                    break
+            else:
+                status = "success"
+                decision = f"Cycle completed with {count} items measured."
+                next_action = "Add attack or regression check on this result."
+                evidence["measured_count"] = count
+                evidence["note"] = "real trivial measurement performed"
+                limitations = ["trivial fixture — proves lifecycle only"]
 
     elapsed = time.time() - start
     budget["elapsed"] = round(elapsed, 3)
-    if elapsed > max_seconds:
+    if elapsed > max_seconds and status != "timeout":
         status = "timeout"
         decision = "Exceeded budget."
 
@@ -90,8 +109,17 @@ def run_cycle(
     )
 
 def main():
-    # Example self-test (no real fixture)
-    result = run_cycle("ENGINE-CYCLE-001-SELF", "Can the cycle produce a structured result?")
+    # Trivial real fixture that succeeds
+    trivial_fixture = {
+        "required_keys": ["items"],
+        "items": [1, 2, 3, 4, 5],
+        "description": "deterministic count fixture"
+    }
+    result = run_cycle(
+        "ENGINE-CYCLE-001-TRIVIAL",
+        "Can the cycle complete a real trivial measurement with evidence?",
+        fixture=trivial_fixture
+    )
     print(json.dumps(asdict(result), indent=2))
     # Write evidence
     with open("engine/last_cycle.json", "w") as f:
