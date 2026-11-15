@@ -5,25 +5,25 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-15)
+## Current tracked items (as of 2026-11-16)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: Trivial fixture proven (44ccbc4). Still needs a non-trivial real probe (e.g. startup timing or file-hash check) before calling the lifecycle production-ready for other experiments.
-- ENGINE-ATTACK-001: Not started. No attack harness exists.
-- ENGINE-MEMORY-001: No searchable experiment ledger. Future sessions still must re-read docs.
+- ENGINE-CYCLE-001: File-presence probe + basic attack stub proven (6b9258d). Still needs timing/hash probe and full attack harness before broader use.
+- ENGINE-ATTACK-001: Basic missing-file attack recorded (engine/last_attack.json). Full harness (timeout, resource, interruption) not started.
+- ENGINE-MEMORY-001: Seed ledger created (engine/experiment_ledger.json, b5139a5). Needs query interface and auto-append on cycle end.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced.
 
 ### From PAST_WORK_REVIEW / Conversion Order
-- Deterministic fixture system: only trivial count exists; no general fixture loader or golden fixtures.
-- Experiment result schema: partial (CycleResult); needs versioned, stable, machine-readable across tools.
+- Deterministic fixture system: count + file-presence exist; no general fixture loader or golden fixtures.
+- Experiment result schema: partial (CycleResult v1.0.2); needs versioned, stable, machine-readable across tools.
 - Benchmark runner: absent.
 - Startup probe / memory lifetime probe / interruption harness: documented in maps but no executable versions.
-- Regression comparator and failure injector: listed in queue but not implemented.
+- Regression comparator and failure injector: listed in queue but not implemented (attack stub is first step).
 
 ### From Six-Month Program / Expansion Map (Stage 1 gaps)
 - Startup benchmark + first-interactive timing: not instrumented in lab.
 - Memory observation / long-task observation: missing.
-- Machine-readable experiment ledger: missing (overlaps ENGINE-MEMORY).
+- Machine-readable experiment ledger: seed present; full searchable version missing.
 - Browser capability report: missing.
 - Audio stability probe: deferred until engine ready.
 
