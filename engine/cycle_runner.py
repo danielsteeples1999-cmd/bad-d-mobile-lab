@@ -18,7 +18,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.2-probe"
+SCHEMA_VERSION = "1.0.3-probe"
 LEDGER_PATH = "engine/experiment_ledger.json"
 
 @dataclass
@@ -112,6 +112,24 @@ def run_cycle(
                 else:
                     status = "failure"
                     decision = f"File {path} missing."
+            elif probe_type == "timing":
+                # Cheap timing probe: perf_counter around os.stat (lab-safe)
+                path = fixture.get("path", "README.md")
+                t0 = time.perf_counter()
+                try:
+                    st = os.stat(path)
+                    elapsed_ms = (time.perf_counter() - t0) * 1000
+                    evidence["stat_ms"] = round(elapsed_ms, 3)
+                    evidence["size_bytes"] = st.st_size
+                    evidence["checked_path"] = path
+                    status = "success"
+                    decision = f"Timing probe completed for {path} in {elapsed_ms:.3f}ms."
+                    next_action = "Compare multiple runs or expand to open() timing."
+                    limitations = ["single stat call — not full startup or memory probe"]
+                except Exception as e:
+                    status = "failure"
+                    decision = f"Timing probe failed: {e}"
+                    evidence["error"] = str(e)
             else:
                 # Original trivial count
                 items = fixture.get("items", [])
@@ -191,6 +209,23 @@ def main():
     print(json.dumps(asdict(attack_result), indent=2))
     with open("engine/last_attack.json", "w") as f:
         json.dump(asdict(attack_result), f, indent=2)
+
+    # Cheap timing probe
+    timing_fixture = {
+        "required_keys": ["probe", "path"],
+        "probe": "timing",
+        "path": "README.md",
+        "description": "measure os.stat timing"
+    }
+    timing_result = run_cycle(
+        "ENGINE-CYCLE-001-TIMING",
+        "Can the cycle complete a real timing probe with evidence?",
+        fixture=timing_fixture
+    )
+    print("\nTiming result:")
+    print(json.dumps(asdict(timing_result), indent=2))
+    with open("engine/last_timing.json", "w") as f:
+        json.dump(asdict(timing_result), f, indent=2)
 
 if __name__ == "__main__":
     main()
