@@ -5,17 +5,17 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-16 post-evidence-commit + query helper)
+## Current tracked items (as of 2026-11-16 post-hash-probe + timeout stub)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: File-presence + timing probes + basic attack stub implemented in cycle_runner.py (schema 1.0.3-probe). **last_*.json committed as evidence** (40afc99, c9584cc, a49bfda). Still needs hash probe and full attack harness before broader use.
-- ENGINE-ATTACK-001: Basic missing-file attack in main(). Full harness (timeout, resource, interruption, corrupted evidence) not started.
+- ENGINE-CYCLE-001: File-presence + timing + **hash probes** + basic attack stub implemented in cycle_runner.py (schema 1.0.4-hash). **last_*.json committed as evidence** (prior). Hash + timeout attack added (6c1c42f). Still needs full multi-class attack harness and richer probes before broader use.
+- ENGINE-ATTACK-001: Basic missing-file + **timeout stub** in main(). Full harness (resource, interruption, corrupted evidence, invalid fixture) not started.
 - ENGINE-MEMORY-001: Seed ledger created (engine/experiment_ledger.json). **Auto-append on cycle end COMPLETE** (da22f62). **Evidence files committed. Minimal query helper added** (query_ledger.py). Still needs richer query or searchable index.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
 
 ### From PAST_WORK_REVIEW / Conversion Order
-- Deterministic fixture system: count + file-presence + timing exist; no general fixture loader or golden fixtures.
-- Experiment result schema: partial (CycleResult v1.0.3-probe); needs versioned, stable, machine-readable across tools.
+- Deterministic fixture system: count + file-presence + timing + hash exist; no general fixture loader or golden fixtures.
+- Experiment result schema: partial (CycleResult v1.0.4-hash); needs versioned, stable, machine-readable across tools.
 - Benchmark runner: absent.
 - Startup probe / memory lifetime probe / interruption harness: documented in maps but no executable versions.
 - Regression comparator and failure injector: listed in queue but not implemented (attack stub is first step).
@@ -45,5 +45,6 @@
 - ~~Add a simple timing probe (os.stat or time.perf_counter around file open).~~ COMPLETE (4993fc1)
 - ~~Commit the runtime last_cycle.json / last_attack.json / last_timing.json as evidence.~~ COMPLETE (40afc99 et al.)
 - ~~Minimal query helper for the ledger (e.g. list by status or id).~~ COMPLETE (query_ledger.py)
-- Hash probe for file content integrity.
-- Expand attack harness with one more class (e.g. timeout or invalid fixture).
+- ~~Hash probe for file content integrity.~~ COMPLETE (6c1c42f — cycle_runner.py hash probe)
+- Expand attack harness with one more class (e.g. invalid fixture or resource pressure).
+- Richer query helper (filter by date/range, export compact summary).
