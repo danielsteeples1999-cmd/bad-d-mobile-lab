@@ -1,0 +1,24 @@
+{
+  "experiment_id": "ENGINE-CYCLE-001-FILEPROBE",
+  "question": "Can the cycle complete a real file-presence probe with evidence?",
+  "status": "success",
+  "started_at": "2026-11-16T04:14:21.693449+00:00",
+  "finished_at": "2026-11-16T04:14:21.693535+00:00",
+  "duration_s": 0.0,
+  "evidence": {
+    "fixture_present": true,
+    "schema": "1.0.3-probe",
+    "file_exists": true,
+    "checked_path": "README.md"
+  },
+  "decision": "File presence probe passed for README.md.",
+  "next_action": "Add attack case (missing file) or expand to hash check.",
+  "limitations": [
+    "simple os.path check — not timing or memory yet"
+  ],
+  "budget_used": {
+    "max_seconds": 20,
+    "elapsed": 0.0,
+    "repeats": 0
+  }
+}
