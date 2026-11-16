@@ -14,11 +14,12 @@ Evidence: this file + schema. Runtime verification requires a real fixture.
 import json
 import os
 import time
+import hashlib
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.3-probe"
+SCHEMA_VERSION = "1.0.4-hash"
 LEDGER_PATH = "engine/experiment_ledger.json"
 
 @dataclass
@@ -45,7 +46,7 @@ def append_to_ledger(result: CycleResult) -> None:
         "date": result.started_at[:10],
         "question": result.question,
         "status": result.status,
-        "evidence": "engine/last_cycle.json or last_attack.json",
+        "evidence": "engine/last_cycle.json or last_attack.json or last_hash.json",
         "decision": result.decision,
         "reusable": "cycle_runner.py",
         "next": result.next_action,
@@ -61,6 +62,17 @@ def append_to_ledger(result: CycleResult) -> None:
     ledger.append(entry)
     with open(LEDGER_PATH, "w") as f:
         json.dump(ledger, f, indent=2)
+
+def compute_hash(path: str) -> Optional[str]:
+    """SHA-256 of file content. Returns None on missing/error."""
+    try:
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except Exception:
+        return None
 
 def run_cycle(
     experiment_id: str,
@@ -89,7 +101,6 @@ def run_cycle(
         evidence["reason"] = "no fixture"
     else:
         # Real minimal fixture: measure something deterministic
-        # Example: validate that fixture has required keys and record a timing
         required = fixture.get("required_keys", [])
         missing = [k for k in required if k not in fixture]
         if missing:
@@ -130,6 +141,26 @@ def run_cycle(
                     status = "failure"
                     decision = f"Timing probe failed: {e}"
                     evidence["error"] = str(e)
+            elif probe_type == "hash":
+                # Content integrity probe: SHA-256 of file
+                path = fixture.get("path", "README.md")
+                expected = fixture.get("expected_hash")
+                actual = compute_hash(path)
+                evidence["checked_path"] = path
+                evidence["actual_hash"] = actual
+                if actual is None:
+                    status = "failure"
+                    decision = f"Hash probe failed: cannot read {path}"
+                    evidence["error"] = "file missing or unreadable"
+                elif expected and actual != expected:
+                    status = "failure"
+                    decision = f"Hash mismatch for {path}"
+                    evidence["expected_hash"] = expected
+                else:
+                    status = "success"
+                    decision = f"Hash probe passed for {path}: {actual[:16]}..."
+                    next_action = "Use as baseline for regression or expand attack (wrong hash)."
+                    limitations = ["single file SHA-256 — not directory or multi-file"]
             else:
                 # Original trivial count
                 items = fixture.get("items", [])
@@ -188,7 +219,6 @@ def main():
         fixture=file_fixture
     )
     print(json.dumps(asdict(result), indent=2))
-    # Write evidence
     with open("engine/last_cycle.json", "w") as f:
         json.dump(asdict(result), f, indent=2)
     print("\nEvidence written to engine/last_cycle.json")
@@ -226,6 +256,42 @@ def main():
     print(json.dumps(asdict(timing_result), indent=2))
     with open("engine/last_timing.json", "w") as f:
         json.dump(asdict(timing_result), f, indent=2)
+
+    # Hash probe (content integrity)
+    hash_fixture = {
+        "required_keys": ["probe", "path"],
+        "probe": "hash",
+        "path": "README.md",
+        "description": "SHA-256 content integrity check"
+    }
+    hash_result = run_cycle(
+        "ENGINE-CYCLE-001-HASH",
+        "Can the cycle complete a real hash probe with evidence?",
+        fixture=hash_fixture
+    )
+    print("\nHash result:")
+    print(json.dumps(asdict(hash_result), indent=2))
+    with open("engine/last_hash.json", "w") as f:
+        json.dump(asdict(hash_result), f, indent=2)
+    print("Evidence written to engine/last_hash.json")
+
+    # Timeout attack stub (force short budget)
+    timeout_fixture = {
+        "required_keys": ["probe", "items"],
+        "probe": "count",
+        "items": list(range(1000000)),  # large enough to potentially timeout if budget low
+        "description": "attack: force timeout via large work + low budget"
+    }
+    timeout_result = run_cycle(
+        "ENGINE-CYCLE-001-ATTACK-TIMEOUT",
+        "Does the cycle record clean timeout under budget pressure?",
+        fixture=timeout_fixture,
+        max_seconds=0.001  # extremely tight to force timeout path
+    )
+    print("\nTimeout attack result:")
+    print(json.dumps(asdict(timeout_result), indent=2))
+    with open("engine/last_timeout.json", "w") as f:
+        json.dump(asdict(timeout_result), f, indent=2)
 
 if __name__ == "__main__":
     main()
