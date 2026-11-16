@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 SCHEMA_VERSION = "1.0.2-probe"
+LEDGER_PATH = "engine/experiment_ledger.json"
 
 @dataclass
 class CycleResult:
@@ -36,6 +37,30 @@ class CycleResult:
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+def append_to_ledger(result: CycleResult) -> None:
+    """Cheap auto-append for ENGINE-MEMORY-001. Creates ledger if missing."""
+    entry = {
+        "experiment_id": result.experiment_id,
+        "date": result.started_at[:10],
+        "question": result.question,
+        "status": result.status,
+        "evidence": "engine/last_cycle.json or last_attack.json",
+        "decision": result.decision,
+        "reusable": "cycle_runner.py",
+        "next": result.next_action,
+        "duration_s": result.duration_s,
+    }
+    ledger = []
+    if os.path.exists(LEDGER_PATH):
+        try:
+            with open(LEDGER_PATH, "r") as f:
+                ledger = json.load(f)
+        except Exception:
+            ledger = []
+    ledger.append(entry)
+    with open(LEDGER_PATH, "w") as f:
+        json.dump(ledger, f, indent=2)
 
 def run_cycle(
     experiment_id: str,
@@ -111,7 +136,7 @@ def run_cycle(
         status = "timeout"
         decision = "Exceeded budget."
 
-    return CycleResult(
+    result = CycleResult(
         experiment_id=experiment_id,
         question=question,
         status=status,
@@ -124,6 +149,12 @@ def run_cycle(
         limitations=limitations,
         budget_used=budget,
     )
+    # Auto-append for memory (ENGINE-MEMORY-001 cheap win)
+    try:
+        append_to_ledger(result)
+    except Exception as e:
+        result.limitations.append(f"ledger append failed: {e}")
+    return result
 
 def main():
     # File-presence probe (non-trivial real measurement)
