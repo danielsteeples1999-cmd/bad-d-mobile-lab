@@ -1,0 +1,25 @@
+{
+  "experiment_id": "ENGINE-CYCLE-001-TIMING",
+  "question": "Can the cycle complete a real timing probe with evidence?",
+  "status": "success",
+  "started_at": "2026-11-16T04:14:21.694489+00:00",
+  "finished_at": "2026-11-16T04:14:21.694507+00:00",
+  "duration_s": 0.0,
+  "evidence": {
+    "fixture_present": true,
+    "schema": "1.0.3-probe",
+    "stat_ms": 0.003,
+    "size_bytes": 3307,
+    "checked_path": "README.md"
+  },
+  "decision": "Timing probe completed for README.md in 0.003ms.",
+  "next_action": "Compare multiple runs or expand to open() timing.",
+  "limitations": [
+    "single stat call — not full startup or memory probe"
+  ],
+  "budget_used": {
+    "max_seconds": 20,
+    "elapsed": 0.0,
+    "repeats": 0
+  }
+}
