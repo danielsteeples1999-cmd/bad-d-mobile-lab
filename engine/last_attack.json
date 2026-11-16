@@ -1,0 +1,24 @@
+{
+  "experiment_id": "ENGINE-CYCLE-001-ATTACK-MISSING",
+  "question": "Does the cycle record clean failure on missing prerequisite?",
+  "status": "failure",
+  "started_at": "2026-11-16T04:14:21.694045+00:00",
+  "finished_at": "2026-11-16T04:14:21.694064+00:00",
+  "duration_s": 0.0,
+  "evidence": {
+    "fixture_present": true,
+    "schema": "1.0.3-probe",
+    "file_exists": false,
+    "checked_path": "nonexistent-file.txt"
+  },
+  "decision": "File nonexistent-file.txt missing.",
+  "next_action": "Supply a deterministic fixture and re-run.",
+  "limitations": [
+    "skeleton only — no real measurement yet"
+  ],
+  "budget_used": {
+    "max_seconds": 20,
+    "elapsed": 0.0,
+    "repeats": 0
+  }
+}
