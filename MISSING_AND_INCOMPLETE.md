@@ -5,10 +5,10 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-17 post multi-run + invalid attack + dedupe + idle path)
+## Current tracked items (as of 2026-11-17 evening — post multi-run + invalid attack + dedupe + idle path)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: File-presence + multi-run timing + hash probes + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.5-multi). **last_*.json + last_invalid.json** ready for evidence. Idle main() confirms do-nothing path. Potential: high — clean schema, auto-ledger with dedupe, bounded, reusable. Pros: evidence-first, multi-run baseline, failure classes. Cons: still no full regression comparator, main() overwrites last evidence (intentional for last-run), richer probes pending.
+- ENGINE-CYCLE-001: File-presence + multi-run timing + hash probes + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.5-multi). **last_*.json + last_invalid.json** ready for evidence after clean run. Idle main() confirms do-nothing path. **Potential: 8.5/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first. Pros: multi-run baseline, failure classes, idle confirmation, low future context. Cons: no full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer probes pending. Everyday growth: strong compounding on lifecycle reliability.
 - ENGINE-ATTACK-001: Missing-file + timeout stub + **invalid fixture** now in main(). Full harness (resource, interruption, corrupted evidence) not started. Next cheap: resource pressure or open() timing.
 - ENGINE-MEMORY-001: Seed ledger created. **Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE** (idle re-runs no longer pile dups). Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
@@ -49,14 +49,14 @@
 - ~~Commit the runtime last_cycle.json / last_attack.json / last_timing.json as evidence.~~ COMPLETE (40afc99 et al.)
 - ~~Minimal query helper for the ledger (e.g. list by status or id).~~ COMPLETE (query_ledger.py)
 - ~~Hash probe for file content integrity.~~ COMPLETE (6c1c42f)
-- ~~Expand attack harness with one more class (invalid fixture).~~ COMPLETE (2823dc7)
-- ~~Deduplicate ledger appends (avoid identical experiment_id entries).~~ COMPLETE (2823dc7)
-- ~~Multi-run timing baseline (average of N stats) for better evidence.~~ COMPLETE (2823dc7)
-- ~~Idle/do-nothing confirmation path.~~ COMPLETE (2823dc7)
-- Ensure last_hash.json, last_timeout.json, last_invalid.json are committed after a clean run.
+- ~~Expand attack harness with one more class (invalid fixture).~~ COMPLETE (bdd0674)
+- ~~Deduplicate ledger appends (avoid identical experiment_id entries).~~ COMPLETE (bdd0674)
+- ~~Multi-run timing baseline (average of N stats) for better evidence.~~ COMPLETE (bdd0674)
+- ~~Idle/do-nothing confirmation path.~~ COMPLETE (bdd0674)
+- Ensure last_hash.json, last_timeout.json, last_invalid.json are committed after a clean run (run python engine/cycle_runner.py then commit).
 - Richer query helper (filter by date/range, export compact summary). — partial (summary + date already present).
 - Resource pressure or open() timing probe.
 - Regression comparator stub.
 
 ## Growth snapshot (2026-11-17)
-Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation (2823dc7). Potential rating: 8.5/10 for compounding engine (evidence + schema + attack classes + dedupe strong; full harness/regression still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability.
+Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation (bdd0674). Potential rating: **8.5/10** for compounding engine (evidence + schema + attack classes + dedupe + idle strong; full harness/regression still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability. Across-board: engine solid, research in other PRs/docs, mobile/audio labs waiting on engine maturity.
