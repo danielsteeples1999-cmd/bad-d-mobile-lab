@@ -5,11 +5,11 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-17 late — post resource probe)
+## Current tracked items (as of 2026-11-17 late — post resource probe PR)
 
 ### From ENGINE / Control Plane
 - ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + open()) + hash + **resource observation** + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.7-resource). last_*.json including last_resource.json ready as evidence. Idle main() confirms do-nothing path. **Potential: 8.9/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, resource baseline, low future context. Cons: no full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer forced-pressure/interruption pending. Everyday growth: strong compounding on lifecycle reliability.
-- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main(). Resource observation added. Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: intentional allocation pressure or regression stub.
+- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main(). Resource observation added (see open PR #8 for bounded CPU pressure). Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: intentional allocation pressure or regression stub.
 - ENGINE-MEMORY-001: Seed ledger created. Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE. Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
 
@@ -32,7 +32,7 @@
 - Simple recovery / interruption evidence for lab tools themselves: not present.
 
 ### Automation / “do nothing” baseline
-- Automation confirmation (zero human after first set): **COMPLETE for default probes**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included. Next: optional flag to preserve prior last_*.json if desired.
+- Automation confirmation (zero human after first set): **COMPLETE for default probes**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included (PR pending merge). Next: optional flag to preserve prior last_*.json if desired.
 
 ## Rules for this file
 - Add only items that have been requested in docs/issues and still lack executable evidence.
@@ -54,7 +54,7 @@
 - ~~Multi-run timing baseline (average of N stats) for better evidence.~~ COMPLETE
 - ~~Idle/do-nothing confirmation path.~~ COMPLETE
 - ~~Open() timing probe (multi-run).~~ COMPLETE
-- ~~Resource observation probe (disk free + process RSS).~~ COMPLETE (this update)
+- ~~Resource observation probe (disk free + process RSS).~~ COMPLETE (this update; PR #8 adds CPU pressure)
 - Ensure last_hash.json, last_timeout.json, last_invalid.json, last_open_timing.json, last_resource.json are committed after a clean run (done in this contribution).
 - Richer query helper (filter by date/range, export compact summary). — partial.
 - Intentional resource pressure (allocation) probe.
@@ -62,3 +62,5 @@
 
 ## Growth snapshot (2026-11-17)
 Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation, open() timing probe, **resource observation probe**. Potential rating: **8.9/10** for compounding engine (evidence + schema + attack classes + dedupe + idle + open-timing + resource strong; full harness/regression still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability. Across-board: engine solid and expanding, research in other PRs/docs, mobile/audio labs waiting on engine maturity. Human weirdness (idle path) copies the do-nothing probes reliably including resource baseline.
+
+**AI review note (2026-11-17):** Idle/do-nothing path is solid and self-copying. Small cracks tracked here remain the leverage points. Merge PR #8 for full resource pressure evidence, then next cheap wins are richer query or regression stub. No over-investment recommended until engine maturity unlocks P1 items.
