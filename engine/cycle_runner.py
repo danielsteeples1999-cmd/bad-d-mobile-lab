@@ -20,7 +20,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.5-multi"
+SCHEMA_VERSION = "1.0.6-open"
 LEDGER_PATH = "engine/experiment_ledger.json"
 
 @dataclass
@@ -153,6 +153,32 @@ def run_cycle(
                     status = "failure"
                     decision = f"Timing probe failed: {e}"
                     evidence["error"] = str(e)
+            elif probe_type == "open_timing":
+                # Cheap open() timing baseline (multi-run) — next high-leverage after os.stat
+                path = fixture.get("path", "README.md")
+                n_runs = fixture.get("runs", 3)
+                times_ms = []
+                try:
+                    for _ in range(n_runs):
+                        t0 = time.perf_counter()
+                        with open(path, "rb") as f:
+                            _ = f.read(1)  # minimal read to force open
+                        elapsed_ms = (time.perf_counter() - t0) * 1000
+                        times_ms.append(elapsed_ms)
+                    avg_ms = sum(times_ms) / len(times_ms) if times_ms else 0
+                    evidence["open_ms_avg"] = round(avg_ms, 3)
+                    evidence["open_ms_min"] = round(min(times_ms), 3) if times_ms else None
+                    evidence["open_ms_max"] = round(max(times_ms), 3) if times_ms else None
+                    evidence["runs"] = n_runs
+                    evidence["checked_path"] = path
+                    status = "success"
+                    decision = f"Open-timing probe (avg of {n_runs}) completed for {path} in {avg_ms:.3f}ms."
+                    next_action = "Use as open() baseline for regression or expand to full read."
+                    limitations = ["open + 1-byte read only — not full content or startup"]
+                except Exception as e:
+                    status = "failure"
+                    decision = f"Open-timing probe failed: {e}"
+                    evidence["error"] = str(e)
             elif probe_type == "hash":
                 # Content integrity probe: SHA-256 of file
                 path = fixture.get("path", "README.md")
@@ -270,6 +296,24 @@ def main():
     print(json.dumps(asdict(timing_result), indent=2))
     with open("engine/last_timing.json", "w") as f:
         json.dump(asdict(timing_result), f, indent=2)
+
+    # Open() timing probe (new cheap win)
+    open_fixture = {
+        "required_keys": ["probe", "path"],
+        "probe": "open_timing",
+        "path": "README.md",
+        "runs": 3,
+        "description": "measure open()+1byte timing avg of 3"
+    }
+    open_result = run_cycle(
+        "ENGINE-CYCLE-001-OPEN-TIMING",
+        "Can the cycle complete a real multi-run open() timing probe with evidence?",
+        fixture=open_fixture
+    )
+    print("\nOpen-timing result:")
+    print(json.dumps(asdict(open_result), indent=2))
+    with open("engine/last_open_timing.json", "w") as f:
+        json.dump(asdict(open_result), f, indent=2)
 
     # Hash probe (content integrity)
     hash_fixture = {
