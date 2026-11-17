@@ -86,6 +86,7 @@ def run_cycle(
     max_repeats: int = 5,
 ) -> CycleResult:
     start = time.time()
+    start_perf = time.perf_counter()
     started_at = now_iso()
     evidence = {"fixture_present": fixture is not None, "schema": SCHEMA_VERSION}
     status = "blocked"
@@ -179,6 +180,34 @@ def run_cycle(
                     status = "failure"
                     decision = f"Open-timing probe failed: {e}"
                     evidence["error"] = str(e)
+            elif probe_type == "resource_pressure":
+                seconds = fixture.get("seconds", 2)
+                if (isinstance(seconds, bool) or not isinstance(seconds, (int, float))
+                        or not 0 < seconds <= 3):
+                    status = "failure"
+                    decision = "Resource pressure duration must be greater than 0 and at most 3 seconds."
+                    evidence["error"] = decision
+                else:
+                    probe_start = time.perf_counter()
+                    cpu_start = time.process_time()
+                    iterations = 0
+                    while True:
+                        current = time.perf_counter()
+                        if current - start_perf >= max_seconds:
+                            status = "timeout"
+                            decision = "Exceeded budget during resource pressure probe."
+                            break
+                        if current - probe_start >= seconds:
+                            status = "success"
+                            decision = "Bounded CPU pressure probe completed."
+                            break
+                        iterations += 1
+                    evidence["requested_seconds"] = seconds
+                    evidence["pressure_wall_seconds"] = round(current - probe_start, 3)
+                    evidence["process_cpu_seconds"] = round(time.process_time() - cpu_start, 3)
+                    evidence["iterations"] = iterations
+                    next_action = "Compare resource pressure evidence across runs."
+                    limitations = ["single-process CPU burn only — no system-wide resource or recovery measurement"]
             elif probe_type == "hash":
                 # Content integrity probe: SHA-256 of file
                 path = fixture.get("path", "README.md")
@@ -367,6 +396,23 @@ def main():
     print(json.dumps(asdict(invalid_result), indent=2))
     with open("engine/last_invalid.json", "w") as f:
         json.dump(asdict(invalid_result), f, indent=2)
+
+    # Bounded resource pressure attack (single-process CPU burn)
+    resource_fixture = {
+        "required_keys": ["probe", "seconds"],
+        "probe": "resource_pressure",
+        "seconds": 2,
+        "description": "attack: bounded CPU pressure"
+    }
+    resource_result = run_cycle(
+        "ENGINE-CYCLE-001-ATTACK-RESOURCE",
+        "Can the cycle record evidence under bounded CPU pressure?",
+        fixture=resource_fixture
+    )
+    print("\nResource pressure attack result:")
+    print(json.dumps(asdict(resource_result), indent=2))
+    with open("engine/last_resource.json", "w") as f:
+        json.dump(asdict(resource_result), f, indent=2)
 
 if __name__ == "__main__":
     main()

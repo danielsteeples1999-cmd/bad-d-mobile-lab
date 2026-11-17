@@ -9,7 +9,7 @@
 
 ### From ENGINE / Control Plane
 - ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + **open()**) + hash probes + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.6-open). **last_*.json + last_invalid.json + last_open_timing.json** ready for evidence after clean run. Idle main() confirms do-nothing path. **Potential: 8.7/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, low future context, open() now covered. Cons: no full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer probes/harness pending. Everyday growth: strong compounding on lifecycle reliability.
-- ENGINE-ATTACK-001: Missing-file + timeout stub + **invalid fixture** now in main(). Full harness (resource, interruption, corrupted evidence) not started. Next cheap: resource pressure.
+- ENGINE-ATTACK-001: Missing-file, timeout, invalid fixture, and bounded CPU pressure probes run in main(). Resource evidence is written to `engine/last_resource.json`; interruption and corrupted-evidence attacks remain unimplemented.
 - ENGINE-MEMORY-001: Seed ledger created. **Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE** (idle re-runs no longer pile dups). Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
 
@@ -56,7 +56,7 @@
 - ~~Open() timing probe (multi-run).~~ COMPLETE (b581e7e)
 - Ensure last_hash.json, last_timeout.json, last_invalid.json, last_open_timing.json are committed after a clean run (run python engine/cycle_runner.py then commit).
 - Richer query helper (filter by date/range, export compact summary). — partial (summary + date already present).
-- Resource pressure probe.
+- ~~Resource pressure probe.~~ COMPLETE: bounded single-process CPU burn with wall-time, CPU-time, and iteration evidence; not a system-wide pressure or recovery test.
 - Regression comparator stub.
 
 ## Growth snapshot (2026-11-17)
