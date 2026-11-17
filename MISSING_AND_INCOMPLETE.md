@@ -5,23 +5,23 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-16 post-hash-probe + timeout stub + daily review)
+## Current tracked items (as of 2026-11-17 post multi-run + invalid attack + dedupe + idle path)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: File-presence + timing + **hash probes** + basic attack stub implemented in cycle_runner.py (schema 1.0.4-hash). **last_*.json committed as evidence** (prior). Hash + timeout attack added (6c1c42f). Evidence files exist. Still needs full multi-class attack harness and richer probes (multi-run baselines, open() timing) before broader use. Potential: high — clean schema, auto-ledger, bounded. Pros: evidence-first, reusable. Cons: main() overwrites evidence, ledger can duplicate, no regression yet.
-- ENGINE-ATTACK-001: Basic missing-file + **timeout stub** in main(). Full harness (resource, interruption, corrupted evidence, invalid fixture) not started. Next cheap: invalid fixture probe.
-- ENGINE-MEMORY-001: Seed ledger created (engine/experiment_ledger.json). **Auto-append on cycle end COMPLETE** (da22f62). **Evidence files committed. Minimal query helper added** (query_ledger.py with status/id/date/summary). Still needs richer query or searchable index / dedupe on append. Potential: good foundation.
+- ENGINE-CYCLE-001: File-presence + multi-run timing + hash probes + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.5-multi). **last_*.json + last_invalid.json** ready for evidence. Idle main() confirms do-nothing path. Potential: high — clean schema, auto-ledger with dedupe, bounded, reusable. Pros: evidence-first, multi-run baseline, failure classes. Cons: still no full regression comparator, main() overwrites last evidence (intentional for last-run), richer probes pending.
+- ENGINE-ATTACK-001: Missing-file + timeout stub + **invalid fixture** now in main(). Full harness (resource, interruption, corrupted evidence) not started. Next cheap: resource pressure or open() timing.
+- ENGINE-MEMORY-001: Seed ledger created. **Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE** (idle re-runs no longer pile dups). Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
 - LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
 
 ### From PAST_WORK_REVIEW / Conversion Order
-- Deterministic fixture system: count + file-presence + timing + hash exist; no general fixture loader or golden fixtures.
-- Experiment result schema: partial (CycleResult v1.0.4-hash); needs versioned, stable, machine-readable across tools.
+- Deterministic fixture system: count + file-presence + multi-run timing + hash exist; no general fixture loader or golden fixtures.
+- Experiment result schema: partial (CycleResult v1.0.5-multi); needs versioned, stable, machine-readable across tools.
 - Benchmark runner: absent.
 - Startup probe / memory lifetime probe / interruption harness: documented in maps but no executable versions.
-- Regression comparator and failure injector: listed in queue but not implemented (attack stub is first step).
+- Regression comparator and failure injector: listed in queue but not implemented (attack stubs are first steps).
 
 ### From Six-Month Program / Expansion Map (Stage 1 gaps)
-- Startup benchmark + first-interactive timing: timing probe exists but not full startup instrumentation in lab.
+- Startup benchmark + first-interactive timing: multi-run timing probe exists but not full startup instrumentation in lab.
 - Memory observation / long-task observation: missing.
 - Machine-readable experiment ledger: seed present; full searchable version missing (query helper is first step).
 - Browser capability report: missing.
@@ -32,7 +32,7 @@
 - Simple recovery / interruption evidence for lab tools themselves: not present.
 
 ### Automation / “do nothing” baseline
-- Automation confirmation (zero human after first set): cycle_runner can run probes with no further input once fixtures are defined. Evidence of “do nothing” (default README probes) is recorded. Next: ensure main() or a no-arg mode copies the idle/default path cleanly without overwriting prior evidence unless intended.
+- Automation confirmation (zero human after first set): **COMPLETE for default probes**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Next: optional flag to preserve prior last_*.json if desired.
 
 ## Rules for this file
 - Add only items that have been requested in docs/issues and still lack executable evidence.
@@ -48,12 +48,15 @@
 - ~~Add a simple timing probe (os.stat or time.perf_counter around file open).~~ COMPLETE (4993fc1)
 - ~~Commit the runtime last_cycle.json / last_attack.json / last_timing.json as evidence.~~ COMPLETE (40afc99 et al.)
 - ~~Minimal query helper for the ledger (e.g. list by status or id).~~ COMPLETE (query_ledger.py)
-- ~~Hash probe for file content integrity.~~ COMPLETE (6c1c42f — cycle_runner.py hash probe)
-- Expand attack harness with one more class (e.g. invalid fixture or resource pressure).
+- ~~Hash probe for file content integrity.~~ COMPLETE (6c1c42f)
+- ~~Expand attack harness with one more class (invalid fixture).~~ COMPLETE (2823dc7)
+- ~~Deduplicate ledger appends (avoid identical experiment_id entries).~~ COMPLETE (2823dc7)
+- ~~Multi-run timing baseline (average of N stats) for better evidence.~~ COMPLETE (2823dc7)
+- ~~Idle/do-nothing confirmation path.~~ COMPLETE (2823dc7)
+- Ensure last_hash.json, last_timeout.json, last_invalid.json are committed after a clean run.
 - Richer query helper (filter by date/range, export compact summary). — partial (summary + date already present).
-- Deduplicate ledger appends (avoid identical experiment_id entries).
-- Multi-run timing baseline (average of N stats) for better evidence.
-- Ensure last_hash.json and last_timeout.json are committed after a clean run.
+- Resource pressure or open() timing probe.
+- Regression comparator stub.
 
-## Growth snapshot (2026-11-16)
-Recent commits (last ~48h): hash probe, timeout stub, query extensions, evidence commits, crack tracker updates. Potential rating: 8/10 for compounding engine (evidence + schema strong; full harness still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle.
+## Growth snapshot (2026-11-17)
+Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation (2823dc7). Potential rating: 8.5/10 for compounding engine (evidence + schema + attack classes + dedupe strong; full harness/regression still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability.
