@@ -19,7 +19,7 @@ Never keep an item active merely because it is old.
 ## P0 — BUILD THE COMPOUNDING ENGINE
 
 ### 1. ENGINE-CYCLE-001 — Engineering Cycle Runner
-**Status: HASH PROBE + TIMEOUT STUB ADDED** (commit 6c1c42f — engine/cycle_runner.py schema 1.0.4-hash)
+**Status: OPEN-TIMING + MULTI-RUN + INVALID + IDLE DONE** (commit b581e7e — engine/cycle_runner.py schema 1.0.6-open)
 Question: Can the lab execute one experiment through a repeatable machine-readable lifecycle?
 
 Minimum lifecycle:
@@ -38,13 +38,13 @@ Required:
 Exit condition:
 One real existing experiment can run through the cycle and leave a trustworthy result.
 
-**Remaining:** Expand attack harness (invalid fixture / resource / interruption). Then regression comparator. Run once to commit last_hash.json / last_timeout.json as evidence.
+**Remaining:** Expand attack harness (resource / interruption). Then regression comparator. Run once to commit last_*.json evidence files.
 
 ### 2. ENGINE-ATTACK-001 — Attack Harness
 Question: Can the lab deliberately break an experiment instead of only proving the happy path?
 
 Start with the cheapest useful attack classes:
-- invalid input
+- invalid input (done)
 - missing prerequisite (done)
 - interruption
 - timeout (stub done)
@@ -84,7 +84,7 @@ Need compact searchable records for:
 Exit condition:
 A new session can answer “what has already been tried here?” from structured records rather than broad document reading.
 
-**Status note:** Minimal query helper extended with summary + date filter (316f4e5).
+**Status note:** Minimal query helper extended with summary + date filter (316f4e5). Deduped auto-append in place.
 
 ### 5. ENGINE-PRIORITY-001 — Evidence-Driven Queue
 Question: Can the queue choose the next useful experiment from evidence rather than stale planning?
