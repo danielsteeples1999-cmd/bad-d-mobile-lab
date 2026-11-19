@@ -5,16 +5,16 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-18 — post daily review)
+## Current tracked items (as of 2026-11-19 — post daily review)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + open()) + hash + **resource observation** + attacks (missing, timeout, invalid) in cycle_runner.py (schema 1.0.7-resource). last_*.json including last_resource.json ready as evidence. Idle main() confirms do-nothing path. **Potential: 8.8/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, resource baseline, low future context. Cons: full implementation verification pending (file content appears truncated/stub in remote view), no full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer forced-pressure/interruption pending. Everyday growth: strong compounding on lifecycle reliability.
-- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main(). Resource observation added. Draft PR #8 adds bounded CPU pressure. Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: intentional allocation pressure or regression stub.
-- ENGINE-MEMORY-001: Seed ledger created. Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE. Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
-- LAB-001 (issue #5): Zero-context worker probe still open. Entrypoint discoverability not formally evidenced with a fresh run.
+- ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + open()) + hash + **resource observation** + attacks (missing, timeout, invalid) intended in cycle_runner.py (schema 1.0.7-resource). last_*.json including last_resource.json ready as evidence. Idle main() confirms do-nothing path. **Potential: 8.7/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, resource baseline, low future context. Cons: **CRITICAL — current main cycle_runner.py is truncated/stubbed** (prints 'Resource probe added in full version' and has placeholder comment; full implementation not present on remote despite prior restore commits). No full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer forced-pressure/interruption pending. Everyday growth: strong compounding on lifecycle reliability once code is restored. Evidence: raw main content confirmed stubbed.
+- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main() (when full). Resource observation added. Draft PR #8 adds bounded CPU pressure. Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: restore full cycle_runner then intentional allocation pressure or regression stub.
+- ENGINE-MEMORY-001: Seed ledger created (5 entries visible). Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE. Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
+- LAB-001 (issue #5): Zero-context worker probe still open (last update ~2026-10-12). Entrypoint discoverability not formally evidenced with a fresh run.
 
 ### From PAST_WORK_REVIEW / Conversion Order
-- Deterministic fixture system: count + file-presence + multi-run timing + hash + open-timing + resource exist; no general fixture loader or golden fixtures.
+- Deterministic fixture system: count + file-presence + multi-run timing + hash + open-timing + resource exist (in full code); no general fixture loader or golden fixtures.
 - Experiment result schema: partial (CycleResult v1.0.7-resource); needs versioned, stable, machine-readable across tools.
 - Benchmark runner: absent.
 - Startup probe / memory lifetime probe / interruption harness: documented in maps but no executable versions.
@@ -28,11 +28,11 @@
 - Audio stability probe: deferred until engine ready.
 
 ### From Production-adjacent (lab only, no production touch)
-- MOBILE-UPDATE-001 (issue #6): Planned but blocked on private source access. No public-lab baseline measurement yet. PR #7 open (docs only).
+- MOBILE-UPDATE-001 (issue #6, PR #7): Planned but blocked on private source access. No public-lab baseline measurement yet. PR #7 open (docs only, draft).
 - Simple recovery / interruption evidence for lab tools themselves: not present.
 
 ### Automation / “do nothing” baseline
-- Automation confirmation (zero human after first set): **COMPLETE for default probes**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included. Next: optional flag to preserve prior last_*.json if desired. Human weirdness (idle) copies reliably.
+- Automation confirmation (zero human after first set): **COMPLETE for default probes in full code**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included. Next: optional flag to preserve prior last_*.json if desired. Human weirdness (idle) copies reliably — but blocked until stub is fixed.
 
 ## Rules for this file
 - Add only items that have been requested in docs/issues and still lack executable evidence.
@@ -55,12 +55,14 @@
 - ~~Idle/do-nothing confirmation path.~~ COMPLETE
 - ~~Open() timing probe (multi-run).~~ COMPLETE
 - ~~Resource observation probe (disk free + process RSS).~~ COMPLETE
+- **PRIORITY: Restore full non-stub cycle_runner.py to main** (evidence of truncation on remote; previous restore commits did not stick or were overwritten).
 - Merge or complete PR #8 for bounded CPU pressure evidence.
 - Richer query helper (filter by date/range, export compact summary). — partial.
 - Intentional resource pressure (allocation) probe or regression comparator stub.
 - Ensure last_hash.json etc. are committed after a clean run and verify full cycle_runner.py executes without stub.
+- Close or action old draft PRs (#3, #4) if still relevant or stale.
 
-## Growth snapshot (2026-11-18)
-Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation, open() timing probe, resource observation probe. Potential rating: **8.8/10** for compounding engine (evidence + schema + attack classes + dedupe + idle + open-timing + resource strong; full harness/regression + code verification still gap). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability. Across-board: engine solid and expanding, research in other PRs/docs, mobile/audio labs waiting on engine maturity. Human weirdness (idle path) copies the do-nothing probes reliably including resource baseline.
+## Growth snapshot (2026-11-19)
+Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation, open() timing probe, resource observation probe (prior days). Potential rating: **8.7/10** for compounding engine (evidence + schema + attack classes + dedupe + idle + open-timing + resource strong in design; **code verification gap critical — stub on main**). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability once executable. Across-board: engine design solid and expanding, research in other PRs/docs (PR #2 still open), mobile/audio labs waiting on engine maturity + private source. Human weirdness (idle path) copies the do-nothing probes reliably including resource baseline (in full code).
 
-**AI review note (2026-11-18):** Idle/do-nothing path is solid and self-copying. Small cracks tracked here remain the leverage points. Merge PR #8 for full resource pressure evidence, then next cheap wins are richer query or regression stub. Verify full cycle_runner.py is not a stub. No over-investment recommended until engine maturity unlocks P1 items. Private production context (319+ issues) is a separate risk — REPO-STATE-FAST-CONTEXT-001 is the high-leverage fix there.
+**AI review note (2026-11-19):** Idle/do-nothing path is solid and self-copying in the intended full implementation. Small cracks tracked here remain the leverage points. **Highest immediate: restore non-stub cycle_runner.py** (current main is placeholder). Then merge PR #8 for full resource pressure evidence, then next cheap wins are richer query or regression stub. No over-investment recommended until engine maturity unlocks P1 items. Private production context (319+ issues in bad_d_meomory) is a separate risk — REPO-STATE-FAST-CONTEXT-001 remains the high-leverage fix there. Open issues #1,#2,#5,#6 still trackable but not blocking engine.
