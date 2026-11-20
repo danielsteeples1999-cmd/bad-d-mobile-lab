@@ -1,0 +1,61 @@
+{
+ "decision_set": [
+  "ce1_stumble2",
+  "ce2_extend6",
+  "ce5_pickup1",
+  "control_44",
+  "halftime_switch",
+  "sync_anticip"
+ ],
+ "rule": {
+  "silent_margin": 0.005,
+  "max_fa": 0.05,
+  "max_cost_ratio": 0.6
+ },
+ "results": {
+  "C1": {
+   "decoded": 804,
+   "silent_errors": 23,
+   "silent_error_rate": 0.028606965174129355,
+   "false_alarms": 31,
+   "correct": 654,
+   "false_alarm_rate": 0.047400611620795105,
+   "trustworthy_coverage": 0.7906091370558376,
+   "cpu_s_per_audio_min": 16.380246462953828,
+   "verdict": "baseline"
+  },
+  "C2": {
+   "decoded": 824,
+   "silent_errors": 40,
+   "silent_error_rate": 0.04854368932038835,
+   "false_alarms": 0,
+   "correct": 781,
+   "false_alarm_rate": 0.0,
+   "trustworthy_coverage": 0.9911167512690355,
+   "cpu_s_per_audio_min": 5.485273195598345,
+   "verdict": "not recommended"
+  },
+  "C3": {
+   "decoded": 804,
+   "silent_errors": 69,
+   "silent_error_rate": 0.08582089552238806,
+   "false_alarms": 30,
+   "correct": 654,
+   "false_alarm_rate": 0.045871559633027525,
+   "trustworthy_coverage": 0.7918781725888325,
+   "cpu_s_per_audio_min": 10.894890311127337,
+   "verdict": "not recommended"
+  },
+  "C4": {
+   "decoded": 833,
+   "silent_errors": 54,
+   "silent_error_rate": 0.06482593037214886,
+   "false_alarms": 2,
+   "correct": 772,
+   "false_alarm_rate": 0.0025906735751295338,
+   "trustworthy_coverage": 0.9771573604060914,
+   "cpu_s_per_audio_min": 5.924443467404427,
+   "verdict": "not recommended"
+  }
+ }
+}

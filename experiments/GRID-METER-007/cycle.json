@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-007",
+  "queue_task_id": "GRID-METER-007",
+  "objective": "Test whether the lab candidate C6 holds on held-out fixtures it was not designed on.",
+  "current_unknown": "Whether C6's synthetic pass (designed and scored on the same 24 fixtures) is overfitted.",
+  "hypothesis": "C6 keeps silent error rate <= 0.0336 and false-alarm rate <= 0.05 on 16 held-out fixtures.",
+  "competing_hypotheses": ["Rules R and E were tuned by looking at the decision fixtures and will not generalise."],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Held-out fixtures and decision rule committed in bd097c3 before any tracker ran on them.", "evidence": "experiments/GRID-METER-007/PREREGISTRATION.md"},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "output": "16/16 held-out fixtures FIXTURE_ACCEPTED; 56/56 earlier fixtures bit-identical after adding the weak-cue variant."},
+    {"stage": "BUILD", "status": "DONE", "output": "Weak-downbeat-cue fixture variant; tools/grid-meter/run_heldout.py."},
+    {"stage": "MEASURE", "status": "DONE", "output": "C1 and C6 on 16 held-out fixtures, 277 s wall.", "evidence": "experiments/GRID-METER-007/verdicts.json"},
+    {"stage": "ATTACK", "status": "DONE", "output": "Held-out generalisation attack: C6 failed both pre-registered limits (silent 0.047, false alarms 0.112)."},
+    {"stage": "REGRESSION", "status": "DONE", "output": "Fixture generator unchanged for all 56 earlier fixtures."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-007/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "Rule R degrades when a track has several irregular bars; ho_two_odd causes 45/58 false alarms and 18/28 silent errors. C6 still beats C1 on silent errors, coverage and cost."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "Real-track evidence (GRID-METER-003) now decisive; any track-level fail-closed rule must be pre-registered and tested on a new held-out set."}
+  ],
+  "attacks": [
+    {"attack": "UNEXPECTED_ORDERING", "relevance": "Held-out irregular-bar patterns not seen during rule design.", "result": "FAILED", "detail": "C6 silent 28/595, false alarms 58/520; two odd bars in one track break rule R.", "evidence": "experiments/GRID-METER-007/heldout_results.json"}
+  ],
+  "measurements": {
+    "C6": {"silent_error_rate": 0.0471, "silent_wilson95": [0.0328, 0.0672], "false_alarm_rate": 0.1115, "fa_wilson95": [0.0873, 0.1415], "trustworthy_coverage": 0.8684, "cpu_s_per_audio_min": 5.46},
+    "C1": {"silent_error_rate": 0.069, "silent_wilson95": [0.0507, 0.0932], "false_alarm_rate": 0.0755, "trustworthy_coverage": 0.6447, "cpu_s_per_audio_min": 16.44},
+    "C6_excluding_ho_two_odd_descriptive": {"silent": "10/421", "false_alarms": "13/387"},
+    "wall_seconds": 277.2
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-006", "compared_metric": "silent error rate (designed-on vs held-out)", "result": "REGRESSION_FOUND", "detail": "C6 silent error rate 0.0061 on designed-on fixtures vs 0.0471 held out: the earlier pass does not generalise."},
+  "limitations": [
+    "Synthetic fixtures only, one timbre family.",
+    "Single tracker checkpoints; CPU time is a container proxy."
+  ],
+  "decision": "INVESTIGATE",
+  "reusable_capability_produced": [
+    {"name": "held-out fixture set and runner", "path": "tools/grid-meter/run_heldout.py", "reuse_proof": "USED_ONCE"},
+    {"name": "grid-meter fixtures (weak-cue variant)", "path": "tools/grid-meter/fixtures.py", "reuse_proof": "USED_TWICE_PLUS"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Whether multi-odd-bar tracks are common in a real DJ library decides whether C6's held-out weakness matters."},
+  "stop_reason": "STOPPED_CONTRADICTION",
+  "human_interventions": ["GRID-METER-003 needs real tracks and listener verification."],
+  "generated_at": "2026-10-03T10:00:00Z",
+  "generator_tool": "tools/grid-meter/run_heldout.py + score_configs.pool + manual cycle record"
+}

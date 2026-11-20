@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-006",
+  "queue_task_id": "GRID-METER-006",
+  "objective": "Test whether marking the unmeasurable final bar line as unknown removes C5's residual silent errors without raising false alarms beyond the pre-registered limits.",
+  "current_unknown": "Whether C5's remaining silent errors can be removed by a principled, zero-cost rule.",
+  "hypothesis": "C6 = C5 + E (always flag the last decoded downbeat) is recommended over C1 and adopted over C5 (false-alarm increase <= 0.02).",
+  "competing_hypotheses": ["The final downbeats are mostly correct, so E only adds false alarms."],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "DISCOVER", "status": "DONE", "output": "18 of 23 C5 silent errors are the final decoded downbeat (descriptive analysis of GRID-METER-005 rows)."},
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Rule E and decision thresholds pre-registered in commit 256ada3.", "evidence": "experiments/GRID-METER-006/PREREGISTRATION.md"},
+    {"stage": "BUILD", "status": "DONE", "output": "C6 configuration in tools/grid-meter/run_real.py (default)."},
+    {"stage": "MEASURE", "status": "DONE", "output": "Scored on stored GRID-METER-005 per-downbeat results; no network re-run.", "evidence": "experiments/GRID-METER-006/verdicts.json"},
+    {"stage": "TEST", "status": "DONE", "output": "End-to-end run_real.py --config C6 on WAV/FLAC/MP3 stand-ins: wrong/hits/false alarms 1/1/0, 2/2/1, 1/1/0, 6/6/4."},
+    {"stage": "ATTACK", "status": "SKIPPED", "note": "No new detection logic beyond a deterministic index rule; false-alarm traps are inside the decision set."},
+    {"stage": "REGRESSION", "status": "DONE", "output": "C5 figures recomputed from stored data match GRID-METER-005 exactly (23/824 silent, 20/781 false alarms)."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-006/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "C6 silent error rate 0.0061 (5/824) vs C5 0.0279; false alarms and coverage unchanged."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "GRID-METER-003 verifies C6 on real tracks; repeated irregular phrases remain the open synthetic failure."}
+  ],
+  "measurements": {
+    "C6": {"silent_error_rate": 0.0061, "silent_wilson95": [0.0026, 0.0141], "false_alarm_rate": 0.0256, "trustworthy_coverage": 0.9657, "cpu_s_per_audio_min": 5.84},
+    "C5": {"silent_error_rate": 0.0279, "false_alarm_rate": 0.0256, "trustworthy_coverage": 0.9657},
+    "C1_reference": {"silent_error_rate": 0.0286, "cpu_s_per_audio_min": 16.38}
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-005", "compared_metric": "C5 silent errors and false alarms", "result": "NO_REGRESSION", "detail": "Recomputed from stored rows: 23/824 and 20/781, identical."},
+  "limitations": [
+    "Synthetic fixtures end with a decay tail that invites a trailing bar line; real-track benefit unknown.",
+    "Remaining silent errors sit next to odd bars and at one track start."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "C6 fail-closed downbeat configuration", "path": "tools/grid-meter/run_real.py", "reuse_proof": "USED_ONCE"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Real-track validation of C6; blocked on one human input."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": ["GRID-METER-003 needs real tracks and listener verification."],
+  "generated_at": "2026-10-03T09:00:00Z",
+  "generator_tool": "inline scoring over experiments/GRID-METER-005/regularity_results.json + manual cycle record"
+}

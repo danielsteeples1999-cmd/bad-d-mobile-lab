@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-008",
+  "queue_task_id": "GRID-METER-008",
+  "objective": "Test a track-level fail-closed rule (>= 3 flagged clusters -> whole track ambiguous) on a second, untouched held-out set.",
+  "current_unknown": "Whether C6's held-out failure on multi-odd-bar tracks can be fixed without losing coverage on simple tracks.",
+  "hypothesis": "C7 = C6 + T meets silent error rate <= 0.0336 over all 20 fixtures and trustworthy coverage >= 0.85 on simple fixtures.",
+  "competing_hypotheses": ["Cluster counts do not separate simple from complex tracks on unseen material, so T either misses complex tracks or blanks simple ones."],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "DISCOVER", "status": "DONE", "output": "Flagged-cluster count separates multi-odd-bar tracks on already-seen data better than flagged fraction."},
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Rule T (K=3), held-out set 2 and criteria committed in bb4e194 before any tracker ran on the fixtures.", "evidence": "experiments/GRID-METER-008/PREREGISTRATION.md"},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "output": "20/20 held-out-2 fixtures accepted; 72/72 earlier fixtures bit-identical."},
+    {"stage": "BUILD", "status": "DONE", "output": "tools/grid-meter/run_heldout2.py (flagged_clusters, track_rule); C7 added to run_real.py as default."},
+    {"stage": "TEST", "status": "DONE", "output": "Rule T unit checks pass; suite test added."},
+    {"stage": "MEASURE", "status": "DONE", "output": "C1, C6, C7 on 20 held-out fixtures.", "evidence": "experiments/GRID-METER-008/verdicts.json"},
+    {"stage": "ATTACK", "status": "DONE", "output": "Untouched held-out generalisation test passed: silent 0.016 (CI 0.009-0.027), simple-track coverage 0.941."},
+    {"stage": "REGRESSION", "status": "DONE", "output": "Fixture generator unchanged for all 72 earlier fixtures."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-008/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "T kept 12/12 simple and blanked 8/8 complex tracks; remaining silent errors are on weak-cue simple tracks (9 on one weak-cue odd-bar fixture)."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "Real-track validation (GRID-METER-003) of C7; weak-cue + odd bar is the synthetic weak spot."}
+  ],
+  "attacks": [
+    {"attack": "UNEXPECTED_ORDERING", "relevance": "Unseen irregular-bar patterns (three odd bars, repeating 4,4,4,3) at unseen tempos.", "result": "SURVIVED", "detail": "All 8 complex tracks blanked, 0 silent errors on them; 12/12 simple tracks kept.", "evidence": "experiments/GRID-METER-008/heldout2_results.json"}
+  ],
+  "measurements": {
+    "C7": {"silent_error_rate": 0.0159, "silent_wilson95": [0.0093, 0.0271], "simple_trustworthy_coverage": 0.9407, "simple_silent_error_rate": 0.0316, "simple_silent_wilson95": [0.0186, 0.0534], "cpu_s_per_audio_min": 5.32},
+    "C6": {"silent_error_rate": 0.0319, "simple_trustworthy_coverage": 0.9407},
+    "C1": {"silent_error_rate": 0.0431, "simple_trustworthy_coverage": 0.7062, "cpu_s_per_audio_min": 14.72},
+    "tracks_blanked": {"simple": "0/12", "complex": "8/8"}
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-007", "compared_metric": "fixture audio hashes", "result": "NO_REGRESSION", "detail": "72/72 earlier fixtures bit-identical."},
+  "limitations": [
+    "Synthetic fixtures only, one timbre family, single checkpoints.",
+    "Simple-track silent error interval (0.019-0.053) crosses the 0.0336 bound; weak cue + odd bar is the weak spot.",
+    "C6 alone would also have met the safety bound on this particular set."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "track-level fail-closed rule T", "path": "tools/grid-meter/run_heldout2.py", "reuse_proof": "USED_ONCE"},
+    {"name": "C7 configuration in real-track runner", "path": "tools/grid-meter/run_real.py", "reuse_proof": "USED_ONCE"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Real-track validation of C7; blocked on one human input."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": ["GRID-METER-003 needs real tracks and listener verification."],
+  "generated_at": "2026-10-03T11:00:00Z",
+  "generator_tool": "tools/grid-meter/run_heldout2.py + score_configs.pool + manual cycle record"
+}

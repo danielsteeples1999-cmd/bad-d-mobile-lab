@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "GRID-METER-005",
+  "queue_task_id": "GRID-METER-005",
+  "objective": "Test whether a model-free bar-regularity check brings single-network downbeats (Beat This! minimal + D1) to two-network safety at lower cost.",
+  "current_unknown": "Whether the cheaper single-network configuration can be made as safe as madmom DBN + D3.",
+  "hypothesis": "C5 = C2 + R meets: silent error rate <= 0.0336, false-alarm rate <= 0.05, cost <= 9.83 CPU-s per audio-minute.",
+  "competing_hypotheses": [
+    "C2's silent errors keep regular bar lengths, so R cannot see them.",
+    "R removes silent errors but floods false alarms on genuine odd bars beyond 0.05."
+  ],
+  "control_mode": "LAB_AUTONOMOUS",
+  "stages": [
+    {"stage": "HYPOTHESIZE", "status": "DONE", "output": "Rule R, configuration C5 and decision thresholds pre-registered in commit 355eb3b.", "evidence": "experiments/GRID-METER-005/PREREGISTRATION.md"},
+    {"stage": "FIXTURE_VALIDATION", "status": "DONE", "output": "32/32 FIXTURE_ACCEPTED (same fixtures as GRID-METER-004).", "evidence": "experiments/GRID-METER-005/regularity_results.json rows[].fixture_gate"},
+    {"stage": "BUILD", "status": "DONE", "output": "tools/grid-meter/run_regularity.py with regularity_flags()."},
+    {"stage": "TEST", "status": "DONE", "output": "R unit checks pass (regular grid unflagged; a short bar flags both of its bounding downbeats); suite test added."},
+    {"stage": "REGRESSION", "status": "DONE", "output": "Recomputed C2 reproduces GRID-METER-004 exactly: 40/824 silent, 0 false alarms."},
+    {"stage": "MEASURE", "status": "DONE", "output": "32 fixtures, 230 s wall, 1 torch thread.", "evidence": "experiments/GRID-METER-005/verdicts.json"},
+    {"stage": "ATTACK", "status": "SKIPPED", "note": "False-alarm traps (sync_anticip, halftime_switch) already inside the decision set; both produced 0 C5 false alarms."},
+    {"stage": "RECORD", "status": "DONE", "evidence": "experiments/GRID-METER-005/README.md"},
+    {"stage": "EXTRACT", "status": "DONE", "output": "C5 recommended over C1: silent 0.0279 vs 0.0286, FA 0.0256, coverage 0.966 vs 0.791, cost 5.84 vs 16.38 CPU-s per audio-minute."},
+    {"stage": "PRIORITIZE", "status": "DONE", "output": "GRID-METER-003 should verify C5's grid; amend its method before any real track is analysed."}
+  ],
+  "measurements": {
+    "C5": {"silent_error_rate": 0.0279, "silent_wilson95": [0.0187, 0.0415], "false_alarm_rate": 0.0256, "fa_wilson95": [0.0166, 0.0392], "trustworthy_coverage": 0.9657, "cpu_s_per_audio_min": 5.84},
+    "C2_recomputed": {"silent_error_rate": 0.0485, "false_alarm_rate": 0.0, "trustworthy_coverage": 0.9911, "cpu_s_per_audio_min": 5.84},
+    "C1_reference_GRID_METER_004": {"silent_error_rate": 0.0286, "false_alarm_rate": 0.0474, "trustworthy_coverage": 0.7906, "cpu_s_per_audio_min": 16.38},
+    "R_check_cpu_s_per_audio_min": 0.0018,
+    "wall_seconds": 230.0
+  },
+  "regression_check": {"baseline_cycle_id": "GRID-METER-004", "compared_metric": "C2 silent errors / decoded / false alarms", "result": "NO_REGRESSION", "detail": "40/824 silent and 0 false alarms reproduced exactly."},
+  "limitations": [
+    "Synthetic fixtures only; R assumes the modal bar length is the true one.",
+    "CPU time on an x86 container core is a proxy, not a device measurement.",
+    "Remaining silent errors on steady fixtures (3-4 each) not investigated.",
+    "Repeated irregular phrases (heyya_pattern) remain unsafe: 62 silent errors."
+  ],
+  "decision": "KEEP",
+  "reusable_capability_produced": [
+    {"name": "bar-length regularity check R", "path": "tools/grid-meter/run_regularity.py", "reuse_proof": "USED_ONCE"},
+    {"name": "configuration scorer", "path": "tools/grid-meter/score_configs.py", "reuse_proof": "USED_TWICE_PLUS"}
+  ],
+  "next_recommended_experiment": {"task_id": "GRID-METER-003", "reason": "Real-track validation of the new candidate C5; blocked on one human input."},
+  "stop_reason": "COMPLETED",
+  "human_interventions": ["GRID-METER-003 needs real tracks and listener verification."],
+  "generated_at": "2026-10-03T08:00:00Z",
+  "generator_tool": "tools/grid-meter/run_regularity.py + manual cycle record"
+}
