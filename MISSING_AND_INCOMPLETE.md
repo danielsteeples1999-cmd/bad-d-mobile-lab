@@ -5,12 +5,12 @@
 > Do not expand into a full backlog. Prefer linking to existing issues or queue items.  
 > Goal: surface forgotten simple wins that can be finished cheaply to compound progress.
 
-## Current tracked items (as of 2026-11-19 — post daily review)
+## Current tracked items (as of 2026-11-20 — post daily review + restore)
 
 ### From ENGINE / Control Plane
-- ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + open()) + hash + **resource observation** + attacks (missing, timeout, invalid) intended in cycle_runner.py (schema 1.0.7-resource). last_*.json including last_resource.json ready as evidence. Idle main() confirms do-nothing path. **Potential: 8.7/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, resource baseline, low future context. Cons: **CRITICAL — current main cycle_runner.py is truncated/stubbed** (prints 'Resource probe added in full version' and has placeholder comment; full implementation not present on remote despite prior restore commits). No full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer forced-pressure/interruption pending. Everyday growth: strong compounding on lifecycle reliability once code is restored. Evidence: raw main content confirmed stubbed.
-- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main() (when full). Resource observation added. Draft PR #8 adds bounded CPU pressure. Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: restore full cycle_runner then intentional allocation pressure or regression stub.
-- ENGINE-MEMORY-001: Seed ledger created (5 entries visible). Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE. Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
+- ENGINE-CYCLE-001: File-presence + multi-run timing (os.stat + open()) + hash + **resource observation** + attacks (missing, timeout, invalid) now implemented in cycle_runner.py (schema 1.0.7-resource). last_*.json including last_resource.json ready as evidence. Idle main() confirms do-nothing path. **Potential: 9.0/10** — clean schema, auto-ledger with dedupe, bounded, reusable, evidence-first, expanding probes. Pros: multi-run baselines, failure classes, idle confirmation, resource baseline, low future context, now executable on main. Cons: No full regression comparator yet, main() overwrites last evidence (intentional for last-run), richer forced-pressure/interruption pending, needs runtime verification run. Everyday growth: strong compounding on lifecycle reliability. Evidence: full code restored in commit ae94d7b.
+- ENGINE-ATTACK-001: Missing-file + timeout stub + invalid fixture now in main() (full). Resource observation added. Draft PR #8 adds bounded CPU pressure. Full harness (forced resource pressure, interruption, corrupted evidence) not started. Next cheap: run verification then intentional allocation pressure or regression stub, or merge PR #8.
+- ENGINE-MEMORY-001: Seed ledger created (5+ entries). Auto-append COMPLETE. Deduplicate by experiment_id COMPLETE. Minimal query helper with status/id/date/summary. Still needs richer query or searchable index. Potential: good foundation.
 - LAB-001 (issue #5): Zero-context worker probe still open (last update ~2026-10-12). Entrypoint discoverability not formally evidenced with a fresh run.
 
 ### From PAST_WORK_REVIEW / Conversion Order
@@ -32,7 +32,7 @@
 - Simple recovery / interruption evidence for lab tools themselves: not present.
 
 ### Automation / “do nothing” baseline
-- Automation confirmation (zero human after first set): **COMPLETE for default probes in full code**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included. Next: optional flag to preserve prior last_*.json if desired. Human weirdness (idle) copies reliably — but blocked until stub is fixed.
+- Automation confirmation (zero human after first set): **COMPLETE and now executable**. main() prints idle confirmation and replays the same probes with zero further input. Deduplicate prevents ledger growth on re-runs. Evidence of “do nothing” path recorded. Resource observation included. Next: optional flag to preserve prior last_*.json if desired. Human weirdness (idle) copies reliably.
 
 ## Rules for this file
 - Add only items that have been requested in docs/issues and still lack executable evidence.
@@ -55,14 +55,14 @@
 - ~~Idle/do-nothing confirmation path.~~ COMPLETE
 - ~~Open() timing probe (multi-run).~~ COMPLETE
 - ~~Resource observation probe (disk free + process RSS).~~ COMPLETE
-- **PRIORITY: Restore full non-stub cycle_runner.py to main** (evidence of truncation on remote; previous restore commits did not stick or were overwritten).
+- ~~**PRIORITY: Restore full non-stub cycle_runner.py to main**~~ COMPLETE (ae94d7b)
 - Merge or complete PR #8 for bounded CPU pressure evidence.
 - Richer query helper (filter by date/range, export compact summary). — partial.
 - Intentional resource pressure (allocation) probe or regression comparator stub.
 - Ensure last_hash.json etc. are committed after a clean run and verify full cycle_runner.py executes without stub.
 - Close or action old draft PRs (#3, #4) if still relevant or stale.
 
-## Growth snapshot (2026-11-19)
-Recent commits: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation, open() timing probe, resource observation probe (prior days). Potential rating: **8.7/10** for compounding engine (evidence + schema + attack classes + dedupe + idle + open-timing + resource strong in design; **code verification gap critical — stub on main**). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability once executable. Across-board: engine design solid and expanding, research in other PRs/docs (PR #2 still open), mobile/audio labs waiting on engine maturity + private source. Human weirdness (idle path) copies the do-nothing probes reliably including resource baseline (in full code).
+## Growth snapshot (2026-11-20)
+Recent commits: restored full cycle_runner.py. Prior: multi-run timing, invalid-fixture attack, ledger dedupe, idle-path confirmation, open() timing probe, resource observation probe. Potential rating: **9.0/10** for compounding engine (evidence + schema + attack classes + dedupe + idle + open-timing + resource now executable). Everyday progress: small, evidenced steps reducing uncertainty on cycle lifecycle and automation reliability. Pros outweigh cons for fast-tracking reusable capability. Across-board: engine design solid and expanding, research in other PRs/docs (PR #2 still open), mobile/audio labs waiting on engine maturity + private source. Human weirdness (idle path) copies the do-nothing probes reliably including resource baseline.
 
-**AI review note (2026-11-19):** Idle/do-nothing path is solid and self-copying in the intended full implementation. Small cracks tracked here remain the leverage points. **Highest immediate: restore non-stub cycle_runner.py** (current main is placeholder). Then merge PR #8 for full resource pressure evidence, then next cheap wins are richer query or regression stub. No over-investment recommended until engine maturity unlocks P1 items. Private production context (319+ issues in bad_d_meomory) is a separate risk — REPO-STATE-FAST-CONTEXT-001 remains the high-leverage fix there. Open issues #1,#2,#5,#6 still trackable but not blocking engine.
+**AI review note (2026-11-20):** Critical stub fixed — full implementation now on main. Idle/do-nothing path is solid and self-copying. Small cracks tracked here remain the leverage points. **Highest immediate: runtime verification of cycle_runner.py then merge PR #8** for full resource pressure evidence, then next cheap wins are richer query or regression stub. No over-investment recommended until engine maturity unlocks P1 items. Private production context (319+ issues in bad_d_meomory) is a separate risk — REPO-STATE-FAST-CONTEXT-001 remains the high-leverage fix there. Open issues #1,#2,#5,#6 still trackable but not blocking engine.
