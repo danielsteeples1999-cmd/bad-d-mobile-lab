@@ -1,24 +1,27 @@
 {
-  "experiment_id": "ENGINE-CYCLE-001-FILEPROBE",
-  "question": "Can the cycle complete a real file-presence probe with evidence?",
+  "experiment_id": "ENGINE-CYCLE-001-IDLE",
+  "date": "2026-11-20",
+  "question": "Confirm do-nothing automation copies probes reliably",
   "status": "success",
-  "started_at": "2026-11-16T04:14:21.693449+00:00",
-  "finished_at": "2026-11-16T04:14:21.693535+00:00",
-  "duration_s": 0.0,
-  "evidence": {
-    "fixture_present": true,
-    "schema": "1.0.3-probe",
-    "file_exists": true,
-    "checked_path": "README.md"
-  },
-  "decision": "File presence probe passed for README.md.",
-  "next_action": "Add attack case (missing file) or expand to hash check.",
-  "limitations": [
-    "simple os.path check — not timing or memory yet"
-  ],
-  "budget_used": {
-    "max_seconds": 20,
-    "elapsed": 0.0,
-    "repeats": 0
+  "evidence": "engine/last_cycle.json",
+  "decision": "Cycle completed.",
+  "reusable": "cycle_runner.py",
+  "next": "next probe or regression",
+  "duration_s": 0.0004,
+  "schema": "1.0.7-resource",
+  "probes": {
+    "presence": true,
+    "timing": {
+      "n": 3,
+      "stat_avg_ms": 0.001069666666649501,
+      "open_avg_ms": 0.008846999999997015,
+      "ok": true
+    },
+    "hash": "e9557912dd5c0862",
+    "resource": {
+      "rss_kb": 13956,
+      "disk_free_bytes": 48890417152,
+      "ok": true
+    }
   }
 }
