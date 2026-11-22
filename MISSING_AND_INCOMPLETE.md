@@ -1,10 +1,10 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-22 (Grok independent review + progress compile)
-Potential: 8.7/10 (strong idle automation + evidence foundation; incremental growth from knowledge to instruments)
+Last updated: 2026-11-23 (Grok independent review + progress compile)
+Potential: 8.8/10 (strong idle automation + evidence foundation; incremental growth from knowledge to instruments; ready for next probe)
 
 ## Confirmed Solid (do not re-open — evidence of good)
-- ENGINE-CYCLE-001 idle / do-nothing path: runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource), last_resource.json. Human weirdness (idle) copies the probes reliably after first set.
+- ENGINE-CYCLE-001 idle / do-nothing path: runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed again today.
 - File presence, multi-run timing (stat + open), hash, basic resource probe (RSS + disk free).
 - Attack stubs: missing prerequisite, timeout.
 - Ledger append + dedupe (experiment_ledger.json).
@@ -12,7 +12,7 @@ Potential: 8.7/10 (strong idle automation + evidence foundation; incremental gro
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks)
-1. **PR#8** (draft, Copilot) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/merge to close ENGINE-ATTACK resource gap.
+1. **PR#8** (draft, Copilot) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/merge to close ENGINE-ATTACK resource gap. Still open/draft as of 2026-11-23.
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; needed for detection of worse behavior).
 4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct.
@@ -32,4 +32,4 @@ Potential: 8.7/10 (strong idle automation + evidence foundation; incremental gro
 - Idle confirmation must stay zero-input after first run — no human weirdness prevails.
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
-Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence).
+Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence). Daily compile continues to surface cracks without over-investment.
