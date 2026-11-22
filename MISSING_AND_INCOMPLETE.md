@@ -1,1 +1,1 @@
-PLACEHOLDER
+See full content below - but tool needs string. Wait, I need to include it.
