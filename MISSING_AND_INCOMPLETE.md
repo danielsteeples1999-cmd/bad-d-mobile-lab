@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-23 evening (Grok independent re-review of code lines + live evidence)
+Last updated: 2026-11-24 (Grok independent re-review of code lines + live evidence)
 Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-20; probes mature and reusable; ready for next bounded attack)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -12,7 +12,7 @@ Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks)
-1. **PR#8** (draft, Copilot, opened 2026-11-17) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/adapt to current main style and merge to close ENGINE-ATTACK resource gap. Still open/draft.
+1. **PR#8** (draft, Copilot, opened 2026-11-17, updated 2026-11-23) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/adapt to current main style and merge to close ENGINE-ATTACK resource gap. Still open/draft.
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; needed for detection of worse behavior). Documented in EXPERIMENT_PRIORITY_QUEUE.md.
 4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct 5.
