@@ -20,17 +20,6 @@
     "next": "hash or timing probe + full attack harness"
   },
   {
-    "experiment_id": "ENGINE-CYCLE-001-FILEPROBE",
-    "date": "2026-11-16",
-    "question": "Can the cycle complete a real file-presence probe with evidence?",
-    "status": "success",
-    "evidence": "engine/last_cycle.json or last_attack.json",
-    "decision": "File presence probe passed for README.md.",
-    "reusable": "cycle_runner.py",
-    "next": "Add attack case (missing file) or expand to hash check.",
-    "duration_s": 0.0
-  },
-  {
     "experiment_id": "ENGINE-CYCLE-001-ATTACK-MISSING",
     "date": "2026-11-16",
     "question": "Does the cycle record clean failure on missing prerequisite?",
