@@ -21,7 +21,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-SCHEMA_VERSION = "1.0.7-resource"
+SCHEMA_VERSION = "1.0.8-regress-stub"
 LEDGER_PATH = "engine/experiment_ledger.json"
 
 @dataclass
@@ -79,6 +79,25 @@ def file_hash(path: str) -> str:
             h.update(chunk)
     return h.hexdigest()[:16]
 
+def simple_regress_comparator(baseline: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, Any]:
+    """ENGINE-REGRESS-001 stub: cheap baseline vs candidate on hash + timing presence."""
+    # Minimal: check if hashes match and timings exist; flag worse if timing increased >20% or hash missing
+    result = {"status": "unknown", "details": "stub comparator"}
+    b_hash = baseline.get("hash")
+    c_hash = candidate.get("hash")
+    b_timing = baseline.get("timing", {}).get("open_avg_ms", 0)
+    c_timing = candidate.get("timing", {}).get("open_avg_ms", 0)
+    if b_hash and c_hash and b_hash == c_hash:
+        if c_timing > b_timing * 1.2:
+            result = {"status": "worse", "details": "timing regression >20%"}
+        else:
+            result = {"status": "pass", "details": "hash match, timing ok"}
+    elif not c_hash:
+        result = {"status": "failure", "details": "candidate missing hash"}
+    else:
+        result = {"status": "changed", "details": "hash differs"}
+    return result
+
 def append_to_ledger(result: CycleResult):
     ledger = []
     if os.path.exists(LEDGER_PATH):
@@ -121,6 +140,10 @@ def run_cycle(experiment_id: str, question: str, fixture_path: Optional[str] = N
     elif 'TIMEOUT' in experiment_id:
         status = "blocked"
         decision = "Timeout attack stub."
+
+    # Cheap regress stub call (self-compare for idle confirmation)
+    if probes.get('hash'):
+        probes['regress_stub'] = simple_regress_comparator(probes, probes)
 
     duration = time.perf_counter() - start
     result = CycleResult(
