@@ -1,13 +1,13 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-23 (Grok independent code-line review + growth compile)
-Potential: 8.9/10 (idle automation proven solid with live evidence; probes mature and reusable; ready for next bounded attack)
+Last updated: 2026-11-23 evening (Grok independent re-review of code lines + live evidence)
+Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-20; probes mature and reusable; ready for next bounded attack)
 
 ## Confirmed Solid (do not re-open — evidence of good)
-- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed by reading current cycle_runner.py.
+- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed by reading current cycle_runner.py line-by-line.
 - File presence, multi-run timing (stat + open), hash, basic resource probe (RSS + disk free). All present and functional.
 - Attack stubs: missing prerequisite, timeout.
-- Ledger append + dedupe (experiment_ledger.json).
+- Ledger append + dedupe (experiment_ledger.json) — recent hygiene cleanup of duplicates completed.
 - Daily/coord automation via workflows.
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 
@@ -17,13 +17,12 @@ Potential: 8.9/10 (idle automation proven solid with live evidence; probes matur
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; needed for detection of worse behavior). Documented in EXPERIMENT_PRIORITY_QUEUE.md.
 4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct 5.
 5. CLAUDE_NOW.md refresh (last 2026-09-21) — update operating truth with current engine status to reduce future context cost.
-6. Ledger minor cleanup (duplicate-ish entries in experiment_ledger.json from earlier runs).
+6. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred.
 
 ## Longer / Deferred / Blocked
 - ENGINE-MEMORY-001 fuller searchable records (query helper exists; expand only when needed).
 - ENGINE-PRIORITY-001 evidence-driven queue automation.
 - P1 mobile/startup/RAM probes (require private source or device evidence; issue #6 / PR#7 scaffolds).
-- Open issues #5 (worker probe), #6 (mobile next version).
 - Older open PRs #1 (listener ear), #2 (Intelligence Grid research + experiments — substantial but unmerged), #7 (mobile packet) — review for merge, close, or extract useful parts if stale.
 
 ## Rules for this list
