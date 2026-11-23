@@ -1,7 +1,7 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-23 evening (Grok independent re-review of code lines + live evidence)
-Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-20; probes mature and reusable; ready for next bounded attack)
+Last updated: 2026-11-23 evening (Grok independent re-review of code lines + live evidence + small contributions)
+Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-20; probes mature and reusable; regression stub now present; ready for next bounded attack)
 
 ## Confirmed Solid (do not re-open — evidence of good)
 - ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed by reading current cycle_runner.py line-by-line.
@@ -10,14 +10,14 @@ Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-
 - Ledger append + dedupe (experiment_ledger.json) — recent hygiene cleanup of duplicates completed.
 - Daily/coord automation via workflows.
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
+- Minimal ENGINE-REGRESS-001 stub (simple hash + timing comparator) added and called in idle path (schema bump to 1.0.8-regress-stub on branch).
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks)
 1. **PR#8** (draft, Copilot, opened 2026-11-17) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/adapt to current main style and merge to close ENGINE-ATTACK resource gap. Still open/draft.
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only).
-3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; needed for detection of worse behavior). Documented in EXPERIMENT_PRIORITY_QUEUE.md.
-4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct 5.
-5. CLAUDE_NOW.md refresh (last 2026-09-21) — update operating truth with current engine status to reduce future context cost.
-6. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred.
+3. Expand ENGINE-REGRESS-001 beyond stub (baseline storage, real candidate runs).
+4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct 5. CLAUDE_NOW.md now refreshed (was Sept 2026).
+5. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred.
 
 ## Longer / Deferred / Blocked
 - ENGINE-MEMORY-001 fuller searchable records (query helper exists; expand only when needed).
@@ -31,4 +31,4 @@ Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-
 - Idle confirmation must stay zero-input after first run — no human weirdness prevails.
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
-Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence). Daily compile continues to surface cracks without over-investment.
+Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence) + regression stub + CLAUDE_NOW refresh. Daily compile continues to surface cracks without over-investment.
