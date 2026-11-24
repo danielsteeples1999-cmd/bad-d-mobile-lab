@@ -1,7 +1,7 @@
 # CLAUDE NOW — CURRENT CONTROL PLANE
 
 > READ THIS FIRST. This is the highest-priority operating instruction for the lab.
-> Last refreshed: 2026-09-21 UTC.
+> Last refreshed: 2026-11-24 UTC (Grok: idle path confirmed with live evidence; schema 1.0.7-resource; highest next is bounded resource pressure).
 > If repository evidence or the latest experiment record contradicts this file, trust the evidence and update this file before continuing.
 
 ## 1. Mission
@@ -31,6 +31,7 @@ Do not optimize for document count, feature count, or large diffs.
 2. EXPERIMENT_PRIORITY_QUEUE.md — current work only.
 3. README.md — purpose and boundary.
 4. Exact files/tests/code needed for the current queue item.
+5. MISSING_AND_INCOMPLETE.md — tracked cracks that fell through (updated daily).
 
 ### Read on demand, not by default
 - CLAUDE_EXECUTIVE_BRAIN.md — deep architecture/reasoning context.
@@ -55,6 +56,8 @@ Before coding:
 6. state competing hypotheses briefly.
 
 Then work.
+
+Current highest: adapt/merge bounded CPU pressure probe (PR#8/#9), then interruption stub or hygiene merges.
 
 ## 5. 20-minute execution budget
 - 20 min active work maximum
