@@ -1,10 +1,10 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-24 (Grok independent line-by-line re-review of every code line in engine/cycle_runner.py + live evidence)
+Last updated: 2026-11-24 (Grok independent line-by-line re-review of every code line in engine/cycle_runner.py + live evidence + PR#8 comment)
 Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-20; probes mature, modular, and reusable; ready for next bounded attack)
 
 ## Confirmed Solid (do not re-open — evidence of good)
-- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed by reading current cycle_runner.py line-by-line (resource probe, multi_run_timing, file_hash, attack stubs, append_to_ledger with dedupe).
+- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok), last_resource.json. Human weirdness (idle) copies the probes reliably after first set. Confirmed by reading current cycle_runner.py line-by-line (resource probe via getrusage+statvfs, multi_run_timing on stat+open, file_hash sha256[:16], attack stubs, append_to_ledger with id+date dedupe).
 - File presence, multi-run timing (stat + open), hash, basic resource probe (RSS + disk free). All present and functional.
 - Attack stubs: missing prerequisite, timeout.
 - Ledger append + dedupe (experiment_ledger.json) — recent hygiene cleanup of duplicates completed.
@@ -12,7 +12,7 @@ Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks)
-1. **PR#8** (draft, Copilot, opened 2026-11-17, updated 2026-11-23) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/adapt to current main style and merge to close ENGINE-ATTACK resource gap. Still open/draft.
+1. **PR#8** (draft, Copilot, opened 2026-11-17, updated 2026-11-23) — Add bounded CPU pressure probe to idle cycle. Resource-pressure attack: short CPU burn, record wall/CPU time + iterations to last_resource.json. Highest leverage remaining crack; finish/adapt to current main style and merge to close ENGINE-ATTACK resource gap. Still open/draft. **2026-11-24: Grok commented with line-by-line adaptation notes to keep it bounded and idle-compatible.**
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; needed for detection of worse behavior). Documented in EXPERIMENT_PRIORITY_QUEUE.md.
 4. Small hygiene PRs: #3 (Python .gitignore), #4 (README research link) — merge candidates, low risk, documented but open since Oct 5.
@@ -31,4 +31,4 @@ Potential: 8.9/10 (idle automation proven solid with live evidence from 2026-11-
 - Idle confirmation must stay zero-input after first run — no human weirdness prevails.
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
-Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence). Daily compile continues to surface cracks without over-investment.
+Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence). Daily compile continues to surface cracks without over-investment. Next cycle: advance PR#8 then one more small crack.
