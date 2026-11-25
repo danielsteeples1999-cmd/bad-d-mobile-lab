@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-25 afternoon (Grok independent re-review: full line-by-line of cycle_runner.py main + PR#9 branch cpu_pressure_probe + 2026-11-20 last_*.json evidence + queue + ledger)
+Last updated: 2026-11-25 evening (Grok independent re-review: full line-by-line of cycle_runner.py main + PR#9 branch cpu_pressure_probe + 2026-11-20 last_*.json evidence + queue + ledger)
 Potential: 9.2/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe, schema preserved, zero-input idle unchanged; compounding engine maturing without over-investment)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -12,8 +12,8 @@ Potential: 9.2/10 (idle path solid with evidence; modular probes reusable; CPU p
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 - CLAUDE_NOW.md operating truth refreshed (idle proven, schema 1.0.7-resource, next is resource pressure).
 
-**Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget.
-**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). Busy-wait is simple and effective for bounded pressure.
+**Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget. Busy-wait is deterministic and cheap for bounded evidence.
+**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now).
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks over dates)
 1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input. Highest leverage — merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9.)
