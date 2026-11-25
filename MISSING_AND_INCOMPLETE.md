@@ -1,7 +1,7 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-25 midday (Grok independent re-review: full line-by-line of cycle_runner.py main + PR#9 branch cpu_pressure_probe + 2026-11-20 last_*.json evidence + queue)
-Potential: 9.1/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe, schema preserved, zero-input idle unchanged; compounding engine maturing without over-investment)
+Last updated: 2026-11-25 afternoon (Grok independent re-review: full line-by-line of cycle_runner.py main + PR#9 branch cpu_pressure_probe + 2026-11-20 last_*.json evidence + queue + ledger)
+Potential: 9.2/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe, schema preserved, zero-input idle unchanged; compounding engine maturing without over-investment)
 
 ## Confirmed Solid (do not re-open — evidence of good)
 - ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok). Human weirdness (idle) copies the probes reliably after first set. Confirmed line-by-line: get_resource_probe (getrusage RSS + statvfs disk free with fallback + optional pressure), multi_run_timing (stat+open avg), file_hash (sha256[:16]), attack stubs (missing/timeout), append_to_ledger (id+date dedupe).
@@ -13,7 +13,7 @@ Potential: 9.1/10 (idle path solid with evidence; modular probes reusable; CPU p
 - CLAUDE_NOW.md operating truth refreshed (idle proven, schema 1.0.7-resource, next is resource pressure).
 
 **Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget.
-**Cons:** Resource probe now includes pressure on every idle run (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). Busy-wait is simple and effective for bounded pressure.
+**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). Busy-wait is simple and effective for bounded pressure.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks over dates)
 1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input. Highest leverage — merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9.)
