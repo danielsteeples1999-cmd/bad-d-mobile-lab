@@ -1,7 +1,7 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-25 late (Grok daily compile: full review of main cycle_runner.py + PR#9 diff/tests + last_cycle.json evidence + open PRs + queue)
-Potential: 9.3/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented + unit-tested in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe, schema preserved, zero-input idle unchanged with test proving no input; compounding engine maturing without over-investment)
+Last updated: 2026-11-25 late (Grok independent re-review: full line-by-line of main cycle_runner.py + PR#9 full diff/tests + last_cycle.json evidence 2026-11-20 + open PRs/issues + queue)
+Potential: 9.3/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented + unit-tested in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe via **unpack, schema 1.0.7-resource preserved, zero-input idle unchanged with test proving no input call; compounding engine maturing without over-investment)
 
 ## Confirmed Solid (do not re-open — evidence of good)
 - ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok). Human weirdness (idle) copies the probes reliably after first set. Confirmed line-by-line: get_resource_probe (getrusage RSS + statvfs disk free with fallback + optional pressure), multi_run_timing (stat+open avg), file_hash (sha256[:16]), attack stubs (missing/timeout), append_to_ledger (id+date dedupe).
@@ -12,14 +12,14 @@ Potential: 9.3/10 (idle path solid with evidence; modular probes reusable; CPU p
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 - CLAUDE_NOW.md operating truth refreshed (idle proven, schema 1.0.7-resource, next is resource pressure).
 
-**Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget. Busy-wait is deterministic and cheap for bounded evidence. Tests cover probe math, field preservation, error paths, and idle zero-input.
-**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now).
+**Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget. Busy-wait is deterministic and cheap for bounded evidence. Tests cover probe math, field preservation, error paths, and idle zero-input (no input() called).
+**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now). Hygiene PRs still open long-term.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks over dates)
-1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests. Highest leverage — merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
+1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only — next after pressure merge).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; documented in queue; needed to detect worse behavior).
-4. Small hygiene PRs: #3 (Python .gitignore — adds venv/pycache/etc), #4 (README research link to AI_START_HERE.md) — open since 2026-10-05, low risk, trivial, merge candidates now.
+4. Small hygiene PRs: #3 (Python .gitignore — adds venv/pycache/etc), #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~50 days), low risk, trivial, merge candidates now.
 5. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred (private source required for #6).
 
 ## Longer / Deferred / Blocked
