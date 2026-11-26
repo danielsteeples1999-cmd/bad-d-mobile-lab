@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-26 evening (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20; PR#9 CPU pressure probe clean and ready pending rebase; .gitignore closed)
+Last updated: 2026-11-26 night (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested but update_branch failed due to merge conflict; .gitignore closed)
 Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger solid; CPU pressure coded/tested in PR#9 preserving schema/idle; compounding engine ready for next attack/regression once merged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -14,10 +14,10 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 - Python .gitignore hygiene: venv/__pycache__/.pytest_cache/etc now ignored (closed 2026-11-26).
 
 **Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget. Busy-wait is deterministic and cheap for bounded evidence. Tests cover probe math, field preservation, error paths, and idle zero-input (no input() called; main() twice for dedupe).
-**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now). PR#9 needs rebase to resolve dirty state. Remaining hygiene: PR#4 README link.
+**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now). PR#9 needs manual rebase to resolve merge conflict (auto-update failed). Remaining hygiene: PR#4 README link.
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks over dates)
-1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — rebase then merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
+1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — manual rebase then merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only — next after pressure merge).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; documented in queue; needed to detect worse behavior).
 4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~52 days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
@@ -35,4 +35,4 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 - Idle confirmation must stay zero-input after first run — no human weirdness prevails.
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
-Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge); one hygiene crack closed. Daily compile continues to surface cracks without over-investment. Next cycle: rebase/merge PR#9 (and close #8) then one more small crack (hygiene merge or interruption stub).
+Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge after conflict resolve); one hygiene crack closed. Daily compile continues to surface cracks without over-investment. Next cycle: resolve PR#9 conflict then merge (and close #8) then one more small crack (hygiene merge or interruption stub).
