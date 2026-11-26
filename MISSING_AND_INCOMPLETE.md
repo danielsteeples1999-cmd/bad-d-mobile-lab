@@ -1,10 +1,10 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-26 (Grok independent re-review: full line-by-line of main cycle_runner.py + PR#9 full diff/tests + last_cycle.json evidence 2026-11-20 + open PRs/issues + queue)
-Potential: 9.3/10 (idle path solid with evidence; modular probes reusable; CPU pressure probe cleanly implemented + unit-tested in draft PR#9 — 2s single-process burn recording wall/CPU time + iterations into resource probe via **unpack, schema 1.0.7-resource preserved, zero-input idle unchanged with test proving no input call; compounding engine maturing without over-investment. PR#9 currently dirty vs main — rebase before merge.)
+Last updated: 2026-11-26 (Grok daily compile: re-confirmed main cycle_runner.py line-by-line, PR#9 diff/tests clean + unit-tested, last_cycle.json 2026-11-20 evidence solid, open PRs reviewed)
+Potential: 9.4/10 (idle path proven zero-input; modular probes + ledger solid; CPU pressure probe ready in PR#9 with full tests covering math, preservation, errors, and idle no-input; engine compounding well. Minor: PR#9 dirty/needs rebase; hygiene PRs aged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
-- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok). Human weirdness (idle) copies the probes reliably after first set. Confirmed line-by-line: get_resource_probe (getrusage RSS + statvfs disk free with fallback + optional pressure), multi_run_timing (stat+open avg), file_hash (sha256[:16]), attack stubs (missing/timeout), append_to_ledger (id+date dedupe).
+- ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok). Human weirdness (idle) copies the probes reliably after first set. Confirmed line-by-line: get_resource_probe (getrusage RSS + statvfs disk free with fallback), multi_run_timing (stat+open avg), file_hash (sha256[:16]), attack stubs (missing/timeout), append_to_ledger (id+date dedupe).
 - File presence, multi-run timing (stat + open), hash, basic resource probe (RSS + disk free). All functional and evidence-first.
 - Attack stubs: missing prerequisite, timeout.
 - Ledger append + dedupe — hygiene complete.
