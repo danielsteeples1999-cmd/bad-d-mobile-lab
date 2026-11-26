@@ -1,7 +1,7 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-26 (Grok daily compile + contribution: re-confirmed main cycle_runner.py + PR#9 clean line-by-line including tests/test_cycle_runner.py; idle solid with 2026-11-20 evidence; .gitignore hygiene already closed)
-Potential: 9.5/10 (idle path proven zero-input; modular probes + ledger solid; CPU pressure probe ready in PR#9 with full tests covering math, fields, errors, and zero-input; engine compounding cleanly.)
+Last updated: 2026-11-26 evening (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20; PR#9 CPU pressure probe clean and ready pending rebase; .gitignore closed)
+Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger solid; CPU pressure coded/tested in PR#9 preserving schema/idle; compounding engine ready for next attack/regression once merged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
 - ENGINE-CYCLE-001 idle / do-nothing path: main() runs probes with zero further human input, writes last_*.json + ledger dedupe. Evidence: engine/last_cycle.json (2026-11-20 success, schema 1.0.7-resource, duration ~0.0004s, presence/timing/hash/resource all ok). Human weirdness (idle) copies the probes reliably after first set. Confirmed line-by-line: get_resource_probe (getrusage RSS + statvfs disk free with fallback), multi_run_timing (stat+open avg), file_hash (sha256[:16]), attack stubs (missing/timeout), append_to_ledger (id+date dedupe).
@@ -20,7 +20,7 @@ Potential: 9.5/10 (idle path proven zero-input; modular probes + ledger solid; C
 1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — rebase then merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only — next after pressure merge).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; documented in queue; needed to detect worse behavior).
-4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~50+ days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
+4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~52 days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
 5. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred (private source required for #6).
 
 ## Longer / Deferred / Blocked
