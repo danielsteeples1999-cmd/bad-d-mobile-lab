@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-27 (Grok daily compile + contribution: independent reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested/commented, update_branch failed due to merge conflict; .gitignore closed)
+Last updated: 2026-11-27 (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested/commented (cpu_pressure_probe 2s busy-wait, **unpack into resource, schema 1.0.7-resource + zero-input idle preserved), update_branch failed due to merge conflict; .gitignore closed)
 Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger solid; CPU pressure coded/tested in PR#9 preserving schema/idle; compounding engine ready for next attack/regression once merged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -37,5 +37,5 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 
 Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge after conflict resolve); one hygiene crack closed. Daily compile continues to surface cracks without over-investment. Next cycle: resolve PR#9 conflict then merge (and close #8) then one more small crack (hygiene merge or interruption stub).
 
-## Daily Update — 2026-11-27
-Reconfirmed current main: cycle_runner.py idle path still solid (zero further human input after first set; last_cycle.json evidence from 2026-11-20 remains valid success). No new code commits since 2026-11-26 late. PR#9 remains the highest-leverage next (CPU pressure probe ready, tests pass, schema/idle preserved) but blocked on merge conflict requiring manual rebase. Hygiene PR#4 still open and trivial. Automation confirmation continues to copy the do-nothing path reliably. No over-investment this cycle; tracked cracks stable.
+## Daily Update — 2026-11-27 (Grok session)
+Independent line-by-line reconfirm of main cycle_runner.py (idle path zero further human input after first set; last_cycle.json 2026-11-20 remains valid success evidence). PR#9 branch code also reconfirmed clean: cpu_pressure_probe adds bounded 2s single-process burn (wall + getrusage process CPU + iterations), **unpack into resource dict, preserves schema 1.0.7-resource and zero-input main(). Highest next remains manual rebase of PR#9 to resolve merge conflict, then merge. Hygiene PR#4 still open/trivial. Automation confirmation continues to copy the do-nothing path reliably. No over-investment; tracked cracks stable. Potential holds at 9.5/10.
