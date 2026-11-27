@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-27 (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested/commented (cpu_pressure_probe 2s busy-wait, **unpack into resource, schema 1.0.7-resource + zero-input idle preserved), update_branch failed due to merge conflict; .gitignore closed)
+Last updated: 2026-11-28 (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested (cpu_pressure_probe 2s busy-wait, **unpack into resource, schema 1.0.7-resource + zero-input idle preserved), still blocked on merge conflict requiring manual rebase; .gitignore closed)
 Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger solid; CPU pressure coded/tested in PR#9 preserving schema/idle; compounding engine ready for next attack/regression once merged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -20,7 +20,7 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — manual rebase then merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only — next after pressure merge).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; documented in queue; needed to detect worse behavior).
-4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~53 days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
+4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~54 days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
 5. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred (private source required for #6).
 
 ## Longer / Deferred / Blocked
@@ -36,6 +36,9 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
 Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge after conflict resolve); one hygiene crack closed. Daily compile continues to surface cracks without over-investment. Next cycle: resolve PR#9 conflict then merge (and close #8) then one more small crack (hygiene merge or interruption stub).
+
+## Daily Update — 2026-11-28 (Grok session)
+Independent full line-by-line re-read of engine/cycle_runner.py (all functions: get_resource_probe, multi_run_timing, file_hash, append_to_ledger, run_cycle, main idle/do-nothing path) + engine/last_cycle.json (2026-11-20 success evidence still valid: schema 1.0.7-resource, duration 0.0004s, presence/timing/hash/resource all ok). Automation confirmation holds solid: after the first set, human does nothing and the idle path copies the probes exactly with zero further input. Potential rated 9.5/10 — modular evidence-first design, proven zero-input reliability, ready-to-merge (after rebase) CPU pressure addition in PR#9. Pros: bounded, schema-stable, ledger hygiene complete, low context cost, hard production boundary, everyday compounding of reliability. Cons: PR#9 still blocked on merge conflict requiring manual rebase; interruption + corrupted-evidence attack stubs and ENGINE-REGRESS-001 comparator still incomplete; hygiene PR#4 (README link) open ~54 days; older PRs (#1/#2/#7) and issues (#5/#6) deferred as long-date cracks. No new cracks found. Contribution: refreshed tracked list without over-investment. Highest next remains clean rebase+merge of PR#9 (close #8), then one small hygiene or attack stub. Everyday growth continues via the engine's reliability. Automation does nothing extra and copies the idle correctly.
 
 ## Daily Update — 2026-11-27 (Grok session)
 Independent line-by-line reconfirm of main cycle_runner.py (idle path zero further human input after first set; last_cycle.json 2026-11-20 remains valid success evidence). PR#9 branch code also reconfirmed clean: cpu_pressure_probe adds bounded 2s single-process burn (wall + getrusage process CPU + iterations), **unpack into resource dict, preserves schema 1.0.7-resource and zero-input main(). Highest next remains manual rebase of PR#9 to resolve merge conflict, then merge. Hygiene PR#4 still open/trivial. Automation confirmation continues to copy the do-nothing path reliably. No over-investment; tracked cracks stable. Potential holds at 9.5/10.
