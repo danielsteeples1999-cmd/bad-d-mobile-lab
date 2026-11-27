@@ -38,8 +38,26 @@ class CycleResult:
     schema: str = SCHEMA_VERSION
     probes: Dict[str, Any] = None
 
+def cpu_pressure_probe() -> Dict[str, Any]:
+    """Run a two-second single-process CPU burn and measure its cost."""
+    before = resource.getrusage(resource.RUSAGE_SELF)
+    start = time.perf_counter()
+    iterations = 0
+    while True:
+        now = time.perf_counter()
+        if now - start >= 2.0:
+            break
+        iterations += 1
+    after = resource.getrusage(resource.RUSAGE_SELF)
+    return {
+        "pressure_wall_seconds": now - start,
+        "process_cpu_seconds": (after.ru_utime + after.ru_stime
+                                - before.ru_utime - before.ru_stime),
+        "iterations": iterations,
+    }
+
 def get_resource_probe() -> Dict[str, Any]:
-    """Cheap resource observation: disk free (approx) + process RSS."""
+    """Observe disk free and process RSS, then measure bounded CPU pressure."""
     try:
         ru = resource.getrusage(resource.RUSAGE_SELF)
         rss_kb = ru.ru_maxrss
@@ -49,7 +67,8 @@ def get_resource_probe() -> Dict[str, Any]:
             free_bytes = st.f_bavail * st.f_frsize
         except Exception:
             free_bytes = -1
-        return {"rss_kb": rss_kb, "disk_free_bytes": free_bytes, "ok": True}
+        pressure = cpu_pressure_probe()
+        return {"rss_kb": rss_kb, "disk_free_bytes": free_bytes, **pressure, "ok": True}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
