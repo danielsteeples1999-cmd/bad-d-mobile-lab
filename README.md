@@ -22,6 +22,10 @@ Then read **[EXPERIMENT_PRIORITY_QUEUE.md](EXPERIMENT_PRIORITY_QUEUE.md)**.
 
 Do **not** begin by reading the whole repository.
 
+## Research entrypoint
+
+For Intelligence Grid / meter / DJ intelligence / EAR LAB research, start at [AI_START_HERE.md](AI_START_HERE.md).
+
 ## Current operating model
 
 **question → baseline → experiment → test → attack → evidence → reusable capability → next question**
