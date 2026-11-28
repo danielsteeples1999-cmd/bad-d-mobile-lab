@@ -1,6 +1,6 @@
 # MISSING AND INCOMPLETE — TRACKED CRACKS
 
-Last updated: 2026-11-28 (Grok daily compile + contribution: independent line-by-line reconfirm of main cycle_runner.py idle/do-nothing path + evidence last_cycle.json 2026-11-20 success; PR#9 CPU pressure probe clean/tested (cpu_pressure_probe 2s busy-wait, **unpack into resource, schema 1.0.7-resource + zero-input idle preserved), still blocked on merge conflict requiring manual rebase; .gitignore closed)
+Last updated: 2026-11-28 (Grok: closed long-open hygiene PR#4 by squash merge; independent reconfirm of cycle_runner.py idle/do-nothing + last_cycle.json 2026-11-20 evidence; PR#9 still mergeable_state dirty requiring manual rebase; potential 9.5/10 holds)
 Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger solid; CPU pressure coded/tested in PR#9 preserving schema/idle; compounding engine ready for next attack/regression once merged.)
 
 ## Confirmed Solid (do not re-open — evidence of good)
@@ -12,22 +12,22 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 - Hard production boundary, evidence standards, progress = uncertainty reduction + reusable capability.
 - CLAUDE_NOW.md operating truth refreshed (idle proven, schema 1.0.7-resource, next is resource pressure).
 - Python .gitignore hygiene: venv/__pycache__/.pytest_cache/etc now ignored (closed 2026-11-26).
+- README research entrypoint link: PR#4 closed by merge 2026-11-28 (long-date crack ~54 days resolved).
 
 **Pros of current cycle_runner.py + PR#9:** Clean schema, bounded, reusable, zero-input idle confirmation, modular probes (new cpu_pressure_probe is self-contained, integrates via **unpack, keeps ok/error paths), failure/blocked clear, low future context cost. Everyday growth compounds reliability. Pressure measurement is observational + active under budget. Busy-wait is deterministic and cheap for bounded evidence. Tests cover probe math, field preservation, error paths, and idle zero-input (no input() called; main() twice for dedupe).
-**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now). PR#9 needs manual rebase to resolve merge conflict (auto-update failed). Remaining hygiene: PR#4 README link.
+**Cons:** Resource probe will include pressure on every idle run once merged (intentional for evidence; could be optional later if needed); no regression comparator yet; interruption/corrupted stubs incomplete; main() overwrites last evidence (intentional for last-run). No multi-core or memory pressure yet (not needed now). PR#9 needs manual rebase to resolve merge conflict (mergeable_state still dirty). 
 
 ## Highest Next Cheap Wins (open / incomplete — fell through cracks over dates)
 1. **PR#9** (draft, Copilot, opened 2026-11-24) — Bounded CPU pressure probe (2s single-process burn, record wall/CPU time + iterations into last_resource.json via extended get_resource_probe). Clean implementation matches style, keeps schema 1.0.7-resource, idle path zero-input, includes tests proving no human input. Highest leverage — manual rebase then merge to close ENGINE-ATTACK resource gap. (PR#8 is older parallel draft; prefer #9 / close #8 after.)
 2. ENGINE-ATTACK-001 expansion: interruption + corrupted-evidence attacks (stubs only — next after pressure merge).
 3. ENGINE-REGRESS-001 — simple baseline vs candidate comparator (not started; documented in queue; needed to detect worse behavior).
-4. Small hygiene PR: #4 (README research link to AI_START_HERE.md) — open since 2026-10-05 (~54 days), low risk, trivial, merge candidate now. (#3 .gitignore closed by direct commit.)
-5. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred (private source required for #6).
+4. Open issues #5 (worker probe), #6 (mobile next version) — scaffolds exist but implementation deferred (private source required for #6).
 
 ## Longer / Deferred / Blocked
 - ENGINE-MEMORY-001 fuller searchable records (query helper exists; expand only when needed).
 - ENGINE-PRIORITY-001 evidence-driven queue automation.
 - P1 mobile/startup/RAM probes (require private source or device evidence; issue #6 / PR#7 scaffolds).
-- Older open PRs #1 (listener ear), #2 (Intelligence Grid research + experiments — substantial but unmerged), #7 (mobile packet) — review for merge, close, or extract useful parts if stale.
+- Older open PRs #1 (listener ear), #2 (Intelligence Grid research + experiments — substantial but unmerged), #7 (mobile packet) — review for merge, close, or extract useful parts if stale. PR#3 can be closed (superseded by direct commit).
 
 ## Rules for this list
 - Only items with evidence of incompleteness or explicit request that fell through over long dates.
@@ -35,7 +35,10 @@ Potential: 9.5/10 (zero-input idle proven and stable; modular probes + ledger so
 - Idle confirmation must stay zero-input after first run — no human weirdness prevails.
 - Do not over-invest; work across the board on small jobs to fast-track compounding success.
 
-Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge after conflict resolve); one hygiene crack closed. Daily compile continues to surface cracks without over-investment. Next cycle: resolve PR#9 conflict then merge (and close #8) then one more small crack (hygiene merge or interruption stub).
+Progress = measurable reduction in uncertainty + reusable capability. Large docs or unmerged PRs are not progress. Recent growth: cycle runner matured with probes + idle confirmation (mid-Nov evidence); CPU pressure now coded cleanly, tested, and ready in PR#9 (pending clean merge after conflict resolve); two hygiene cracks closed (.gitignore + README link). Daily compile continues to surface cracks without over-investment. Next cycle: resolve PR#9 conflict then merge (and close #8) then one more small crack (interruption stub or regress).
+
+## Daily Update — 2026-11-28 later (Grok session)
+Closed long-open hygiene crack: squash-merged PR#4 (README research entrypoint link to AI_START_HERE.md, open ~54 days, trivial +4 lines). Independent line-by-line reconfirm of engine/cycle_runner.py idle/do-nothing path + last_cycle.json (2026-11-20 success evidence still valid). PR#9 confirmed still dirty (mergeable_state). Automation confirmation holds: after first set, human does nothing and idle copies probes exactly with zero further input. Potential 9.5/10 holds. Pros/cons unchanged and solid. No new cracks. Contribution: closed one tracked crack + refreshed list without over-investment. Highest next remains clean rebase+merge of PR#9 (close #8), then one small attack stub. Everyday growth compounds reliability.
 
 ## Daily Update — 2026-11-28 (Grok session)
 Independent full line-by-line re-read of engine/cycle_runner.py (all functions: get_resource_probe, multi_run_timing, file_hash, append_to_ledger, run_cycle, main idle/do-nothing path) + engine/last_cycle.json (2026-11-20 success evidence still valid: schema 1.0.7-resource, duration 0.0004s, presence/timing/hash/resource all ok). Automation confirmation holds solid: after the first set, human does nothing and the idle path copies the probes exactly with zero further input. Potential rated 9.5/10 — modular evidence-first design, proven zero-input reliability, ready-to-merge (after rebase) CPU pressure addition in PR#9. Pros: bounded, schema-stable, ledger hygiene complete, low context cost, hard production boundary, everyday compounding of reliability. Cons: PR#9 still blocked on merge conflict requiring manual rebase; interruption + corrupted-evidence attack stubs and ENGINE-REGRESS-001 comparator still incomplete; hygiene PR#4 (README link) open ~54 days; older PRs (#1/#2/#7) and issues (#5/#6) deferred as long-date cracks. No new cracks found. Contribution: refreshed tracked list without over-investment. Highest next remains clean rebase+merge of PR#9 (close #8), then one small hygiene or attack stub. Everyday growth continues via the engine's reliability. Automation does nothing extra and copies the idle correctly.
